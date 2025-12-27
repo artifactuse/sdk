@@ -1,0 +1,113 @@
+{
+  "name": "artifactuse",
+  "version": "0.1.0",
+  "description": "The Artifact SDK for AI Agents - Turn AI outputs into interactive experiences",
+  "author": "Artifactuse",
+  "license": "MIT",
+  "homepage": "https://artifactuse.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/artifactuse/artifactuse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/artifactuse/artifactuse/issues"
+  },
+  "keywords": [
+    "ai",
+    "artifacts",
+    "sdk",
+    "chat",
+    "llm",
+    "claude",
+    "openai",
+    "agent",
+    "vue",
+    "react",
+    "svelte"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./vue": {
+      "import": "./dist/vue/index.js",
+      "require": "./dist/vue/index.cjs",
+      "types": "./dist/vue/index.d.ts"
+    },
+    "./vue2": {
+      "import": "./dist/vue2/index.js",
+      "require": "./dist/vue2/index.cjs",
+      "types": "./dist/vue2/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.js",
+      "require": "./dist/react/index.cjs",
+      "types": "./dist/react/index.d.ts"
+    },
+    "./svelte": {
+      "import": "./dist/svelte/index.js",
+      "require": "./dist/svelte/index.cjs",
+      "types": "./dist/svelte/index.d.ts"
+    },
+    "./styles": "./dist/styles/artifactuse.css",
+    "./styles/*": "./dist/styles/*"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && npm run build:types",
+    "build:types": "tsc --emitDeclarationOnly",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vue": "^2.6.0 || ^3.0.0",
+    "@vue/composition-api": "^1.0.0",
+    "portal-vue": "^2.1.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "svelte": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    },
+    "@vue/composition-api": {
+      "optional": true
+    },
+    "portal-vue": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
