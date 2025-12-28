@@ -570,4 +570,4 @@ MIT © [Artifactuse](https://artifactuse.com)
 
 ---
 
-**[Documentation](https://docs.artifactuse.com)** · **[Examples](https://artifactuse.com/examples)** · **[Discord](https://discord.gg/artifactuse)**
+**[Documentation](https://artifactuse.com/docs)** · **[Examples](https://artifactuse.com/docs/examples)** 
