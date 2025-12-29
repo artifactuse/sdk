@@ -566,7 +566,7 @@ colors: {
 
 ## License
 
-MIT © [Artifactuse](https://artifactuse.com)
+MIT © [Artifactuse](https://artifactuse.com). Crafted with ❤️ by the [BoostGPT Team](https://boostgpt.co).
 
 ---
 
