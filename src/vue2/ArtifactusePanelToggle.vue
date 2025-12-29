@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import { computed, defineComponent } from '@vue/composition-api';
-import { useArtifactuse } from './index.js';
+import { computed, defineComponent } from 'vue';
+import { useArtifactuse } from './composables.js';
 
 export default defineComponent({
   name: 'ArtifactusePanelToggle',

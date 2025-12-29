@@ -138,8 +138,8 @@ export { default as ArtifactusePanel } from './ArtifactusePanel.jsx';
 export { default as ArtifactusePanelToggle } from './ArtifactusePanelToggle.jsx';
 export { default as ArtifactuseCard } from './ArtifactuseCard.jsx';
 export { default as ArtifactuseViewer } from './ArtifactuseViewer.jsx';
-export { default as ArtifactuseInlineForm, ArtifactuseInlineForm } from './ArtifactuseInlineForm.jsx';
-export { default as ArtifactuseSocialPreview, ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.jsx';
+export { default as ArtifactuseInlineForm } from './ArtifactuseInlineForm.jsx';
+export { default as ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.jsx';
 
 // Default export
 export default {

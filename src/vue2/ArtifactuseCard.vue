@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import { ref, computed, defineComponent } from '@vue/composition-api';
+import { ref, computed, defineComponent } from 'vue';
 import { getLanguageDisplayName } from '../core/detector.js';
 
 export default defineComponent({

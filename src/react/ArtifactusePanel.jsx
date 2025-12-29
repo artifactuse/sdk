@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useArtifactuse } from './index.js';
+import { useArtifactuse } from './index.jsx';
 import { getLanguageDisplayName, getFileExtension } from '../core/detector.js';
 
 /**

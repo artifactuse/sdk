@@ -151,8 +151,8 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted, defineComponent } from '@vue/composition-api';
-import { useArtifactuse } from './index.js';
+import { ref, computed, watch, onMounted, defineComponent } from 'vue';
+import { useArtifactuse } from './composables.js';
 import { getLanguageDisplayName, getFileExtension } from '../core/detector.js';
 
 export default defineComponent({

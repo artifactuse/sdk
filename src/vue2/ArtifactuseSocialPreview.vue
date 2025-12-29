@@ -298,7 +298,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from '@vue/composition-api';
+import { ref, computed, watch, onMounted } from 'vue';
 
 export default {
   name: 'ArtifactuseSocialPreview',

@@ -2,7 +2,7 @@
 // React component for panel toggle button with badge
 
 import React, { useMemo } from 'react';
-import { useArtifactuse } from './index.js';
+import { useArtifactuse } from './index.jsx';
 
 /**
  * ArtifactusePanelToggle Component

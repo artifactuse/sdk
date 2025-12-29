@@ -1,32 +1,14 @@
-// artifactuse/vue2/index.js
-// Vue 2 / Nuxt 2 integration for Artifactuse SDK
-// Requires: @vue/composition-api or @nuxtjs/composition-api
-
-import Vue from 'vue';
+// src/vue2/composables.js
 import createArtifactuse from '../core/index.js';
-
-// Check for Composition API
-let compositionApi;
-try {
-  compositionApi = require('@vue/composition-api');
-} catch (e) {
-  try {
-    compositionApi = require('@nuxtjs/composition-api');
-  } catch (e2) {
-    console.error('Artifactuse: @vue/composition-api or @nuxtjs/composition-api is required for Vue 2');
-  }
-}
-
-const { 
-  ref, 
-  reactive, 
-  computed, 
-  onMounted, 
-  onUnmounted, 
-  provide, 
+import {
+  reactive,
+  computed,
+  onMounted,
+  onUnmounted,
+  provide,
   inject,
-  defineComponent 
-} = compositionApi || {};
+  defineComponent
+} from 'vue';
 
 // Injection key
 const ARTIFACTUSE_KEY = 'artifactuse';
@@ -187,18 +169,5 @@ export function createArtifactuseComposable(config = {}) {
 // Export defineComponent for convenience
 export { defineComponent };
 
-// Export components
-export { default as ArtifactuseAgentMessage } from './ArtifactuseAgentMessage.vue';
-export { default as ArtifactusePanel } from './ArtifactusePanel.vue';
-export { default as ArtifactusePanelToggle } from './ArtifactusePanelToggle.vue';
-export { default as ArtifactuseCard } from './ArtifactuseCard.vue';
-export { default as ArtifactuseViewer } from './ArtifactuseViewer.vue';
-export { default as ArtifactuseInlineForm } from './ArtifactuseInlineForm.vue';
-export { default as ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.vue';
-
-// Default export
-export default {
-  provideArtifactuse,
-  useArtifactuse,
-  createArtifactuseComposable,
-};
+// Export the injection key for advanced use cases
+export { ARTIFACTUSE_KEY };

@@ -38,8 +38,8 @@
 </template>
 
 <script>
-import { ref, computed, watch, defineComponent } from '@vue/composition-api';
-import { useArtifactuse } from './index.js';
+import { ref, computed, watch, defineComponent } from 'vue';
+import { useArtifactuse } from './composables.js';
 import ArtifactuseCard from './ArtifactuseCard.vue';
 import ArtifactuseInlineForm from './ArtifactuseInlineForm.vue';
 import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.vue';

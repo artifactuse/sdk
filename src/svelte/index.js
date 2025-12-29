@@ -1,7 +1,7 @@
 // artifactuse/svelte/index.js
 // Svelte / SvelteKit integration for Artifactuse SDK
 
-import { writable, derived, get } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 import { setContext, getContext, onMount, onDestroy } from 'svelte';
 import createArtifactuse from '../core/index.js';
 

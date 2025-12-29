@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "vue3": "cd vue3 && vite",
+    "vue2": "cd vue2 && vite",
+    "react": "cd react && vite",
+    "svelte": "cd svelte && vite"
+  }
+}

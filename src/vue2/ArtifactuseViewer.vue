@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import { ref, watch, onMounted, onUnmounted, nextTick, defineComponent } from '@vue/composition-api';
+import { ref, watch, onMounted, onUnmounted, nextTick, defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'ArtifactuseViewer',

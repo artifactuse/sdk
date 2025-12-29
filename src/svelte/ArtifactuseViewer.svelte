@@ -77,13 +77,14 @@
     <div class="artifactuse-viewer-content" transition:scale={{ duration: 200, start: 0.95 }}>
       <!-- Image -->
       {#if type === 'image'}
-        <img 
-          {src} 
-          {alt}
-          class="artifactuse-viewer-image"
-          class:artifactuse-viewer-image--zoomed={isZoomed}
-          on:click={toggleZoom}
-        />
+        <button type="button" class="artifactuse-viewer-image-button" on:click={toggleZoom}>
+          <img 
+            {src} 
+            {alt}
+            class="artifactuse-viewer-image"
+            class:artifactuse-viewer-image--zoomed={isZoomed}
+          />
+        </button>
       {/if}
       
       <!-- PDF -->
@@ -178,6 +179,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  .artifactuse-viewer-image-button{
+    all: unset;
+    cursor: zoom-in;
   }
 
   .artifactuse-viewer-image {
