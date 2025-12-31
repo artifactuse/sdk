@@ -21,29 +21,60 @@ Artifactuse is a lightweight SDK that transforms AI-generated content into rich,
 npm install artifactuse
 ```
 
+## Syntax Highlighting (Optional)
+
+For code syntax highlighting in the panel, include Prism.js:
+
+```bash
+npm install prismjs
+```
+
+```js
+import Prism from 'prismjs'
+// Import languages you need
+import 'prismjs/components/prism-javascript'
+import 'prismjs/components/prism-typescript'
+import 'prismjs/components/prism-python'
+import 'prismjs/components/prism-jsx'
+
+// Import a Prism theme of your choice
+import 'prismjs/themes/prism-tomorrow.css'  // dark theme
+// or 'prismjs/themes/prism.css'            // light theme
+```
+
+Or use CDN:
+```html
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.css" rel="stylesheet" />
+```
+
 ## Quick Start (Vue 3 / Nuxt 3)
 ```vue
 <template>
-  <div class="chat">
-    <!-- Render AI messages with artifact detection -->
-    <ArtifactuseAgentMessage 
-      v-for="msg in messages" 
-      :key="msg.id"
-      :content="msg.content"
-      :message-id="msg.id"
-      @form-submit="handleFormSubmit"
-      @social-copy="handleSocialCopy"
-    />
+  <div class="app-container">
+    <div class="chat">
+      <!-- Render AI messages with artifact detection -->
+      <ArtifactuseAgentMessage 
+        v-for="msg in messages" 
+        :key="msg.id"
+        :content="msg.content"
+        :message-id="msg.id"
+        @form-submit="handleFormSubmit"
+        @social-copy="handleSocialCopy"
+      />
+      
+      <!-- Toggle button with badge -->
+      <ArtifactusePanelToggle />
+    </div>
+    
+    <!-- Artifact panel (side panel for previews) -->
+    <ArtifactusePanel @ai-request="handleAIRequest" />
   </div>
-  
-  <!-- Artifact panel (side panel for previews) -->
-  <ArtifactusePanel @ai-request="handleAIRequest" />
-  
-  <!-- Toggle button with badge -->
-  <ArtifactusePanelToggle />
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { 
   ArtifactuseAgentMessage, 
   ArtifactusePanel, 
@@ -55,8 +86,6 @@ import 'artifactuse/styles';
 // Initialize Artifactuse
 provideArtifactuse({
   theme: 'dark',
-  // cdnUrl defaults to https://cdn.artifactuse.com
-  // Set this only if self-hosting panels
 });
 
 const messages = ref([]);
@@ -76,25 +105,54 @@ async function handleAIRequest({ prompt, context }) {
   const response = await yourAI.chat(prompt);
 }
 </script>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+}
+
+.app-container {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat {
+  flex: 1;
+  padding: 20px;
+  min-width: 0;
+  overflow-y: auto;
+}
+</style>
 ```
 
 ## Quick Start (Vue 2.7 / Nuxt 2)
 ```vue
 <template>
-  <div class="chat">
-    <ArtifactuseAgentMessage 
-      v-for="msg in messages" 
-      :key="msg.id"
-      :content="msg.content"
-      :message-id="msg.id"
-      @form-submit="handleFormSubmit"
-      @social-copy="handleSocialCopy"
-    />
+  <div class="app-container">
+    <div class="chat">
+      <ArtifactuseAgentMessage 
+        v-for="msg in messages" 
+        :key="msg.id"
+        :content="msg.content"
+        :message-id="msg.id"
+        @form-submit="handleFormSubmit"
+        @social-copy="handleSocialCopy"
+      />
+      
+      <ArtifactusePanelToggle />
+    </div>
     
     <ArtifactusePanel @ai-request="handleAIRequest" />
-    <ArtifactusePanelToggle />
     
-    <!-- Required: Portal target for panel rendering -->
+    <!-- Required: Portal target for fullscreen/mobile -->
     <portal-target name="artifactuse" />
   </div>
 </template>
@@ -123,6 +181,32 @@ export default {
   }
 }
 </script>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+}
+
+.app-container {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat {
+  flex: 1;
+  padding: 20px;
+  min-width: 0;
+  overflow-y: auto;
+}
+</style>
 ```
 
 ### Vue 2.6 + @vue/composition-api
@@ -171,14 +255,15 @@ module.exports = {
 
 ## Quick Start (React / Next.js)
 ```jsx
+import { useState } from 'react';
 import { 
   ArtifactuseProvider,
   ArtifactuseAgentMessage, 
   ArtifactusePanel, 
-  ArtifactusePanelToggle,
-  useArtifactuse 
+  ArtifactusePanelToggle 
 } from 'artifactuse/react';
 import 'artifactuse/styles';
+import './styles.css';
 
 function App() {
   return (
@@ -192,21 +277,47 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   
   return (
-    <div className="chat">
-      {messages.map(msg => (
-        <ArtifactuseAgentMessage 
-          key={msg.id}
-          content={msg.content}
-          messageId={msg.id}
-          onFormSubmit={handleFormSubmit}
-          onSocialCopy={handleSocialCopy}
-        />
-      ))}
+    <div className="app-container">
+      <div className="chat">
+        {messages.map(msg => (
+          <ArtifactuseAgentMessage 
+            key={msg.id}
+            content={msg.content}
+            messageId={msg.id}
+            onFormSubmit={handleFormSubmit}
+            onSocialCopy={handleSocialCopy}
+          />
+        ))}
+        
+        <ArtifactusePanelToggle />
+      </div>
       
       <ArtifactusePanel onAIRequest={handleAIRequest} />
-      <ArtifactusePanelToggle />
     </div>
   );
+}
+```
+
+```css
+/* styles.css */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat {
+  flex: 1;
+  padding: 20px;
+  min-width: 0;
+  overflow-y: auto;
 }
 ```
 
@@ -221,6 +332,15 @@ function Chat() {
 </script>
 
 <slot />
+
+<style>
+  :global(html), :global(body) {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+</style>
 ```
 ```svelte
 <!-- Chat.svelte -->
@@ -232,17 +352,37 @@ function Chat() {
   } from 'artifactuse/svelte';
 </script>
 
-{#each messages as msg (msg.id)}
-  <ArtifactuseAgentMessage 
-    content={msg.content}
-    messageId={msg.id}
-    on:formSubmit={handleFormSubmit}
-    on:socialCopy={handleSocialCopy}
-  />
-{/each}
+<div class="app-container">
+  <div class="chat">
+    {#each messages as msg (msg.id)}
+      <ArtifactuseAgentMessage 
+        content={msg.content}
+        messageId={msg.id}
+        on:formSubmit={handleFormSubmit}
+        on:socialCopy={handleSocialCopy}
+      />
+    {/each}
+    
+    <ArtifactusePanelToggle />
+  </div>
+  
+  <ArtifactusePanel on:aiRequest={handleAIRequest} />
+</div>
 
-<ArtifactusePanel on:aiRequest={handleAIRequest} />
-<ArtifactusePanelToggle />
+<style>
+  .app-container {
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .chat {
+    flex: 1;
+    padding: 20px;
+    min-width: 0;
+    overflow-y: auto;
+  }
+</style>
 ```
 
 ## Components
@@ -431,6 +571,10 @@ provideArtifactuse({
     surface: '31, 41, 55',    // RGB format also works
     text: '#f3f4f6',
   },
+  
+  // Show "Powered by Artifactuse" branding in panel footer
+  // Set to false to hide (requires paid license)
+  branding: true,
   
   // Enable/disable processors
   processors: {

@@ -62,7 +62,11 @@
     "*.css"
   ],
   "scripts": {
-    "dev": "cd playground && vite",
+    "dev": "npm run dev:vue3",
+    "dev:vue3": "cd playground/vue3 && vite",
+    "dev:vue2": "cd playground/vue2 && vite",
+    "dev:react": "cd playground/react && vite",
+    "dev:svelte": "cd playground/svelte && vite",
     "build": "vite build && npm run build:vue2 && npm run build:types",
     "build:vue2": "node scripts/build-vue2.js",
     "build:types": "tsc --emitDeclarationOnly",
@@ -73,16 +77,17 @@
   },
   "peerDependencies": {
     "portal-vue": "^2.1.0",
+    "prismjs": "^1.29.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "svelte": "^4.0.0 || ^5.0.0",
     "vue": "^2.7.0 || ^3.0.0"
   },
   "peerDependenciesMeta": {
-    "vue": {
+    "portal-vue": {
       "optional": true
     },
-    "portal-vue": {
+    "prismjs": {
       "optional": true
     },
     "react": {
@@ -92,6 +97,9 @@
       "optional": true
     },
     "svelte": {
+      "optional": true
+    },
+    "vue": {
       "optional": true
     }
   },
@@ -109,7 +117,10 @@
     "vite": "^5.0.0",
     "vitest": "^1.0.0",
     "vue": "^3.5.0",
-    "vue2": "npm:vue@^2.7.16",
-    "vue-template-compiler": "^2.7.16"
+    "vue-template-compiler": "^2.7.16",
+    "vue2": "npm:vue@^2.7.16"
+  },
+  "dependencies": {
+    "marked": "^17.0.1"
   }
 }

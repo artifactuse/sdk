@@ -49,7 +49,7 @@ export function ArtifactuseProvider({ children, config = {} }) {
       });
     });
     
-    // Apply theme
+    // Apply theme immediately
     instance.applyTheme();
     
     return () => {
@@ -66,6 +66,12 @@ export function ArtifactuseProvider({ children, config = {} }) {
   
   const artifactCount = state.artifacts.length;
   const hasArtifacts = artifactCount > 0;
+  
+  // Wrap setTheme to also apply
+  const setTheme = useCallback((theme) => {
+    instance.setTheme(theme);
+    instance.applyTheme();
+  }, [instance]);
   
   // Context value
   const value = useMemo(() => ({
@@ -91,8 +97,9 @@ export function ArtifactuseProvider({ children, config = {} }) {
     
     // Theme
     applyTheme: instance.applyTheme,
-    setTheme: instance.setTheme,
-  }), [instance, state, activeArtifact, artifactCount, hasArtifacts]);
+    setTheme,
+    getTheme: instance.getTheme,
+  }), [instance, state, activeArtifact, artifactCount, hasArtifacts, setTheme]);
   
   return (
     <ArtifactuseContext.Provider value={value}>

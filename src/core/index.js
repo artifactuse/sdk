@@ -1,11 +1,136 @@
 // artifactuse/core/index.js
 // Main entry point for Artifactuse SDK
 
-import { parseArtifacts, extractCodeBlockArtifacts, isInlineArtifact } from './detector.js';
+import { parseArtifacts, extractCodeBlockArtifacts, getIsInline } from './detector.js';
 import { createState } from './state.js';
 import { createBridge } from './bridge.js';
 import { createTheme } from './theme.js';
-import * as processors from './processors.js';
+import { marked } from 'marked';
+
+// Import from modular processors
+import {
+  // Image
+  processImages,
+  processImageGalleries,
+  renderImageHtml,
+  
+  // Video
+  processVideos,
+  
+  // Audio
+  processAudio,
+  
+  // Maps
+  processMaps,
+  
+  // Social
+  processSocialEmbeds,
+  
+  // Documents
+  processPdfs,
+  processGoogleDocs,
+  processOfficeDocuments,
+  
+  // Code embeds
+  processCodeEmbeds,
+  
+  // Data visualization
+  processDataViz,
+  
+  // Design/3D
+  process3DEmbeds,
+  
+  // Interactive
+  processInteractiveEmbeds,
+  
+  // Mermaid
+  processMermaid,
+  initializeMermaid,
+  
+  // Tables
+  processTables,
+  initializeTables,
+  
+  // Math
+  processMath,
+  initializeMath,
+} from './processors/index.js';
+
+// Import highlight utilities
+import { highlightAll } from './highlight.js';
+
+// Re-export processors for external use
+export * from './processors/index.js';
+
+/**
+ * Escape HTML for safe embedding in attributes/content
+ */
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Configure marked with custom renderers
+ * Note: marked v5+ passes an object with properties, not individual arguments
+ */
+function configureMarked() {
+  // Custom renderer for images - uses SDK's renderImageHtml
+  const imageRenderer = {
+    image(token) {
+      // Handle both old API (href, title, text) and new API (token object)
+      const href = typeof token === 'string' ? token : token.href;
+      const title = typeof token === 'string' ? arguments[1] : token.title;
+      const text = typeof token === 'string' ? arguments[2] : token.text;
+      return renderImageHtml(href || '', title || '', text || '');
+    }
+  };
+  
+  // Custom renderer for links - opens external links in new tab
+  const linkRenderer = {
+    link(token) {
+      // Handle both old API (href, title, text) and new API (token object)
+      const href = typeof token === 'string' ? token : token.href;
+      const title = typeof token === 'string' ? arguments[1] : token.title;
+      const text = typeof token === 'string' ? arguments[2] : token.text;
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+      return `<a href="${escapeHtml(href || '')}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text || ''}</a>`;
+    }
+  };
+  
+  // Custom renderer for code blocks - preserves language class for Prism
+  const codeRenderer = {
+    code(token) {
+      // Handle both old API (code, language) and new API (token object)
+      const code = typeof token === 'string' ? token : token.text;
+      const language = typeof token === 'string' ? arguments[1] : token.lang;
+      const lang = language || '';
+      const escapedCode = escapeHtml(code || '');
+      if (lang) {
+        return `<pre><code class="language-${escapeHtml(lang)}">${escapedCode}</code></pre>`;
+      }
+      return `<pre><code>${escapedCode}</code></pre>`;
+    }
+  };
+  
+  // Apply custom renderers
+  marked.use({
+    renderer: {
+      ...imageRenderer,
+      ...linkRenderer,
+      ...codeRenderer,
+    },
+    gfm: true,
+    breaks: true,
+  });
+}
+
+// Initialize marked configuration
+configureMarked();
 
 /**
  * Artifactuse SDK Configuration
@@ -17,19 +142,19 @@ const DEFAULT_CONFIG = {
   // Theme: 'dark' | 'light' | 'auto'
   theme: 'auto',
   
-  // Custom theme colors
-  colors: {
-    primary: '99, 102, 241',      // Indigo
-    background: '17, 24, 39',     // Gray-900
-    surface: '31, 41, 55',        // Gray-800
-    text: '243, 244, 246',        // Gray-100
-    border: '75, 85, 99',         // Gray-600
-  },
+  // Custom theme colors (optional - theme.js has defaults)
+  // Can be flat (applies to both) or nested { dark: {...}, light: {...} }
+  colors: null,
+  
+  // Show "Powered by Artifactuse" branding in panel footer
+  // Set to false to hide (requires paid license)
+  branding: true,
   
   // Processor options
   processors: {
     codeBlocks: true,
     images: true,
+    imageGalleries: true,
     videos: true,
     audio: true,
     maps: true,
@@ -49,6 +174,9 @@ const DEFAULT_CONFIG = {
     minLines: 3,
     minLength: 50,
   },
+  
+  // Syntax highlighting (requires Prism.js)
+  syntaxHighlight: true,
 };
 
 /**
@@ -80,6 +208,7 @@ const PANEL_URL_MAP = {
   htm: 'html-panel',
   markdown: 'html-panel',
   md: 'html-panel',
+  mermaid: 'mermaid-panel',
 };
 
 /**
@@ -89,14 +218,18 @@ export function createArtifactuse(userConfig = {}) {
   const config = mergeConfig(DEFAULT_CONFIG, userConfig);
   const state = createState();
   const bridge = createBridge(config.cdnUrl);
-  const theme = createTheme(config.theme, config.colors);
+  
+  // Create theme - only pass colors if user provided them
+  const theme = createTheme(config.theme, config.colors || {});
   
   /**
    * Process AI agent message content
    * Returns processed HTML with artifact placeholders
    */
   function processMessage(content, messageId) {
-    let html = content;
+    // First, convert markdown to HTML
+    let html = marked.parse(content);
+    
     const artifacts = [];
     
     // Extract all code block artifacts (code, form, social)
@@ -108,42 +241,62 @@ export function createArtifactuse(userConfig = {}) {
     
     // Apply inline processors for media embeds
     if (config.processors.images) {
-      html = processors.processImages(html);
+      html = processImages(html);
     }
+    
+    // Group consecutive images into galleries (after image processing)
+    if (config.processors.imageGalleries) {
+      html = processImageGalleries(html);
+    }
+    
     if (config.processors.videos) {
-      html = processors.processVideos(html);
+      html = processVideos(html);
     }
+    
     if (config.processors.audio) {
-      html = processors.processAudio(html);
+      html = processAudio(html);
     }
+    
     if (config.processors.maps) {
-      html = processors.processMaps(html);
+      html = processMaps(html);
     }
+    
     if (config.processors.social) {
-      html = processors.processSocialEmbeds(html);
+      html = processSocialEmbeds(html);
     }
+    
     if (config.processors.documents) {
-      html = processors.processPdfs(html);
-      html = processors.processGoogleDocs(html);
-      html = processors.processOfficeDocuments(html);
+      html = processPdfs(html);
+      html = processGoogleDocs(html);
+      html = processOfficeDocuments(html);
     }
+    
     if (config.processors.codeEmbeds) {
-      html = processors.processCodeEmbeds(html);
+      html = processCodeEmbeds(html);
     }
+    
     if (config.processors.dataViz) {
-      html = processors.processDataViz(html);
+      html = processDataViz(html);
     }
+    
     if (config.processors.design) {
-      html = processors.process3DEmbeds(html);
+      html = process3DEmbeds(html);
     }
+    
     if (config.processors.interactive) {
-      html = processors.processInteractiveEmbeds(html);
+      html = processInteractiveEmbeds(html);
     }
+    
     if (config.processors.tables) {
-      html = processors.processTables(html);
+      html = processTables(html);
     }
+    
     if (config.processors.math) {
-      html = processors.processMath(html);
+      html = processMath(html);
+    }
+    
+    if (config.processors.mermaid) {
+      html = processMermaid(html);
     }
     
     // Add artifacts to state
@@ -155,6 +308,34 @@ export function createArtifactuse(userConfig = {}) {
       html,
       artifacts,
     };
+  }
+  
+  /**
+   * Initialize dynamic content (call after DOM is ready)
+   * This renders math equations, mermaid diagrams, sets up table interactivity,
+   * and applies syntax highlighting
+   */
+  async function initializeContent(container = document) {
+    const promises = [];
+    
+    if (config.processors.math) {
+      promises.push(initializeMath());
+    }
+    
+    if (config.processors.mermaid) {
+      promises.push(initializeMermaid());
+    }
+    
+    if (config.processors.tables) {
+      initializeTables();
+    }
+    
+    // Apply syntax highlighting if enabled
+    if (config.syntaxHighlight) {
+      highlightAll(container);
+    }
+    
+    await Promise.all(promises);
   }
   
   /**
@@ -236,8 +417,11 @@ export function createArtifactuse(userConfig = {}) {
     const params = new URLSearchParams();
     
     params.set('theme', options.theme || theme.resolved);
-    if (config.colors?.primary) {
-      params.set('accent', config.colors.primary);
+    
+    // Get primary color from current theme
+    const colors = theme.colors;
+    if (colors?.primary) {
+      params.set('accent', colors.primary);
     }
     
     return `${baseUrl}?${params.toString()}`;
@@ -331,6 +515,7 @@ export function createArtifactuse(userConfig = {}) {
     
     // Processing
     processMessage,
+    initializeContent,
     
     // Panel control
     openArtifact,
@@ -342,6 +527,7 @@ export function createArtifactuse(userConfig = {}) {
     sendToPanel,
     
     // Theme
+    theme,
     applyTheme,
     setTheme,
     getTheme,
@@ -366,7 +552,7 @@ function mergeConfig(defaults, overrides) {
   const result = { ...defaults };
   
   for (const key in overrides) {
-    if (overrides[key] !== undefined) {
+    if (overrides[key] !== undefined && overrides[key] !== null) {
       if (typeof overrides[key] === 'object' && !Array.isArray(overrides[key])) {
         result[key] = mergeConfig(defaults[key] || {}, overrides[key]);
       } else {
@@ -379,11 +565,10 @@ function mergeConfig(defaults, overrides) {
 }
 
 // Export utilities
-export { parseArtifacts, extractCodeBlockArtifacts, isInlineArtifact } from './detector.js';
+export { parseArtifacts, extractCodeBlockArtifacts, getIsInline as isInlineArtifact } from './detector.js';
 export { createState } from './state.js';
 export { createBridge } from './bridge.js';
 export { createTheme } from './theme.js';
-export * from './processors.js';
 export * from './highlight.js';
 
 // Default export

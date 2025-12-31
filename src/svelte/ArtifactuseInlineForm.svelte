@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   
-  export let form;
+  export let artifact;
   export let theme = 'dark';
   export let accent = null;
   
@@ -12,10 +12,24 @@
   let errors = {};
   let isSubmitting = false;
   
-  $: formId = form.id || `form-${Date.now()}`;
+  // Parse form data from artifact.code
+  $: form = parseForm(artifact?.code);
+  $: formId = artifact?.id || form.id || `form-${Date.now()}`;
   $: variantClass = `artifactuse-form-${form.variant || 'fields'}`;
-  $: fields = form.data?.fields || [];
-  $: buttons = form.data?.buttons || [];
+  $: formFields = form.data?.fields || [];
+  $: buttonFields = form.variant === 'buttons' ? formFields : [];
+  $: hasButtonsField = formFields.some(f => f.type === 'buttons');
+  
+  /**
+   * Parse form JSON from code
+   */
+  function parseForm(code) {
+    try {
+      return JSON.parse(code);
+    } catch {
+      return { title: 'Invalid Form', variant: 'fields', data: { fields: [] } };
+    }
+  }
   
   /**
    * Parse color string to RGB
@@ -44,6 +58,19 @@
     return null;
   }
   
+  /**
+   * Normalize options (handle string[] and {label, value}[])
+   */
+  function normalizeOptions(options) {
+    if (!options) return [];
+    return options.map(opt => {
+      if (typeof opt === 'string') {
+        return { label: opt, value: opt };
+      }
+      return opt;
+    });
+  }
+  
   // Apply accent color
   function applyAccent() {
     if (containerEl && accent) {
@@ -57,22 +84,27 @@
   onMount(applyAccent);
   $: if (accent) applyAccent();
   
-  // Initialize values
+  // Initialize values when form changes
   function initValues() {
     const defaults = {};
-    fields.forEach(f => {
+    formFields.forEach(f => {
+      if (['buttons', 'divider', 'heading'].includes(f.type)) return;
       if (f.defaultValue !== undefined) defaults[f.name] = f.defaultValue;
       else if (f.type === 'checkbox') defaults[f.name] = false;
       else defaults[f.name] = '';
     });
+    // Apply form-level defaults
+    if (form.data?.defaults) {
+      Object.assign(defaults, form.data.defaults);
+    }
     values = defaults;
     errors = {};
   }
   
-  $: if (form) initValues();
+  $: if (artifact?.code) initValues();
   
   function isTextInput(type) {
-    return ['text', 'email', 'password', 'tel', 'url', 'number'].includes(type);
+    return ['text', 'email', 'password', 'tel', 'url', 'number', 'date', 'time', 'datetime-local'].includes(type);
   }
   
   function updateField(name, value) {
@@ -86,15 +118,69 @@
   function validate() {
     const newErrors = {};
     
-    fields.forEach(field => {
+    formFields.forEach(field => {
+      if (['buttons', 'divider', 'heading'].includes(field.type)) return;
+      
       const value = values[field.name];
+      
+      // Required validation
       if (field.required && !value && value !== 0 && value !== false) {
         newErrors[field.name] = `${field.label || 'This field'} is required`;
+        return;
+      }
+      
+      // Pattern validation
+      if (field.pattern && value) {
+        const regex = new RegExp(field.pattern);
+        if (!regex.test(value)) {
+          newErrors[field.name] = field.patternMessage || `${field.label || 'This field'} is invalid`;
+          return;
+        }
+      }
+      
+      // Email validation
+      if (field.type === 'email' && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          newErrors[field.name] = 'Please enter a valid email address';
+          return;
+        }
+      }
+      
+      // Min/max length validation
+      if (field.minLength && value && value.length < field.minLength) {
+        newErrors[field.name] = `Minimum ${field.minLength} characters required`;
+        return;
+      }
+      if (field.maxLength && value && value.length > field.maxLength) {
+        newErrors[field.name] = `Maximum ${field.maxLength} characters allowed`;
+        return;
       }
     });
     
+    // Apply form-level validation rules
+    const validation = form.data?.validation;
+    if (validation) {
+      Object.entries(validation).forEach(([fieldName, rules]) => {
+        if (newErrors[fieldName]) return;
+        
+        const value = values[fieldName];
+        
+        if (rules.pattern && value) {
+          const regex = new RegExp(rules.pattern);
+          if (!regex.test(value)) {
+            newErrors[fieldName] = rules.message || `${fieldName} is invalid`;
+          }
+        }
+      });
+    }
+    
     errors = newErrors;
     return Object.keys(newErrors).length === 0;
+  }
+  
+  function resetForm() {
+    initValues();
   }
   
   function handleSubmit(e) {
@@ -106,7 +192,7 @@
     dispatch('submit', {
       formId,
       action: 'submit',
-      values,
+      values: { ...values },
       timestamp: Date.now(),
     });
     
@@ -115,21 +201,49 @@
     }, 500);
   }
   
-  function handleButtonClick(action) {
-    dispatch('submit', {
-      formId,
-      action,
-      values: {},
-      timestamp: Date.now(),
-    });
-  }
-  
-  function handleCancel() {
-    dispatch('cancel', {
-      formId,
-      action: 'cancel',
-      timestamp: Date.now(),
-    });
+  function handleButtonAction(btn) {
+    const action = btn.action || 'custom';
+    
+    switch (action) {
+      case 'submit':
+        // Trigger form submit
+        const formEl = containerEl?.querySelector('form');
+        if (formEl) {
+          formEl.requestSubmit();
+        }
+        break;
+        
+      case 'cancel':
+        dispatch('cancel', {
+          formId,
+          action: 'cancel',
+          buttonName: btn.name || 'cancel',
+          timestamp: Date.now(),
+        });
+        break;
+        
+      case 'reset':
+        resetForm();
+        dispatch('reset', {
+          formId,
+          action: 'reset',
+          buttonName: btn.name || 'reset',
+          timestamp: Date.now(),
+        });
+        break;
+        
+      case 'custom':
+      default:
+        dispatch('button-click', {
+          formId,
+          action,
+          buttonName: btn.name || btn.label,
+          buttonLabel: btn.label,
+          values: { ...values },
+          timestamp: Date.now(),
+        });
+        break;
+    }
   }
 </script>
 
@@ -138,33 +252,72 @@
   class="artifactuse-inline-form {variantClass}"
   data-artifactuse-theme={theme}
 >
-  {#if form.title}
-    <div class="artifactuse-form-title">{form.title}</div>
+  <!-- Header -->
+  {#if form.title || form.description}
+    <div class="artifactuse-form-header">
+      {#if form.title}
+        <div class="artifactuse-form-title">{form.title}</div>
+      {/if}
+      {#if form.description}
+        <p class="artifactuse-form-description">{form.description}</p>
+      {/if}
+    </div>
   {/if}
   
-  {#if form.description}
-    <p class="artifactuse-form-description">{form.description}</p>
-  {/if}
-  
+  <!-- Buttons-only variant -->
   {#if form.variant === 'buttons'}
-    <div class="artifactuse-form-button-group">
-      {#each buttons as btn}
+    <div class="artifactuse-form-buttons">
+      {#each buttonFields as btn, idx (btn.name || btn.label || idx)}
         <button
           type="button"
-          class="artifactuse-form-btn artifactuse-form-btn-{btn.style || 'primary'}"
-          disabled={btn.disabled}
-          on:click={() => handleButtonClick(btn.id)}
+          class="artifactuse-form-btn artifactuse-form-btn-{btn.variant || 'secondary'}"
+          disabled={btn.disabled || isSubmitting}
+          on:click={() => handleButtonAction(btn)}
         >
+          {#if btn.icon}
+            <span class="artifactuse-form-btn-icon">{@html btn.icon}</span>
+          {/if}
           {btn.label}
         </button>
       {/each}
     </div>
   {:else}
+    <!-- Fields variant -->
     <form class="artifactuse-form" on:submit={handleSubmit}>
-      <div class="artifactuse-form-grid">
-        {#each fields as field}
-          <div class="artifactuse-form-field">
-            {#if field.type === 'checkbox'}
+      <div class="artifactuse-form-fields">
+        {#each formFields as field, idx (field.name || idx)}
+          
+          <!-- Buttons group -->
+          {#if field.type === 'buttons'}
+            <div class="artifactuse-form-buttons">
+              {#each field.fields || [] as btn, btnIdx (btn.name || btn.label || btnIdx)}
+                <button
+                  type={btn.action === 'submit' ? 'submit' : 'button'}
+                  class="artifactuse-form-btn artifactuse-form-btn-{btn.variant || 'secondary'}"
+                  disabled={btn.disabled || (btn.action === 'submit' && isSubmitting)}
+                  on:click={btn.action !== 'submit' ? () => handleButtonAction(btn) : undefined}
+                >
+                  {#if isSubmitting && btn.action === 'submit'}
+                    <span class="artifactuse-form-btn-spinner"></span>
+                  {:else if btn.icon}
+                    <span class="artifactuse-form-btn-icon">{@html btn.icon}</span>
+                  {/if}
+                  {isSubmitting && btn.action === 'submit' ? 'Submitting...' : btn.label}
+                </button>
+              {/each}
+            </div>
+          
+          <!-- Divider -->
+          {:else if field.type === 'divider'}
+            <div class="artifactuse-form-divider"></div>
+          
+          <!-- Heading -->
+          {:else if field.type === 'heading'}
+            <div class="artifactuse-form-heading">{field.label}</div>
+          
+          <!-- Checkbox -->
+          {:else if field.type === 'checkbox'}
+            <div class="artifactuse-form-field">
               <label class="artifactuse-checkbox-label">
                 <input
                   type="checkbox"
@@ -173,11 +326,58 @@
                   class="artifactuse-checkbox"
                   on:change={(e) => updateField(field.name, e.target.checked)}
                 />
-                <span>{field.label}{#if field.required}<span class="artifactuse-required">*</span>{/if}</span>
+                <span class="artifactuse-checkbox-text">
+                  {field.label}
+                  {#if field.required}<span class="artifactuse-required">*</span>{/if}
+                </span>
               </label>
-            {:else}
+              {#if field.helpText}
+                <span class="artifactuse-help-text">{field.helpText}</span>
+              {/if}
+              {#if errors[field.name]}
+                <span class="artifactuse-error-text">{errors[field.name]}</span>
+              {/if}
+            </div>
+          
+          <!-- Radio group -->
+          {:else if field.type === 'radio'}
+            <div class="artifactuse-form-field">
+              {#if field.label}
+                <label class="artifactuse-label" for="{formId}-{field.name}">
+                  {field.label}
+                  {#if field.required}<span class="artifactuse-required">*</span>{/if}
+                </label>
+              {/if}
+              <div class="artifactuse-radio-group">
+                {#each normalizeOptions(field.options) as opt (opt.value)}
+                  <label class="artifactuse-radio-label">
+                    <input
+                      type="radio"
+                      name={field.name}
+                      value={opt.value}
+                      checked={values[field.name] === opt.value}
+                      disabled={opt.disabled || field.disabled}
+                      class="artifactuse-radio"
+                      on:change={() => updateField(field.name, opt.value)}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                {/each}
+              </div>
+              {#if field.helpText}
+                <span class="artifactuse-help-text">{field.helpText}</span>
+              {/if}
+              {#if errors[field.name]}
+                <span class="artifactuse-error-text">{errors[field.name]}</span>
+              {/if}
+            </div>
+          
+          <!-- Regular fields -->
+          {:else}
+            <div class="artifactuse-form-field">
               <label for="{formId}-{field.name}" class="artifactuse-label">
-                {field.label}{#if field.required}<span class="artifactuse-required">*</span>{/if}
+                {field.label}
+                {#if field.required}<span class="artifactuse-required">*</span>{/if}
               </label>
               
               {#if isTextInput(field.type)}
@@ -211,68 +411,46 @@
                   class="artifactuse-select"
                   on:change={(e) => updateField(field.name, e.target.value)}
                 >
-                  <option value="">Select...</option>
-                  {#each field.options || [] as opt}
+                  <option value="">{field.placeholder || 'Select...'}</option>
+                  {#each normalizeOptions(field.options) as opt (opt.value)}
                     <option value={opt.value} disabled={opt.disabled}>{opt.label}</option>
                   {/each}
                 </select>
-              {:else if field.type === 'radio'}
-                <div class="artifactuse-radio-group">
-                  {#each field.options || [] as opt}
-                    <label class="artifactuse-radio-label">
-                      <input
-                        type="radio"
-                        name={field.name}
-                        value={opt.value}
-                        checked={values[field.name] === opt.value}
-                        disabled={opt.disabled || field.disabled}
-                        class="artifactuse-radio"
-                        on:change={() => updateField(field.name, opt.value)}
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  {/each}
-                </div>
               {/if}
               
               {#if field.helpText}
                 <span class="artifactuse-help-text">{field.helpText}</span>
               {/if}
-            {/if}
-            
-            {#if errors[field.name]}
-              <span class="artifactuse-error-text">{errors[field.name]}</span>
-            {/if}
-          </div>
+              {#if errors[field.name]}
+                <span class="artifactuse-error-text">{errors[field.name]}</span>
+              {/if}
+            </div>
+          {/if}
         {/each}
       </div>
       
-      <div class="artifactuse-form-actions">
-        {#if form.cancelLabel}
+      <!-- Default buttons if no buttons field -->
+      {#if !hasButtonsField}
+        <div class="artifactuse-form-buttons artifactuse-form-buttons-default">
           <button
             type="button"
-            class="artifactuse-form-btn artifactuse-form-btn-secondary"
-            on:click={handleCancel}
+            class="artifactuse-form-btn artifactuse-form-btn-ghost"
+            on:click={() => handleButtonAction({ action: 'cancel', label: 'Cancel' })}
           >
-            {form.cancelLabel}
+            Cancel
           </button>
-        {/if}
-        <button
-          type="submit"
-          class="artifactuse-form-btn artifactuse-form-btn-primary"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Submitting...' : (form.submitLabel || 'Submit')}
-        </button>
-      </div>
+          <button
+            type="submit"
+            class="artifactuse-form-btn artifactuse-form-btn-primary"
+            disabled={isSubmitting}
+          >
+            {#if isSubmitting}
+              <span class="artifactuse-form-btn-spinner"></span>
+            {/if}
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+          </button>
+        </div>
+      {/if}
     </form>
   {/if}
 </div>
-
-<style>
-  .artifactuse-error-text {
-    color: rgb(var(--artifactuse-error, 239, 68, 68));
-    font-size: 12px;
-    margin-top: 4px;
-  }
-</style>

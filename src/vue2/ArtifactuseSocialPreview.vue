@@ -2,40 +2,40 @@
   <div 
     ref="containerRef"
     class="artifactuse-social"
-    :class="['social-' + platform]"
+    :class="['artifactuse-social-' + platform]"
     :data-theme="theme"
   >
     <!-- Twitter/X -->
     <template v-if="platform === 'twitter'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-author-name">
+        <div class="artifactuse-social-author">
+          <div class="artifactuse-social-author-name">
             <span>{{ author.name }}</span>
-            <svg v-if="author.verified" class="social-verified" :class="verifiedClass" viewBox="0 0 24 24" fill="currentColor">
+            <svg v-if="author.verified" class="artifactuse-social-verified" :class="verifiedClass" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
             </svg>
           </div>
-          <div class="social-author-meta">
-            <span class="social-author-handle">{{ author.handle }}</span>
-            <span class="social-timestamp">· {{ metaData.timestamp || 'Just now' }}</span>
+          <div class="artifactuse-social-author-meta">
+            <span class="artifactuse-social-author-handle">{{ author.handle }}</span>
+            <span class="artifactuse-social-timestamp">· {{ meta.timestamp || 'Just now' }}</span>
           </div>
         </div>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
         <!-- Media -->
-        <div v-if="contentMedia.length" class="social-media">
+        <div v-if="contentMedia.length" class="artifactuse-social-media">
           <div 
-            class="social-media-grid"
-            :class="{ 'social-media-single': contentMedia.length === 1 }"
+            class="artifactuse-social-media-grid"
+            :class="{ 'artifactuse-social-media-single': contentMedia.length === 1 }"
             :data-count="contentMedia.length"
           >
             <img 
@@ -49,201 +49,262 @@
         </div>
         
         <!-- Link Card -->
-        <div v-if="content.link && !contentMedia.length" class="social-link-card">
+        <div v-if="content.link && !contentMedia.length" class="artifactuse-social-link-card">
           <img 
             v-if="content.link.image"
             :src="content.link.image"
             :alt="content.link.title"
-            class="social-link-image"
+            class="artifactuse-social-link-image"
             @error="handleMediaError"
           />
-          <div class="social-link-info">
-            <div class="social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
-            <div class="social-link-title">{{ content.link.title }}</div>
-            <div v-if="content.link.description" class="social-link-description">{{ content.link.description }}</div>
+          <div class="artifactuse-social-link-info">
+            <div class="artifactuse-social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
+            <div class="artifactuse-social-link-title">{{ content.link.title }}</div>
+            <div v-if="content.link.description" class="artifactuse-social-link-description">{{ content.link.description }}</div>
           </div>
+        </div>
+        
+        <!-- Poll -->
+        <div v-if="content.poll" class="artifactuse-social-poll">
+          <div 
+            v-for="(option, idx) in content.poll.options" 
+            :key="idx"
+            class="artifactuse-social-poll-option"
+          >
+            <div class="artifactuse-social-poll-bar" :style="{ width: (content.poll.votes && content.poll.votes[idx] || 0) + '%' }"></div>
+            <div class="artifactuse-social-poll-label">
+              <span>{{ option }}</span>
+              <span class="artifactuse-social-poll-percent">{{ content.poll.votes && content.poll.votes[idx] || 0 }}%</span>
+            </div>
+          </div>
+          <div class="artifactuse-social-poll-meta">
+            {{ formatNumber(content.poll.totalVotes || 0) }} votes · {{ content.poll.duration || 'Poll ended' }}
+          </div>
+        </div>
+        
+        <!-- Quote Tweet -->
+        <div v-if="content.quote" class="artifactuse-social-quote">
+          <div class="artifactuse-social-quote-header">
+            <img :src="content.quote.author && content.quote.author.avatar || defaultAvatar" class="artifactuse-social-quote-avatar" />
+            <span class="artifactuse-social-quote-author">{{ content.quote.author && content.quote.author.name }}</span>
+            <span class="artifactuse-social-quote-handle">{{ content.quote.author && content.quote.author.handle }}</span>
+          </div>
+          <p class="artifactuse-social-quote-text">{{ content.quote.text }}</p>
         </div>
       </div>
       
       <!-- Engagement -->
-      <div v-if="showEngagement" class="social-engagement">
-        <span>{{ formatNumber(engagement.replies || 0) }} replies</span>
-        <span>{{ formatNumber(engagement.retweets || 0) }} reposts</span>
-        <span>{{ formatNumber(engagement.likes || 0) }} likes</span>
-        <span>{{ formatNumber(engagement.views || 0) }} views</span>
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
+        <div class="artifactuse-social-stat">
+          <span>{{ formatNumber(engagement.replies || 0) }} replies</span>
+        </div>
+        <div class="artifactuse-social-stat">
+          <span>{{ formatNumber(engagement.retweets || 0) }} reposts</span>
+        </div>
+        <div class="artifactuse-social-stat">
+          <span>{{ formatNumber(engagement.likes || 0) }} likes</span>
+        </div>
+        <div class="artifactuse-social-stat">
+          <span>{{ formatNumber(engagement.views || 0) }} views</span>
+        </div>
       </div>
     </template>
     
     <!-- LinkedIn -->
     <template v-else-if="platform === 'linkedin'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-author-name">{{ author.name }}</div>
-          <div class="social-author-headline">{{ author.headline }}</div>
-          <div class="social-timestamp">{{ metaData.timestamp || 'Just now' }}</div>
+        <div class="artifactuse-social-author-info">
+          <div class="artifactuse-social-author-name">
+            {{ author.name }}
+            <span v-if="author.connection" class="artifactuse-social-author-connection">· {{ author.connection }}</span>
+          </div>
+          <div class="artifactuse-social-author-headline">{{ author.headline }}</div>
+          <div class="artifactuse-social-timestamp">{{ meta.timestamp || 'Just now' }} · 🌐</div>
         </div>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
-        <div v-if="content.link" class="social-link-card">
+        <div v-if="content.link" class="artifactuse-social-link-card">
           <img 
             v-if="content.link.image"
             :src="content.link.image"
             :alt="content.link.title"
-            class="social-link-image"
+            class="artifactuse-social-link-image"
             @error="handleMediaError"
           />
-          <div class="social-link-info">
-            <div class="social-link-title">{{ content.link.title }}</div>
-            <div class="social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
+          <div class="artifactuse-social-link-info">
+            <div class="artifactuse-social-link-title">{{ content.link.title }}</div>
+            <div class="artifactuse-social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
           </div>
         </div>
       </div>
       
-      <div v-if="showEngagement" class="social-engagement">
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
         <span>{{ formatNumber(engagement.likes || 0) }} reactions</span>
         <span>{{ formatNumber(engagement.comments || 0) }} comments</span>
-        <span>{{ formatNumber(engagement.reposts || 0) }} reposts</span>
+        <span>{{ formatNumber(engagement.shares || engagement.reposts || 0) }} reposts</span>
       </div>
     </template>
     
     <!-- Instagram -->
     <template v-else-if="platform === 'instagram'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-author-name">
+        <div class="artifactuse-social-author">
+          <div class="artifactuse-social-author-name">
             {{ author.name }}
-            <svg v-if="author.verified" class="social-verified" viewBox="0 0 24 24" fill="currentColor">
+            <svg v-if="author.verified" class="artifactuse-social-verified" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
+          <div v-if="meta.location" class="artifactuse-social-location">{{ meta.location }}</div>
         </div>
       </div>
       
-      <div class="social-media">
+      <div class="artifactuse-social-media">
         <img 
           v-if="contentMedia[0]"
           :src="contentMedia[0].url"
           :alt="contentMedia[0].alt || ''"
           @error="handleMediaError"
         />
-        <div v-else class="social-media-placeholder"></div>
+        <div v-else class="artifactuse-social-media-placeholder"></div>
       </div>
       
-      <div class="social-likes">{{ formatNumber(engagement.likes || 0) }} likes</div>
+      <div class="artifactuse-social-likes">{{ formatNumber(engagement.likes || 0) }} likes</div>
       
-      <div class="social-caption">
-        <span class="social-caption-author">{{ author.name }}</span>
-        <span class="social-caption-text" v-html="formattedText"></span>
+      <div class="artifactuse-social-caption">
+        <span class="artifactuse-social-caption-author">{{ author.name }}</span>
+        <span class="artifactuse-social-caption-text" v-html="formattedText"></span>
       </div>
+      
+      <div class="artifactuse-social-timestamp">{{ meta.timestamp || 'JUST NOW' }}</div>
     </template>
     
     <!-- Facebook -->
     <template v-else-if="platform === 'facebook'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-author-name">{{ author.name }}</div>
-          <div class="social-timestamp">{{ metaData.timestamp || 'Just now' }}</div>
+        <div class="artifactuse-social-author">
+          <div class="artifactuse-social-author-name">{{ author.name }}</div>
+          <div class="artifactuse-social-timestamp">{{ meta.timestamp || 'Just now' }} · 🌐</div>
         </div>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
-        <div v-if="content.link" class="social-link-card">
+        <!-- Media -->
+        <div v-if="contentMedia.length" class="artifactuse-social-media">
+          <div class="artifactuse-social-media-grid" :data-count="contentMedia.length">
+            <img 
+              v-for="(media, idx) in contentMedia.slice(0, 4)" 
+              :key="idx"
+              :src="media.url"
+              :alt="media.alt || ''"
+              @error="handleMediaError"
+            />
+          </div>
+        </div>
+        
+        <div v-if="content.link && !contentMedia.length" class="artifactuse-social-link-card">
           <img 
             v-if="content.link.image"
             :src="content.link.image"
             :alt="content.link.title"
-            class="social-link-image"
+            class="artifactuse-social-link-image"
             @error="handleMediaError"
           />
-          <div class="social-link-info">
-            <div class="social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
-            <div class="social-link-title">{{ content.link.title }}</div>
+          <div class="artifactuse-social-link-info">
+            <div class="artifactuse-social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
+            <div class="artifactuse-social-link-title">{{ content.link.title }}</div>
           </div>
         </div>
       </div>
       
-      <div v-if="showEngagement" class="social-engagement">
-        <span>{{ formatNumber(engagement.likes || 0) }} likes</span>
-        <span>{{ formatNumber(engagement.comments || 0) }} comments</span>
-        <span>{{ formatNumber(engagement.shares || 0) }} shares</span>
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
+        <span>👍❤️ {{ formatNumber(totalReactions) }}</span>
+        <span>{{ formatNumber(engagement.comments || 0) }} comments · {{ formatNumber(engagement.shares || 0) }} shares</span>
       </div>
     </template>
     
     <!-- Threads -->
     <template v-else-if="platform === 'threads'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-author-name">{{ author.name }}</div>
-          <div class="social-timestamp">{{ metaData.timestamp || 'Just now' }}</div>
+        <div class="artifactuse-social-author">
+          <div class="artifactuse-social-author-name">
+            {{ author.name }}
+            <svg v-if="author.verified" class="artifactuse-social-verified" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
         </div>
+        <span class="artifactuse-social-timestamp">{{ meta.timestamp || 'Just now' }}</span>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
       </div>
       
-      <div v-if="showEngagement" class="social-engagement">
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
         <span>{{ formatNumber(engagement.likes || 0) }} likes</span>
         <span>{{ formatNumber(engagement.replies || 0) }} replies</span>
+        <span>{{ formatNumber(engagement.reposts || 0) }} reposts</span>
       </div>
     </template>
     
     <!-- TikTok -->
     <template v-else-if="platform === 'tiktok'">
-      <div class="social-thumbnail">
+      <div class="artifactuse-social-thumbnail">
         <img 
-          v-if="content.thumbnail"
-          :src="content.thumbnail"
+          v-if="contentMedia[0]"
+          :src="contentMedia[0].url"
           alt="Video thumbnail"
           @error="handleMediaError"
         />
-        <div v-else class="social-thumbnail-placeholder"></div>
-        <div v-if="content.duration" class="social-duration">{{ content.duration }}</div>
+        <div v-else class="artifactuse-social-thumbnail-placeholder"></div>
+        <div v-if="content.duration" class="artifactuse-social-duration">{{ content.duration }}</div>
       </div>
       
-      <div class="social-info">
-        <img 
-          :src="author.avatar || defaultAvatar" 
-          :alt="author.name"
-          class="social-avatar"
-          @error="handleAvatarError"
-        />
-        <div class="social-author">
-          <div class="social-author-name">{{ author.name }}</div>
-          <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-info">
+        <div class="artifactuse-social-header">
+          <img 
+            :src="author.avatar || defaultAvatar" 
+            :alt="author.name"
+            class="artifactuse-social-avatar"
+            @error="handleAvatarError"
+          />
+          <span class="artifactuse-social-author-name">@{{ author.name }}</span>
         </div>
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
+        <div v-if="content.sound" class="artifactuse-social-sound">🎵 {{ content.sound }}</div>
       </div>
       
-      <div v-if="showEngagement" class="social-engagement">
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
         <span>{{ formatNumber(engagement.likes || 0) }} likes</span>
         <span>{{ formatNumber(engagement.comments || 0) }} comments</span>
         <span>{{ formatNumber(engagement.shares || 0) }} shares</span>
@@ -252,44 +313,44 @@
     
     <!-- YouTube -->
     <template v-else-if="platform === 'youtube'">
-      <div class="social-thumbnail">
+      <div class="artifactuse-social-thumbnail">
         <img 
-          v-if="content.thumbnail"
-          :src="content.thumbnail"
+          v-if="contentMedia[0]"
+          :src="contentMedia[0].url"
           alt="Video thumbnail"
           @error="handleMediaError"
         />
-        <div v-else class="social-thumbnail-placeholder"></div>
-        <div v-if="content.duration" class="social-duration">{{ content.duration }}</div>
+        <div v-else class="artifactuse-social-thumbnail-placeholder"></div>
+        <div v-if="content.duration" class="artifactuse-social-duration">{{ content.duration }}</div>
       </div>
       
-      <div class="social-info">
+      <div class="artifactuse-social-info">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-title">{{ content.title }}</div>
-          <div class="social-channel">{{ author.name }}</div>
-          <div class="social-meta">
-            {{ formatNumber(engagement.views || 0) }} views · {{ metaData.timestamp || 'Just now' }}
+        <div class="artifactuse-social-details">
+          <div class="artifactuse-social-title">{{ content.title }}</div>
+          <div class="artifactuse-social-channel">{{ author.name }}</div>
+          <div class="artifactuse-social-meta">
+            {{ formatNumber(engagement.views || 0) }} views · {{ meta.timestamp || 'Just now' }}
           </div>
         </div>
       </div>
     </template>
     
     <!-- Actions Bar -->
-    <div class="social-actions-bar">
-      <div class="social-platform-badge">
+    <div class="artifactuse-social-actions-bar">
+      <div class="artifactuse-social-platform-badge">
         <span>{{ platformName }}</span>
       </div>
-      <div class="social-actions-right">
-        <span v-if="charCount !== null" class="social-char-counter" :class="charCountClass">
+      <div class="artifactuse-social-actions-right">
+        <span v-if="charCount !== null" class="artifactuse-social-char-counter" :class="charCountClass">
           {{ charCount }}/{{ charLimit }}
         </span>
-        <button class="social-copy-btn" @click="copyText">
+        <button class="artifactuse-social-copy-btn" @click="copyText">
           {{ copyLabel }}
         </button>
       </div>
@@ -304,7 +365,7 @@ export default {
   name: 'ArtifactuseSocialPreview',
   
   props: {
-    social: {
+    artifact: {
       type: Object,
       required: true
     },
@@ -321,23 +382,34 @@ export default {
     // Default avatar
     const defaultAvatar = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 6v2h16v-2c0-3-2-6-8-6z"/></svg>';
     
+    /**
+     * Parse social data from artifact.code JSON
+     */
+    const social = computed(() => {
+      try {
+        return JSON.parse(props.artifact.code);
+      } catch {
+        return { platform: 'twitter', data: {} };
+      }
+    });
+    
     // Computed
-    const platform = computed(() => props.social?.platform || 'twitter');
-    const variant = computed(() => props.social?.variant || 'post');
-    const author = computed(() => props.social?.data?.author || {});
-    const content = computed(() => props.social?.data?.content || {});
-    const engagement = computed(() => props.social?.data?.engagement || {});
-    const metaData = computed(() => props.social?.data?.meta || {});
+    const platform = computed(() => social.value?.platform || 'twitter');
+    const variant = computed(() => social.value?.variant || 'post');
+    const author = computed(() => social.value?.data?.author || {});
+    const content = computed(() => social.value?.data?.content || {});
+    const engagement = computed(() => social.value?.data?.engagement || {});
+    const meta = computed(() => social.value?.data?.meta || {});
     const contentMedia = computed(() => content.value.media || []);
     
     const showEngagement = computed(() => {
       const e = engagement.value;
-      return e.likes || e.comments || e.shares || e.retweets || e.replies || e.views;
+      return e.likes || e.comments || e.shares || e.retweets || e.replies || e.views || e.reposts;
     });
     
     const verifiedClass = computed(() => {
       const type = author.value.verifiedType || 'blue';
-      return 'social-verified-' + type;
+      return 'artifactuse-social-verified-' + type;
     });
     
     const platformName = computed(() => {
@@ -379,6 +451,12 @@ export default {
       return '';
     });
     
+    // Total reactions for Facebook
+    const totalReactions = computed(() => {
+      const reactions = engagement.value.reactions || {};
+      return Object.values(reactions).reduce((sum, val) => sum + (val || 0), 0) || engagement.value.likes || 0;
+    });
+    
     // Format text with hashtags and mentions
     const formattedText = computed(() => {
       let text = content.value.text || '';
@@ -389,11 +467,14 @@ export default {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
       
+      // Newlines
+      text = text.replace(/\n/g, '<br>');
+      
       // Hashtags
-      text = text.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+      text = text.replace(/#(\w+)/g, '<span class="artifactuse-social-hashtag">#$1</span>');
       
       // Mentions
-      text = text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+      text = text.replace(/@(\w+)/g, '<span class="artifactuse-social-mention">@$1</span>');
       
       // URLs
       text = text.replace(
@@ -443,12 +524,13 @@ export default {
       containerRef,
       copyLabel,
       defaultAvatar,
+      social,
       platform,
       variant,
       author,
       content,
       engagement,
-      metaData,
+      meta,
       contentMedia,
       showEngagement,
       verifiedClass,
@@ -456,6 +538,7 @@ export default {
       charLimit,
       charCount,
       charCountClass,
+      totalReactions,
       formattedText,
       formatNumber,
       getDomain,

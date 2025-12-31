@@ -49,6 +49,12 @@ export function createArtifactuseStores(config = {}) {
     instance.destroy();
   };
   
+  // Wrap setTheme to also apply
+  const setTheme = (theme) => {
+    instance.setTheme(theme);
+    instance.applyTheme();
+  };
+  
   return {
     // Instance
     instance,
@@ -79,7 +85,8 @@ export function createArtifactuseStores(config = {}) {
     
     // Theme
     applyTheme: instance.applyTheme,
-    setTheme: instance.setTheme,
+    setTheme,
+    getTheme: instance.getTheme,
     
     // Cleanup
     destroy,
@@ -93,7 +100,12 @@ export function setArtifactuseContext(config = {}) {
   const stores = createArtifactuseStores(config);
   setContext(ARTIFACTUSE_KEY, stores);
   
-  // Apply theme on mount
+  // Apply theme immediately (works in both SSR and client)
+  if (typeof window !== 'undefined') {
+    stores.applyTheme();
+  }
+  
+  // Also apply on mount to ensure it's applied after hydration
   onMount(() => {
     stores.applyTheme();
   });
@@ -124,6 +136,11 @@ export function getArtifactuseContext() {
  */
 export function useArtifactuse(config = {}) {
   const stores = createArtifactuseStores(config);
+  
+  // Apply theme immediately
+  if (typeof window !== 'undefined') {
+    stores.applyTheme();
+  }
   
   onMount(() => {
     stores.applyTheme();

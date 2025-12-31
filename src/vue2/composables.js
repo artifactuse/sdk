@@ -47,6 +47,9 @@ export function provideArtifactuse(config = {}) {
   
   const hasArtifacts = computed(() => state.artifacts.length > 0);
   
+  // Apply theme immediately on initialization
+  instance.applyTheme();
+  
   // Provide value
   const provided = {
     instance,
@@ -69,9 +72,13 @@ export function provideArtifactuse(config = {}) {
     on: instance.on,
     off: instance.off,
     
-    // Theme
+    // Theme - wrap setTheme to also apply
     applyTheme: instance.applyTheme,
-    setTheme: instance.setTheme,
+    setTheme: (theme) => {
+      instance.setTheme(theme);
+      instance.applyTheme();
+    },
+    getTheme: instance.getTheme,
   };
   
   provide(ARTIFACTUSE_KEY, provided);
@@ -160,9 +167,13 @@ export function createArtifactuseComposable(config = {}) {
     on: instance.on,
     off: instance.off,
     
-    // Theme
+    // Theme - wrap setTheme to also apply
     applyTheme: instance.applyTheme,
-    setTheme: instance.setTheme,
+    setTheme: (theme) => {
+      instance.setTheme(theme);
+      instance.applyTheme();
+    },
+    getTheme: instance.getTheme,
   };
 }
 

@@ -1,75 +1,87 @@
 <template>
-  <Teleport to="body">
-    <Transition name="artifactuse-panel">
+  <!-- Main panel (flex child when not fullscreen) -->
+  <Transition name="artifactuse-panel">
+    <div 
+      v-if="state.isPanelOpen && activeArtifact"
+      class="artifactuse-panel"
+      :class="{ 
+        'artifactuse-panel--fullscreen': state.isFullscreen
+      }"
+      :style="!state.isFullscreen ? { width: `${panelWidth}%` } : undefined"
+    >
+      <!-- Resize handle (left edge) -->
       <div 
-        v-if="state.isPanelOpen && activeArtifact"
-        class="artifactuse-panel"
-        :class="{ 
-          'artifactuse-panel--fullscreen': state.isFullscreen
-        }"
+        v-if="!state.isFullscreen"
+        class="artifactuse-panel__resize-handle"
+        @mousedown.prevent="startPanelResize"
       >
-        <!-- Panel header -->
-        <div class="artifactuse-panel-header">
-          <div class="artifactuse-panel-title">
-            <span class="artifactuse-panel-language">{{ languageDisplay }}</span>
-            <span class="artifactuse-panel-name">{{ activeArtifact.title }}</span>
+        <div class="artifactuse-panel__resize-handle-line"></div>
+      </div>
+
+      <!-- Panel header -->
+      <header class="artifactuse-panel__header">
+        <div class="artifactuse-panel__title">
+          <span 
+            class="artifactuse-panel__icon"
+            v-html="languageIcon"
+          ></span>
+          <div class="artifactuse-panel__title-content">
+            <span class="artifactuse-panel__name">{{ activeArtifact.title || 'Untitled' }}</span>
+            <span class="artifactuse-panel__meta">
+              {{ languageDisplay }}
+              <template v-if="activeArtifact.lineCount">
+                • {{ activeArtifact.lineCount }} lines
+              </template>
+            </span>
           </div>
-          
-          <div class="artifactuse-panel-tabs">
-            <button 
-              class="artifactuse-panel-tab"
-              :class="{ active: state.viewMode === 'preview' }"
-              @click="setViewMode('preview')"
-              :disabled="!activeArtifact.isPreviewable"
-            >
-              Preview
+        </div>
+        
+        <!-- View mode tabs (icon only) -->
+        <div class="artifactuse-panel__tabs">
+          <button 
+            class="artifactuse-panel__tab"
+            :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
+            :disabled="!activeArtifact.isPreviewable"
+            title="Preview"
+            @click="setViewMode('preview')"
+          >
+            <!-- Eye icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
             </button>
             <button 
-              class="artifactuse-panel-tab"
-              :class="{ active: state.viewMode === 'code' }"
+              class="artifactuse-panel__tab"
+              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
+              title="Code"
               @click="setViewMode('code')"
             >
-              Code
+              <!-- Code icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
             </button>
             <button 
-              class="artifactuse-panel-tab"
-              :class="{ active: state.viewMode === 'split' }"
-              @click="setViewMode('split')"
+              class="artifactuse-panel__tab"
+              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
               :disabled="!activeArtifact.isPreviewable"
+              title="Split view"
+              @click="setViewMode('split')"
             >
-              Split
+              <!-- Split icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="12" y1="3" x2="12" y2="21"></line>
+              </svg>
             </button>
           </div>
           
-          <div class="artifactuse-panel-actions">
+          <!-- Header actions (icon only) -->
+          <div class="artifactuse-panel__actions">
             <button 
-              class="artifactuse-panel-action"
-              title="Copy code"
-              @click="handleCopy"
-            >
-              <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </button>
-            
-            <button 
-              class="artifactuse-panel-action"
-              title="Download"
-              @click="handleDownload"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-            </button>
-            
-            <button 
-              class="artifactuse-panel-action"
+              class="artifactuse-panel__action"
               :title="state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
               @click="toggleFullscreen"
             >
@@ -88,8 +100,8 @@
             </button>
             
             <button 
-              class="artifactuse-panel-action artifactuse-panel-close"
-              title="Close"
+              class="artifactuse-panel__action artifactuse-panel__action--close"
+              title="Close panel"
               @click="closePanel"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -98,76 +110,297 @@
               </svg>
             </button>
           </div>
-        </div>
+        </header>
         
         <!-- Panel content -->
         <div 
-          class="artifactuse-panel-content"
-          :class="`artifactuse-panel-content--${state.viewMode}`"
+          ref="contentRef"
+          class="artifactuse-panel__content"
+          :class="`artifactuse-panel__content--${state.viewMode}`"
         >
           <!-- Preview pane -->
           <div 
             v-if="state.viewMode === 'preview' || state.viewMode === 'split'"
-            class="artifactuse-panel-preview"
+            class="artifactuse-panel__preview"
+            :style="state.viewMode === 'split' ? { width: `${splitPosition}%` } : undefined"
           >
+            <!-- Loading spinner -->
+            <div v-if="iframeLoading && panelUrl" class="artifactuse-panel__loading">
+              <div class="artifactuse-panel__spinner"></div>
+            </div>
+            
             <iframe
               v-if="panelUrl"
               ref="iframeRef"
               :src="panelUrl"
-              class="artifactuse-panel-iframe"
+              class="artifactuse-panel__iframe"
+              :class="{ 'artifactuse-panel__iframe--loading': iframeLoading }"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
               @load="handleIframeLoad"
+              @error="handleIframeError"
             ></iframe>
-            <div v-else class="artifactuse-panel-no-preview">
-              <p>Preview not available for this artifact type.</p>
+            <div v-else class="artifactuse-panel__no-preview">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
+                <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              <p>Preview not available for {{ languageDisplay }}</p>
             </div>
           </div>
           
           <!-- Code pane -->
           <div 
             v-if="state.viewMode === 'code' || state.viewMode === 'split'"
-            class="artifactuse-panel-code"
+            class="artifactuse-panel__code"
+            :style="state.viewMode === 'split' ? { width: `${100 - splitPosition}%` } : undefined"
           >
-            <pre><code>{{ activeArtifact.code }}</code></pre>
+            <!-- Split resize handle (inside code pane) -->
+            <div 
+              v-if="state.viewMode === 'split'"
+              class="artifactuse-panel__split-handle"
+              @mousedown.prevent="startSplitResize"
+            >
+              <div class="artifactuse-panel__split-handle-line"></div>
+            </div>
+            
+            <div class="artifactuse-panel__code-scroll" ref="codeScrollRef" @scroll="handleCodeScroll">
+              <div class="artifactuse-panel__line-numbers" ref="lineNumbersRef"></div>
+              <pre class="artifactuse-panel__code-block"><code 
+                ref="codeRef" 
+                :class="`language-${normalizedLanguage}`"
+                v-text="activeArtifact.code"
+              ></code></pre>
+            </div>
           </div>
         </div>
+        
+        <!-- Panel footer -->
+        <footer class="artifactuse-panel__footer">
+          <div class="artifactuse-panel__footer-left">
+            <!-- Powered by Artifactuse -->
+            <a 
+              v-if="showBranding"
+              href="https://artifactuse.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="artifactuse-panel__branding"
+            >
+              <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+              </svg>
+              <span>Artifactuse</span>
+            </a>
+            
+            <!-- Size badge -->
+            <span v-if="activeArtifact.size" class="artifactuse-panel__badge">
+              {{ formatBytes(activeArtifact.size) }}
+            </span>
+          </div>
+          
+          <div class="artifactuse-panel__footer-right">
+            <!-- Copy button (icon only) -->
+            <button 
+              class="artifactuse-panel__footer-action"
+              :class="{ 'artifactuse-panel__footer-action--success': copied }"
+              :title="copied ? 'Copied!' : 'Copy code'"
+              @click="handleCopy"
+            >
+              <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+            
+            <!-- Download button (icon only) -->
+            <button 
+              class="artifactuse-panel__footer-action"
+              title="Download file"
+              @click="handleDownload"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+            
+            <!-- Open in new tab (icon only) -->
+            <button 
+              v-if="panelUrl"
+              class="artifactuse-panel__footer-action"
+              title="Open in new tab"
+              @click="handleOpenInNewTab"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </button>
+            
+            <!-- Artifact navigation (if multiple non-inline) -->
+            <div 
+              v-if="nonInlineArtifacts.length > 1"
+              class="artifactuse-panel__nav"
+            >
+              <button 
+                class="artifactuse-panel__nav-btn"
+                :disabled="currentNonInlineIndex <= 0"
+                title="Previous artifact"
+                @click="navigateToPrevNonInline"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              
+              <!-- Clickable indicator that opens popup -->
+              <button 
+                class="artifactuse-panel__nav-trigger"
+                title="View all artifacts"
+                @click="toggleArtifactList"
+              >
+                <span>{{ currentNonInlineIndex + 1 }} / {{ nonInlineArtifacts.length }}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              
+              <button 
+                class="artifactuse-panel__nav-btn"
+                :disabled="currentNonInlineIndex >= nonInlineArtifacts.length - 1"
+                title="Next artifact"
+                @click="navigateToNextNonInline"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+              
+              <!-- Artifact list popup -->
+              <Transition name="artifactuse-popup">
+                <div 
+                  v-if="showArtifactList"
+                  class="artifactuse-panel__artifact-list"
+                >
+                  <div class="artifactuse-panel__artifact-list-header">
+                    <span>Artifacts</span>
+                    <button 
+                      class="artifactuse-panel__artifact-list-close"
+                      @click="showArtifactList = false"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="artifactuse-panel__artifact-list-items">
+                    <button
+                      v-for="(artifact, index) in nonInlineArtifacts"
+                      :key="artifact.id"
+                      class="artifactuse-panel__artifact-item"
+                      :class="{ 'artifactuse-panel__artifact-item--active': artifact.id === activeArtifact.id }"
+                      @click="selectArtifact(artifact)"
+                    >
+                      <span 
+                        class="artifactuse-panel__artifact-item-icon"
+                        v-html="getArtifactIcon(artifact.language)"
+                      ></span>
+                      <div class="artifactuse-panel__artifact-item-content">
+                        <span class="artifactuse-panel__artifact-item-title">
+                          {{ artifact.title || 'Untitled' }}
+                        </span>
+                        <span class="artifactuse-panel__artifact-item-meta">
+                          {{ artifact.type }}
+                          <template v-if="artifact.lineCount">
+                            • {{ artifact.lineCount }} lines
+                          </template>
+                        </span>
+                      </div>
+                      <span class="artifactuse-panel__artifact-item-index">
+                        {{ index + 1 }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </Transition>
+            </div>
+          </div>
+        </footer>
       </div>
     </Transition>
     
-    <!-- Backdrop -->
-    <Transition name="artifactuse-backdrop">
-      <div 
-        v-if="state.isPanelOpen && state.isFullscreen"
-        class="artifactuse-panel-backdrop"
-        @click="closePanel"
-      ></div>
-    </Transition>
-  </Teleport>
+    <!-- Backdrop (fullscreen only - teleported to body) -->
+    <Teleport to="body">
+      <Transition name="artifactuse-backdrop">
+        <div 
+          v-if="state.isPanelOpen && state.isFullscreen"
+          class="artifactuse-panel__backdrop"
+          @click="closePanel"
+        ></div>
+      </Transition>
+    </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useArtifactuse } from './index.js';
-import { getLanguageDisplayName, getFileExtension } from '../core/detector.js';
+import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
+import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
 
-const emit = defineEmits(['close', 'ai-request', 'save', 'export']);
+// Emits
+const emit = defineEmits(['close', 'ai-request', 'save', 'export', 'resize']);
 
+// Composable
 const { 
   state, 
   activeArtifact, 
+  artifactCount,
   closePanel, 
   toggleFullscreen, 
   setViewMode,
   getPanelUrl,
+  openArtifact,
   instance,
 } = useArtifactuse();
 
+// Refs
 const iframeRef = ref(null);
+const codeRef = ref(null);
+const contentRef = ref(null);
+const lineNumbersRef = ref(null);
+const codeScrollRef = ref(null);
 const copied = ref(false);
+const showArtifactList = ref(false);
+const iframeLoading = ref(true);
 
+// Streaming state
+let updateTimer = null;
+let streamEndTimer = null;
+let iframeLoadTimer = null;
+const isStreaming = ref(false);
+
+// Panel width (percentage)
+const panelWidth = ref(50);
+const splitPosition = ref(50);
+
+// Computed
 const languageDisplay = computed(() => {
   if (!activeArtifact.value) return '';
   return getLanguageDisplayName(activeArtifact.value.language);
+});
+
+const languageIcon = computed(() => {
+  if (!activeArtifact.value) return '';
+  const iconPath = getLanguageIcon(activeArtifact.value.language);
+  if (!iconPath) return '';
+  return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
 });
 
 const panelUrl = computed(() => {
@@ -175,24 +408,103 @@ const panelUrl = computed(() => {
   return getPanelUrl(activeArtifact.value);
 });
 
+const currentArtifactIndex = computed(() => {
+  if (!activeArtifact.value || !state.artifacts.length) return -1;
+  return state.artifacts.findIndex(a => a.id === activeArtifact.value.id);
+});
+
+const normalizedLanguage = computed(() => {
+  if (!activeArtifact.value) return 'plaintext';
+  return normalizeLang(activeArtifact.value.language || 'plaintext');
+});
+
+const nonInlineArtifacts = computed(() => {
+  return state.artifacts.filter(a => !a.isInline);
+});
+
+const currentNonInlineIndex = computed(() => {
+  if (!activeArtifact.value) return -1;
+  return nonInlineArtifacts.value.findIndex(a => a.id === activeArtifact.value.id);
+});
+
+const showBranding = computed(() => {
+  // Check if branding is enabled in config (defaults to true)
+  return instance.config?.branding !== false;
+});
+
+// Line numbers generation
+function generateLineNumbers() {
+  if (lineNumbersRef.value && activeArtifact.value?.code) {
+    const lines = activeArtifact.value.code.split('\n');
+    lineNumbersRef.value.innerHTML = lines
+      .map((_, i) => `<div>${i + 1}</div>`)
+      .join('');
+  }
+}
+
+// Prism highlighting
+function highlightCode() {
+  if (codeRef.value && isPrismAvailable()) {
+    window.Prism.highlightElement(codeRef.value);
+    
+    // Sync Prism background to containers
+    nextTick(() => {
+      syncPrismBackground();
+    });
+  }
+}
+
+// Sync Prism theme background to code containers
+function syncPrismBackground() {
+  const pre = codeRef.value?.closest('pre');
+  if (pre && codeScrollRef.value && lineNumbersRef.value) {
+    const computedStyle = window.getComputedStyle(pre);
+    const bgColor = computedStyle.backgroundColor;
+    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+      codeScrollRef.value.style.backgroundColor = bgColor;
+      lineNumbersRef.value.style.backgroundColor = bgColor;
+    }
+  }
+}
+
+// Update code view (line numbers + highlighting)
+function updateCodeView() {
+  nextTick(() => {
+    generateLineNumbers();
+    // Don't highlight during streaming
+    if (!isStreaming.value) {
+      highlightCode();
+    }
+  });
+}
+
+// Methods
 function handleIframeLoad() {
+  clearTimeout(iframeLoadTimer);
+  iframeLoading.value = false;
   if (iframeRef.value && activeArtifact.value) {
     instance.bridge.setIframe(iframeRef.value);
     instance.bridge.loadArtifact(activeArtifact.value);
   }
 }
 
-watch(activeArtifact, (artifact) => {
-  if (artifact && iframeRef.value) {
-    nextTick(() => {
-      instance.bridge.loadArtifact(artifact);
-    });
-  }
-});
+function handleIframeError() {
+  clearTimeout(iframeLoadTimer);
+  iframeLoading.value = false;
+}
 
-instance.on('ai:request', (data) => emit('ai-request', data));
-instance.on('save:request', (data) => emit('save', data));
-instance.on('export:complete', (data) => emit('export', data));
+function startIframeLoadTimeout() {
+  clearTimeout(iframeLoadTimer);
+  iframeLoadTimer = setTimeout(() => {
+    // Hide loader after 10 seconds even if load event doesn't fire
+    iframeLoading.value = false;
+  }, 10000);
+}
+
+function handleCodeScroll() {
+  // Line numbers and code scroll together in the same container
+  // No sync needed
+}
 
 async function handleCopy() {
   if (!activeArtifact.value) return;
@@ -211,7 +523,7 @@ function handleDownload() {
   
   const { code, language, title } = activeArtifact.value;
   const extension = getFileExtension(language);
-  const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.${extension}`;
+  const filename = `${(title || 'artifact').toLowerCase().replace(/\s+/g, '-')}.${extension}`;
   
   const blob = new Blob([code], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
@@ -224,234 +536,249 @@ function handleDownload() {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-</script>
 
-<style>
-.artifactuse-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 50%;
-  min-width: 400px;
-  max-width: 800px;
-  height: 100vh;
-  background: rgb(var(--artifactuse-background));
-  border-left: 1px solid rgb(var(--artifactuse-border));
-  display: flex;
-  flex-direction: column;
-  z-index: 1000;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
-}
-
-.artifactuse-panel--fullscreen {
-  width: 100%;
-  max-width: none;
-  border-left: none;
-}
-
-.artifactuse-panel-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgb(var(--artifactuse-border));
-  background: rgb(var(--artifactuse-surface));
-}
-
-.artifactuse-panel-title {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.artifactuse-panel-language {
-  padding: 4px 8px;
-  background: rgba(var(--artifactuse-primary), 0.15);
-  color: rgb(var(--artifactuse-primary));
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.artifactuse-panel-name {
-  font-weight: 600;
-  font-size: 14px;
-  color: rgb(var(--artifactuse-text));
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.artifactuse-panel-tabs {
-  display: flex;
-  gap: 4px;
-  background: rgba(var(--artifactuse-background), 0.5);
-  padding: 4px;
-  border-radius: 8px;
-}
-
-.artifactuse-panel-tab {
-  padding: 6px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgb(var(--artifactuse-text-secondary));
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.artifactuse-panel-tab:hover:not(:disabled) {
-  background: rgba(var(--artifactuse-text), 0.1);
-  color: rgb(var(--artifactuse-text));
-}
-
-.artifactuse-panel-tab.active {
-  background: rgb(var(--artifactuse-primary));
-  color: white;
-}
-
-.artifactuse-panel-tab:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.artifactuse-panel-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.artifactuse-panel-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: rgb(var(--artifactuse-text-secondary));
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.artifactuse-panel-action:hover {
-  background: rgba(var(--artifactuse-text), 0.1);
-  color: rgb(var(--artifactuse-text));
-}
-
-.artifactuse-panel-action svg {
-  width: 18px;
-  height: 18px;
-}
-
-.artifactuse-panel-close:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: rgb(239, 68, 68);
-}
-
-.artifactuse-panel-content {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-.artifactuse-panel-content--preview .artifactuse-panel-preview,
-.artifactuse-panel-content--code .artifactuse-panel-code {
-  width: 100%;
-}
-
-.artifactuse-panel-content--split {
-  flex-direction: row;
-}
-
-.artifactuse-panel-content--split .artifactuse-panel-preview,
-.artifactuse-panel-content--split .artifactuse-panel-code {
-  width: 50%;
-}
-
-.artifactuse-panel-content--split .artifactuse-panel-code {
-  border-left: 1px solid rgb(var(--artifactuse-border));
-}
-
-.artifactuse-panel-preview {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.artifactuse-panel-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: white;
-}
-
-.artifactuse-panel-no-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: rgb(var(--artifactuse-text-muted));
-}
-
-.artifactuse-panel-code {
-  overflow: auto;
-  background: rgb(var(--artifactuse-surface));
-}
-
-.artifactuse-panel-code pre {
-  margin: 0;
-  padding: 16px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  color: rgb(var(--artifactuse-text));
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.artifactuse-panel-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-/* Transitions */
-.artifactuse-panel-enter-active,
-.artifactuse-panel-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.artifactuse-panel-enter-from,
-.artifactuse-panel-leave-to {
-  transform: translateX(100%);
-}
-
-.artifactuse-backdrop-enter-active,
-.artifactuse-backdrop-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.artifactuse-backdrop-enter-from,
-.artifactuse-backdrop-leave-to {
-  opacity: 0;
-}
-
-@media (max-width: 768px) {
-  .artifactuse-panel {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
+function handleOpenInNewTab() {
+  if (panelUrl.value) {
+    window.open(panelUrl.value, '_blank');
   }
+}
+
+function navigateArtifact(direction) {
+  const newIndex = currentArtifactIndex.value + direction;
+  if (newIndex >= 0 && newIndex < state.artifacts.length) {
+    const artifact = state.artifacts[newIndex];
+    openArtifact(artifact);
+  }
+}
+
+// Artifact list popup methods
+function toggleArtifactList() {
+  showArtifactList.value = !showArtifactList.value;
+}
+
+function selectArtifact(artifact) {
+  openArtifact(artifact);
+  showArtifactList.value = false;
+}
+
+function getArtifactIcon(language) {
+  const iconPath = getLanguageIcon(language);
+  if (!iconPath) return '';
+  return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
+}
+
+function navigateToPrevNonInline() {
+  const newIndex = currentNonInlineIndex.value - 1;
+  if (newIndex >= 0) {
+    openArtifact(nonInlineArtifacts.value[newIndex]);
+  }
+}
+
+function navigateToNextNonInline() {
+  const newIndex = currentNonInlineIndex.value + 1;
+  if (newIndex < nonInlineArtifacts.value.length) {
+    openArtifact(nonInlineArtifacts.value[newIndex]);
+  }
+}
+
+// Close artifact list when clicking outside
+function handleClickOutside(e) {
+  const nav = document.querySelector('.artifactuse-panel__nav');
+  if (nav && !nav.contains(e.target)) {
+    showArtifactList.value = false;
+  }
+}
+
+// ============================================
+// Panel resize (fixed implementation)
+// ============================================
+let panelResizeState = null;
+
+function startPanelResize(e) {
+  panelResizeState = {
+    startX: e.clientX,
+    startWidth: panelWidth.value,
+  };
   
-  .artifactuse-panel-tabs {
-    display: none;
+  document.addEventListener('mousemove', handlePanelResize);
+  document.addEventListener('mouseup', stopPanelResize);
+  document.body.style.cursor = 'ew-resize';
+  document.body.style.userSelect = 'none';
+  
+  // Prevent iframe from capturing mouse events
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
+}
+
+function handlePanelResize(e) {
+  if (!panelResizeState) return;
+  
+  const windowWidth = window.innerWidth;
+  const deltaX = panelResizeState.startX - e.clientX;
+  const deltaPercent = (deltaX / windowWidth) * 100;
+  const newWidth = panelResizeState.startWidth + deltaPercent;
+  
+  panelWidth.value = Math.min(Math.max(newWidth, 25), 75);
+  
+  // Emit resize event for live updates
+  emit('resize', { width: panelWidth.value });
+}
+
+function stopPanelResize() {
+  const wasResizing = panelResizeState !== null;
+  panelResizeState = null;
+  
+  document.removeEventListener('mousemove', handlePanelResize);
+  document.removeEventListener('mouseup', stopPanelResize);
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+  
+  // Re-enable iframe mouse events
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => iframe.style.pointerEvents = '');
+  
+  // Emit resize event with current width
+  if (wasResizing) {
+    emit('resize', { width: panelWidth.value });
   }
 }
-</style>
+
+// ============================================
+// Split resize (fixed implementation)
+// ============================================
+let splitResizeState = null;
+
+function startSplitResize(e) {
+  if (!contentRef.value) return;
+  
+  const rect = contentRef.value.getBoundingClientRect();
+  splitResizeState = {
+    startX: e.clientX,
+    startPosition: splitPosition.value,
+    contentLeft: rect.left,
+    contentWidth: rect.width,
+  };
+  
+  document.addEventListener('mousemove', handleSplitResize);
+  document.addEventListener('mouseup', stopSplitResize);
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  
+  // Prevent iframe from capturing mouse events
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
+}
+
+function handleSplitResize(e) {
+  if (!splitResizeState) return;
+  
+  const relativeX = e.clientX - splitResizeState.contentLeft;
+  const newPosition = (relativeX / splitResizeState.contentWidth) * 100;
+  
+  splitPosition.value = Math.min(Math.max(newPosition, 20), 80);
+}
+
+function stopSplitResize() {
+  splitResizeState = null;
+  
+  document.removeEventListener('mousemove', handleSplitResize);
+  document.removeEventListener('mouseup', stopSplitResize);
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+  
+  // Re-enable iframe mouse events
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => iframe.style.pointerEvents = '');
+}
+
+// Watch for artifact changes with streaming support
+watch(activeArtifact, (newArtifact, oldArtifact) => {
+  if (newArtifact) {
+    // Set iframe loading when artifact changes
+    if (!oldArtifact || newArtifact.id !== oldArtifact.id) {
+      iframeLoading.value = true;
+      startIframeLoadTimeout();
+    }
+    
+    // Check if code changed
+    if (!oldArtifact || newArtifact.code !== oldArtifact.code) {
+      // Mark as streaming
+      isStreaming.value = true;
+      
+      // Debounce updates during streaming
+      clearTimeout(updateTimer);
+      updateTimer = setTimeout(() => {
+        // Update line numbers immediately
+        generateLineNumbers();
+      }, 100);
+      
+      // Debounce end-of-streaming detection (longer delay)
+      clearTimeout(streamEndTimer);
+      streamEndTimer = setTimeout(() => {
+        // No updates for 500ms = streaming finished
+        isStreaming.value = false;
+        nextTick(() => {
+          // Highlight code
+          highlightCode();
+          
+          // Reload preview iframe after streaming ends
+          if (iframeRef.value && newArtifact.isPreviewable) {
+            iframeLoading.value = true;
+            startIframeLoadTimeout();
+            instance.bridge.loadArtifact(newArtifact);
+          }
+        });
+      }, 500);
+    } else {
+      // Artifact changed but code didn't (e.g., different artifact selected)
+      // Reload immediately
+      if (iframeRef.value && newArtifact.isPreviewable) {
+        iframeLoading.value = true;
+        startIframeLoadTimeout();
+        nextTick(() => {
+          instance.bridge.loadArtifact(newArtifact);
+        });
+      }
+      updateCodeView();
+    }
+  }
+}, { deep: true });
+
+// Watch viewMode to update code view
+watch(() => state.viewMode, (newMode) => {
+  if (newMode === 'code' || newMode === 'split') {
+    updateCodeView();
+  }
+});
+
+// Watch panel open state
+watch(() => state.isPanelOpen, (isOpen) => {
+  if (isOpen && (state.viewMode === 'code' || state.viewMode === 'split')) {
+    updateCodeView();
+  }
+});
+
+// Bridge event forwarding
+onMounted(() => {
+  instance.on('ai:request', (data) => emit('ai-request', data));
+  instance.on('save:request', (data) => emit('save', data));
+  instance.on('export:complete', (data) => emit('export', data));
+  
+  // Close artifact list when clicking outside
+  document.addEventListener('click', handleClickOutside);
+  
+  // Initial code view update
+  if (state.isPanelOpen && activeArtifact.value) {
+    updateCodeView();
+  }
+});
+
+onUnmounted(() => {
+  stopPanelResize();
+  stopSplitResize();
+  document.removeEventListener('click', handleClickOutside);
+  clearTimeout(updateTimer);
+  clearTimeout(streamEndTimer);
+  clearTimeout(iframeLoadTimer);
+});
+</script>

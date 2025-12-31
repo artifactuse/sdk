@@ -2,40 +2,40 @@
   <div 
     ref="containerRef"
     class="artifactuse-social"
-    :class="[`social-${platform}`]"
+    :class="[`artifactuse-social-${platform}`]"
     :data-theme="theme"
   >
     <!-- Twitter/X -->
     <template v-if="platform === 'twitter'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="social-author">
-          <div class="social-author-name">
+        <div class="artifactuse-social-author">
+          <div class="artifactuse-social-author-name">
             <span>{{ author.name }}</span>
-            <svg v-if="author.verified" class="social-verified" :class="verifiedClass" viewBox="0 0 24 24" fill="currentColor">
+            <svg v-if="author.verified" class="artifactuse-social-verified" :class="verifiedClass" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
             </svg>
           </div>
-          <div class="flex items-center gap-1">
-            <span class="social-author-handle">{{ author.handle }}</span>
-            <span class="social-timestamp">· {{ meta.timestamp || 'Just now' }}</span>
+          <div class="artifactuse-social-author-meta">
+            <span class="artifactuse-social-author-handle">{{ author.handle }}</span>
+            <span class="artifactuse-social-timestamp">· {{ meta.timestamp || 'Just now' }}</span>
           </div>
         </div>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
         <!-- Media -->
-        <div v-if="content.media?.length" class="social-media">
+        <div v-if="content.media?.length" class="artifactuse-social-media">
           <div 
-            class="social-media-grid"
-            :class="{ 'social-media-single': content.media.length === 1 }"
+            class="artifactuse-social-media-grid"
+            :class="{ 'artifactuse-social-media-single': content.media.length === 1 }"
             :data-count="content.media.length"
           >
             <img 
@@ -49,84 +49,84 @@
         </div>
         
         <!-- Link Card -->
-        <div v-if="content.link && !content.media?.length" class="social-link-card">
+        <div v-if="content.link && !content.media?.length" class="artifactuse-social-link-card">
           <img 
             v-if="content.link.image"
             :src="content.link.image"
             :alt="content.link.title"
-            class="social-link-image"
+            class="artifactuse-social-link-image"
             @error="handleMediaError"
           />
-          <div class="social-link-info">
-            <div class="social-link-domain">
-              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="artifactuse-social-link-info">
+            <div class="artifactuse-social-link-domain">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
               </svg>
               {{ content.link.domain || getDomain(content.link.url) }}
             </div>
-            <div class="social-link-title">{{ content.link.title }}</div>
-            <div v-if="content.link.description" class="social-link-description">{{ content.link.description }}</div>
+            <div class="artifactuse-social-link-title">{{ content.link.title }}</div>
+            <div v-if="content.link.description" class="artifactuse-social-link-description">{{ content.link.description }}</div>
           </div>
         </div>
         
         <!-- Poll -->
-        <div v-if="content.poll" class="social-poll">
+        <div v-if="content.poll" class="artifactuse-social-poll">
           <div 
             v-for="(option, idx) in content.poll.options" 
             :key="idx"
-            class="social-poll-option"
+            class="artifactuse-social-poll-option"
           >
             <div 
-              class="social-poll-bar"
+              class="artifactuse-social-poll-bar"
               :style="{ width: `${content.poll.votes?.[idx] || 0}%` }"
             ></div>
-            <div class="social-poll-label">
+            <div class="artifactuse-social-poll-label">
               <span>{{ option }}</span>
-              <span class="font-medium">{{ content.poll.votes?.[idx] || 0 }}%</span>
+              <span class="artifactuse-social-poll-label-percent">{{ content.poll.votes?.[idx] || 0 }}%</span>
             </div>
           </div>
-          <div class="social-poll-meta">
+          <div class="artifactuse-social-poll-meta">
             {{ formatNumber(content.poll.totalVotes || 0) }} votes · {{ content.poll.duration || 'Poll ended' }}
           </div>
         </div>
         
         <!-- Quote Tweet -->
-        <div v-if="content.quote" class="social-quote">
-          <div class="social-quote-header">
+        <div v-if="content.quote" class="artifactuse-social-quote">
+          <div class="artifactuse-social-quote-header">
             <img 
               :src="content.quote.author?.avatar || defaultAvatar" 
-              class="social-quote-avatar"
+              class="artifactuse-social-quote-avatar"
             />
-            <span class="social-quote-author">{{ content.quote.author?.name }}</span>
-            <span class="social-quote-handle">{{ content.quote.author?.handle }}</span>
+            <span class="artifactuse-social-quote-author">{{ content.quote.author?.name }}</span>
+            <span class="artifactuse-social-quote-handle">{{ content.quote.author?.handle }}</span>
           </div>
-          <p class="social-quote-text">{{ content.quote.text }}</p>
+          <p class="artifactuse-social-quote-text">{{ content.quote.text }}</p>
         </div>
       </div>
       
       <!-- Engagement -->
-      <div v-if="showEngagement" class="social-engagement">
-        <div class="social-stat">
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M8 12h8 M12 8v8"/>
+            <path d="M12 21C6.5 21 2 16.5 2 11V3l7 3 3-3 3 3 7-3v8c0 5.5-4.5 10-10 10z"/>
           </svg>
           <span>{{ formatNumber(engagement.replies || 0) }}</span>
         </div>
-        <div class="social-stat">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="m17 2-5 5-5-5M17 22l-5-5-5 5M7 7l5 5 5-5M7 17l5-5 5 5"/>
+            <path d="M7 17L17 7M17 7H8M17 7V16"/>
           </svg>
           <span>{{ formatNumber(engagement.retweets || 0) }}</span>
         </div>
-        <div class="social-stat">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 21C12 21 4 14 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 14 16 21 16 21"/>
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
           <span>{{ formatNumber(engagement.likes || 0) }}</span>
         </div>
-        <div class="social-stat">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8 M16 6l-4-4-4 4 M12 2v13"/>
+            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
           </svg>
           <span>{{ formatNumber(engagement.views || 0) }}</span>
         </div>
@@ -135,272 +135,246 @@
     
     <!-- LinkedIn -->
     <template v-else-if="platform === 'linkedin'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="flex-1">
-          <div class="social-author-name">
+        <div class="artifactuse-social-author-info">
+          <div class="artifactuse-social-author-name">
             {{ author.name }}
-            <span v-if="author.connection" class="font-normal text-xs">· {{ author.connection }}</span>
+            <span v-if="author.connection" class="artifactuse-social-author-connection">· {{ author.connection }}</span>
           </div>
-          <div class="social-author-headline">{{ author.headline }}</div>
-          <div class="social-timestamp">
+          <div class="artifactuse-social-author-headline">{{ author.headline }}</div>
+          <div class="artifactuse-social-timestamp">
             {{ meta.timestamp || 'Just now' }} · 
-            <svg class="w-3 h-3 inline" viewBox="0 0 24 24" fill="currentColor">
+            <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
             </svg>
           </div>
         </div>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
         <!-- Link Card -->
-        <div v-if="content.link" class="social-link-card">
+        <div v-if="content.link" class="artifactuse-social-link-card">
           <img 
             v-if="content.link.image"
             :src="content.link.image"
             :alt="content.link.title"
-            class="social-link-image"
+            class="artifactuse-social-link-image"
             @error="handleMediaError"
           />
-          <div class="social-link-info">
-            <div class="social-link-title">{{ content.link.title }}</div>
-            <div class="social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
+          <div class="artifactuse-social-link-info">
+            <div class="artifactuse-social-link-title">{{ content.link.title }}</div>
+            <div class="artifactuse-social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
           </div>
         </div>
       </div>
       
       <!-- Engagement -->
-      <div v-if="showEngagement" class="social-engagement">
-        <div class="social-reactions">
-          <div class="social-reaction-icons">
-            <span class="social-reaction-icon">👍</span>
-            <span class="social-reaction-icon">❤️</span>
-            <span class="social-reaction-icon">👏</span>
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
+        <div class="artifactuse-social-reactions">
+          <div class="artifactuse-social-reaction-icons">
+            <span class="artifactuse-social-reaction-icon">👍</span>
+            <span class="artifactuse-social-reaction-icon">❤️</span>
+            <span class="artifactuse-social-reaction-icon">👏</span>
           </div>
-          <span class="ml-1">{{ formatNumber(engagement.likes || 0) }}</span>
+          <span>{{ formatNumber(engagement.likes || 0) }}</span>
         </div>
-        <div class="text-sm">
-          {{ formatNumber(engagement.comments || 0) }} comments · {{ formatNumber(engagement.reposts || 0) }} reposts
-        </div>
+        <span>{{ formatNumber(engagement.comments || 0) }} comments · {{ formatNumber(engagement.shares || 0) }} shares</span>
       </div>
     </template>
     
     <!-- Instagram -->
     <template v-else-if="platform === 'instagram'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="flex-1">
-          <div class="social-author-name">
-            {{ author.name }}
-            <svg v-if="author.verified" class="social-verified" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          </div>
+        <div class="artifactuse-social-author-name">
+          {{ author.name }}
+          <svg v-if="author.verified" class="artifactuse-social-verified" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
+          </svg>
         </div>
-        <svg class="w-6 h-6 cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="1.5"/>
-          <circle cx="6" cy="12" r="1.5"/>
-          <circle cx="18" cy="12" r="1.5"/>
-        </svg>
       </div>
       
-      <div class="social-media">
-        <img 
-          v-if="content.media?.[0]"
-          :src="content.media[0].url"
-          :alt="content.media[0].alt || ''"
-          @error="handleMediaError"
-        />
-        <div v-else class="w-full aspect-square bg-gradient-to-br from-purple-500 to-pink-500"></div>
+      <div v-if="content.media?.length" class="artifactuse-social-media">
+        <img :src="content.media[0].url" :alt="content.media[0].alt || ''" @error="handleMediaError" />
       </div>
       
-      <div class="social-actions">
-        <svg class="social-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        <svg class="social-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-        </svg>
-        <svg class="social-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z"/>
-        </svg>
-        <div class="flex-1"></div>
-        <svg class="social-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
+      <div class="artifactuse-social-actions">
+        <div class="artifactuse-social-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <div class="artifactuse-social-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+          </svg>
+        </div>
+        <div class="artifactuse-social-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+          </svg>
+        </div>
       </div>
       
-      <div class="social-likes">{{ formatNumber(engagement.likes || 0) }} likes</div>
+      <div class="artifactuse-social-likes">{{ formatNumber(engagement.likes || 0) }} likes</div>
       
-      <div class="social-caption">
-        <span class="social-caption-author">{{ author.name }}</span>
-        <span class="social-caption-text" v-html="formattedText"></span>
+      <div class="artifactuse-social-caption">
+        <span class="artifactuse-social-caption-author">{{ author.name }}</span>
+        <span class="artifactuse-social-caption-text" v-html="formattedText"></span>
       </div>
       
-      <div class="social-timestamp">{{ meta.timestamp || 'Just now' }}</div>
+      <div class="artifactuse-social-timestamp">{{ meta.timestamp || 'Just now' }}</div>
     </template>
     
     <!-- Facebook -->
     <template v-else-if="platform === 'facebook'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="flex-1">
-          <div class="social-author-name">{{ author.name }}</div>
-          <div class="social-timestamp">
+        <div class="artifactuse-social-author-info">
+          <div class="artifactuse-social-author-name">{{ author.name }}</div>
+          <div class="artifactuse-social-timestamp">
             {{ meta.timestamp || 'Just now' }} · 
-            <svg class="w-3 h-3 inline" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
             </svg>
           </div>
         </div>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
         <!-- Link Card -->
-        <div v-if="content.link" class="social-link-card">
+        <div v-if="content.link" class="artifactuse-social-link-card">
           <img 
             v-if="content.link.image"
             :src="content.link.image"
             :alt="content.link.title"
-            class="social-link-image"
+            class="artifactuse-social-link-image"
             @error="handleMediaError"
           />
-          <div class="social-link-info">
-            <div class="social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
-            <div class="social-link-title">{{ content.link.title }}</div>
-            <div v-if="content.link.description" class="social-link-description">{{ content.link.description }}</div>
+          <div class="artifactuse-social-link-info">
+            <div class="artifactuse-social-link-domain">{{ content.link.domain || getDomain(content.link.url) }}</div>
+            <div class="artifactuse-social-link-title">{{ content.link.title }}</div>
+            <div v-if="content.link.description" class="artifactuse-social-link-description">{{ content.link.description }}</div>
           </div>
         </div>
       </div>
       
       <!-- Engagement -->
-      <div v-if="showEngagement" class="social-engagement">
-        <div class="social-reactions">
-          <div class="social-reaction-emojis">
-            <span class="social-reaction-emoji">👍</span>
-            <span class="social-reaction-emoji">❤️</span>
-            <span class="social-reaction-emoji">😮</span>
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
+        <div class="artifactuse-social-reactions">
+          <div class="artifactuse-social-reaction-emojis">
+            <span class="artifactuse-social-reaction-emoji">👍</span>
+            <span class="artifactuse-social-reaction-emoji">❤️</span>
+            <span class="artifactuse-social-reaction-emoji">😂</span>
           </div>
-          <span class="social-reaction-count ml-1">{{ formatNumber(totalReactions) }}</span>
+          <span class="artifactuse-social-reaction-count">{{ formatNumber(totalReactions) }}</span>
         </div>
-        <div class="social-comments-shares">
-          {{ formatNumber(engagement.comments || 0) }} comments · {{ formatNumber(engagement.shares || 0) }} shares
-        </div>
+        <span class="artifactuse-social-comments-shares">{{ formatNumber(engagement.comments || 0) }} comments · {{ formatNumber(engagement.shares || 0) }} shares</span>
       </div>
     </template>
     
     <!-- Threads -->
     <template v-else-if="platform === 'threads'">
-      <div class="social-header">
+      <div class="artifactuse-social-header">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="flex-1">
-          <div class="social-author-name">
+        <div class="artifactuse-social-author-info">
+          <div class="artifactuse-social-author-name">
             {{ author.name }}
-            <svg v-if="author.verified" class="social-verified text-gray-500" viewBox="0 0 24 24" fill="currentColor">
+            <svg v-if="author.verified" class="artifactuse-social-verified" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
             </svg>
           </div>
+          <span class="artifactuse-social-timestamp">{{ meta.timestamp || 'Just now' }}</span>
         </div>
-        <span class="social-timestamp">{{ meta.timestamp || 'Just now' }}</span>
       </div>
       
-      <div class="social-content">
-        <p class="social-text" v-html="formattedText"></p>
+      <div class="artifactuse-social-content">
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
       </div>
       
       <!-- Engagement -->
-      <div v-if="showEngagement" class="social-engagement">
-        <div class="social-stat">
+      <div v-if="showEngagement" class="artifactuse-social-engagement">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
           <span>{{ formatNumber(engagement.likes || 0) }}</span>
         </div>
-        <div class="social-stat">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
           </svg>
-          <span>{{ formatNumber(engagement.replies || 0) }}</span>
+          <span>{{ formatNumber(engagement.comments || 0) }}</span>
         </div>
-        <div class="social-stat">
+        <div class="artifactuse-social-stat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="m17 2-5 5-5-5M17 22l-5-5-5 5"/>
+            <path d="M7 17L17 7M17 7H8M17 7V16"/>
           </svg>
-          <span>{{ formatNumber(engagement.reposts || 0) }}</span>
+          <span>{{ formatNumber(engagement.shares || 0) }}</span>
         </div>
       </div>
     </template>
     
     <!-- TikTok -->
     <template v-else-if="platform === 'tiktok'">
-      <div class="social-thumbnail">
-        <img 
-          v-if="content.thumbnail"
-          :src="content.thumbnail"
-          alt="Video thumbnail"
-          @error="handleMediaError"
-        />
-        <div v-else class="w-full h-full bg-gradient-to-br from-cyan-500 to-pink-500"></div>
-        <div class="social-play-button">
-          <div class="social-play-icon">
+      <div class="artifactuse-social-thumbnail">
+        <img v-if="content.thumbnail" :src="content.thumbnail" :alt="content.text" @error="handleMediaError" />
+        <div class="artifactuse-social-play-button">
+          <div class="artifactuse-social-play-icon">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z"/>
             </svg>
           </div>
         </div>
-        <div v-if="content.duration" class="social-duration">{{ content.duration }}</div>
+        <div v-if="content.duration" class="artifactuse-social-duration">{{ content.duration }}</div>
       </div>
       
-      <div class="social-info">
-        <div class="social-header">
+      <div class="artifactuse-social-info">
+        <div class="artifactuse-social-header">
           <img 
             :src="author.avatar || defaultAvatar" 
             :alt="author.name"
-            class="social-avatar"
+            class="artifactuse-social-avatar"
             @error="handleAvatarError"
           />
-          <span class="social-author-name">@{{ author.name }}</span>
-          <svg v-if="author.verified" class="w-4 h-4 text-[#20d5ec]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z"/>
-            <path fill="#fff" d="m10.5 15.5-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4z"/>
-          </svg>
+          <span class="artifactuse-social-author-name">{{ author.name }}</span>
         </div>
         
-        <p class="social-text" v-html="formattedText"></p>
+        <p class="artifactuse-social-text" v-html="formattedText"></p>
         
-        <div v-if="content.sound" class="social-sound">
-          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+        <div v-if="content.sound" class="artifactuse-social-sound">
+          <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
           </svg>
           {{ content.sound }}
         </div>
         
-        <!-- Engagement -->
-        <div v-if="showEngagement" class="social-engagement">
+        <div v-if="showEngagement" class="artifactuse-social-engagement">
           <span>{{ formatNumber(engagement.likes || 0) }} likes</span>
           <span>{{ formatNumber(engagement.comments || 0) }} comments</span>
           <span>{{ formatNumber(engagement.shares || 0) }} shares</span>
@@ -410,51 +384,39 @@
     
     <!-- YouTube -->
     <template v-else-if="platform === 'youtube'">
-      <div class="social-thumbnail">
-        <img 
-          v-if="content.thumbnail"
-          :src="content.thumbnail"
-          alt="Video thumbnail"
-          @error="handleMediaError"
-        />
-        <div v-else class="w-full h-full bg-gradient-to-br from-red-600 to-red-800"></div>
-        <div v-if="content.duration" class="social-duration">{{ content.duration }}</div>
+      <div class="artifactuse-social-thumbnail">
+        <img v-if="content.thumbnail" :src="content.thumbnail" :alt="content.title" @error="handleMediaError" />
+        <div v-if="content.duration" class="artifactuse-social-duration">{{ content.duration }}</div>
       </div>
       
-      <div class="social-info">
+      <div class="artifactuse-social-info">
         <img 
           :src="author.avatar || defaultAvatar" 
           :alt="author.name"
-          class="social-avatar"
+          class="artifactuse-social-avatar"
           @error="handleAvatarError"
         />
-        <div class="flex-1 min-w-0">
-          <div class="social-title">{{ content.title }}</div>
-          <div class="social-channel">{{ author.name }}</div>
-          <div class="social-meta">
-            {{ formatNumber(engagement.views || 0) }} views · {{ meta.timestamp || 'Just now' }}
-          </div>
+        <div>
+          <div class="artifactuse-social-title">{{ content.title || content.text }}</div>
+          <div class="artifactuse-social-channel">{{ author.name }}</div>
+          <div class="artifactuse-social-meta">{{ formatNumber(engagement.views || 0) }} views · {{ meta.timestamp || 'Just now' }}</div>
         </div>
       </div>
     </template>
     
     <!-- Actions Bar -->
-    <div class="social-actions-bar">
-      <div class="social-platform-badge">
-        <component :is="platformIcon" class="w-3.5 h-3.5" />
+    <div class="artifactuse-social-actions-bar">
+      <div class="artifactuse-social-platform-badge">
+        <component :is="platformIcon" />
         <span>{{ platformName }}</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span v-if="charCount !== null" class="social-char-counter" :class="charCountClass">
-          {{ charCount }}/{{ charLimit }}
-        </span>
-        <button class="social-copy-btn" @click="copyText">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-          </svg>
-          {{ copyLabel }}
-        </button>
-      </div>
+      <button class="artifactuse-social-copy-btn" @click="copyText">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        {{ copyLabel }}
+      </button>
     </div>
   </div>
 </template>
@@ -463,7 +425,7 @@
 import { ref, computed, h } from 'vue';
 
 const props = defineProps({
-  social: {
+  artifact: {
     type: Object,
     required: true
   },
@@ -478,16 +440,27 @@ const emit = defineEmits(['copy', 'edit']);
 const containerRef = ref(null);
 const copyLabel = ref('Copy');
 
+/**
+ * Parse social data from artifact.code JSON
+ */
+const social = computed(() => {
+  try {
+    return JSON.parse(props.artifact.code);
+  } catch {
+    return { platform: 'twitter', data: {} };
+  }
+});
+
 // Default avatar
 const defaultAvatar = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 6v2h16v-2c0-3-2-6-8-6z"/></svg>';
 
 // Computed
-const platform = computed(() => props.social?.platform || 'twitter');
-const variant = computed(() => props.social?.variant || 'post');
-const author = computed(() => props.social?.data?.author || {});
-const content = computed(() => props.social?.data?.content || {});
-const engagement = computed(() => props.social?.data?.engagement || {});
-const meta = computed(() => props.social?.data?.meta || {});
+const platform = computed(() => social.value?.platform || 'twitter');
+const variant = computed(() => social.value?.variant || 'post');
+const author = computed(() => social.value?.data?.author || {});
+const content = computed(() => social.value?.data?.content || {});
+const engagement = computed(() => social.value?.data?.engagement || {});
+const meta = computed(() => social.value?.data?.meta || {});
 
 const showEngagement = computed(() => {
   const e = engagement.value;
@@ -496,7 +469,7 @@ const showEngagement = computed(() => {
 
 const verifiedClass = computed(() => {
   const type = author.value.verifiedType || 'blue';
-  return `social-verified-${type}`;
+  return `artifactuse-social-verified-${type}`;
 });
 
 const platformName = computed(() => {
@@ -513,7 +486,6 @@ const platformName = computed(() => {
 });
 
 const platformIcon = computed(() => {
-  // Return SVG icon component based on platform
   const icons = {
     twitter: () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
       h('path', { d: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' })
@@ -540,32 +512,6 @@ const platformIcon = computed(() => {
   return icons[platform.value] || icons.twitter;
 });
 
-// Character limits
-const charLimits = {
-  twitter: 280,
-  linkedin: 3000,
-  instagram: 2200,
-  facebook: 63206,
-  threads: 500,
-  tiktok: 2200,
-  youtube: 100
-};
-
-const charLimit = computed(() => charLimits[platform.value] || 280);
-
-const charCount = computed(() => {
-  const text = content.value.text || '';
-  return text.length;
-});
-
-const charCountClass = computed(() => {
-  const count = charCount.value;
-  const limit = charLimit.value;
-  if (count > limit) return 'error';
-  if (count > limit * 0.9) return 'warning';
-  return '';
-});
-
 // Format text with hashtags and mentions
 const formattedText = computed(() => {
   let text = content.value.text || '';
@@ -577,10 +523,10 @@ const formattedText = computed(() => {
     .replace(/>/g, '&gt;');
   
   // Hashtags
-  text = text.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+  text = text.replace(/#(\w+)/g, '<span class="artifactuse-social-hashtag">#$1</span>');
   
   // Mentions
-  text = text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+  text = text.replace(/@(\w+)/g, '<span class="artifactuse-social-mention">@$1</span>');
   
   // URLs
   text = text.replace(

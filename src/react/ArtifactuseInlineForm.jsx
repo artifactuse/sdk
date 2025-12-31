@@ -1,5 +1,5 @@
 // artifactuse/react/ArtifactuseInlineForm.jsx
-// Inline form component for simple forms rendered in SDK
+// Inline form component for forms rendered in chat
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 
@@ -35,40 +35,107 @@ function parseColor(color) {
 }
 
 /**
+ * Normalize options array (handle both string[] and {label, value}[])
+ */
+function normalizeOptions(options) {
+  if (!options) return [];
+  return options.map(opt => {
+    if (typeof opt === 'string') {
+      return { label: opt, value: opt };
+    }
+    return opt;
+  });
+}
+
+/**
+ * Check if field type is a text input
+ */
+function isTextInput(type) {
+  return ['text', 'email', 'password', 'tel', 'url', 'number', 'date', 'time', 'datetime-local'].includes(type);
+}
+
+/**
  * Inline Form Component
  * Renders buttons or simple field forms inline in the chat
  */
 export function ArtifactuseInlineForm({ 
-  form, 
+  artifact, 
   onSubmit, 
-  onCancel, 
+  onCancel,
+  onReset,
+  onButtonClick,
   className = '',
   theme = 'dark',
   accent = null,
 }) {
   const containerRef = useRef(null);
   
+  // Parse form data from artifact.code
+  const form = useMemo(() => {
+    try {
+      return JSON.parse(artifact.code);
+    } catch {
+      return { title: 'Invalid Form', variant: 'fields', data: { fields: [] } };
+    }
+  }, [artifact.code]);
+  
+  const formId = artifact.id || form.id || `form-${Date.now()}`;
+  const formFields = form.data?.fields || [];
+  
+  // Check if form has a buttons field
+  const hasButtonsField = useMemo(() => {
+    return formFields.some(f => f.type === 'buttons');
+  }, [formFields]);
+  
+  // Get button fields for buttons-only variant
+  const buttonFields = useMemo(() => {
+    if (form.variant === 'buttons') {
+      return formFields;
+    }
+    return [];
+  }, [form.variant, formFields]);
+  
+  // Initialize form values
   const [values, setValues] = useState(() => {
     const defaults = {};
-    const fields = form.data?.fields || [];
-    fields.forEach(f => {
+    formFields.forEach(f => {
+      if (['buttons', 'divider', 'heading'].includes(f.type)) return;
       if (f.defaultValue !== undefined) defaults[f.name] = f.defaultValue;
       else if (f.type === 'checkbox') defaults[f.name] = false;
+      else defaults[f.name] = '';
     });
+    // Apply form-level defaults
+    if (form.data?.defaults) {
+      Object.assign(defaults, form.data.defaults);
+    }
     return defaults;
   });
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Re-initialize values when artifact changes
+  useEffect(() => {
+    const defaults = {};
+    formFields.forEach(f => {
+      if (['buttons', 'divider', 'heading'].includes(f.type)) return;
+      if (f.defaultValue !== undefined) defaults[f.name] = f.defaultValue;
+      else if (f.type === 'checkbox') defaults[f.name] = false;
+      else defaults[f.name] = '';
+    });
+    if (form.data?.defaults) {
+      Object.assign(defaults, form.data.defaults);
+    }
+    setValues(defaults);
+    setErrors({});
+  }, [artifact.code]);
+
   // Apply theme and accent color
   useEffect(() => {
     if (!containerRef.current) return;
     
-    // Set theme attribute
     containerRef.current.setAttribute('data-artifactuse-theme', theme);
     
-    // Set accent color if provided
     if (accent) {
       const rgb = parseColor(accent);
       if (rgb) {
@@ -79,23 +146,91 @@ export function ArtifactuseInlineForm({
 
   const handleChange = useCallback((name, value) => {
     setValues(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: null }));
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
   }, []);
 
   const validate = useCallback(() => {
     const newErrors = {};
-    const fields = form.data?.fields || [];
     
-    fields.forEach(field => {
+    formFields.forEach(field => {
+      if (['buttons', 'divider', 'heading'].includes(field.type)) return;
+      
       const value = values[field.name];
+      
+      // Required validation
       if (field.required && !value && value !== 0 && value !== false) {
         newErrors[field.name] = `${field.label || 'This field'} is required`;
+        return;
+      }
+      
+      // Pattern validation
+      if (field.pattern && value) {
+        const regex = new RegExp(field.pattern);
+        if (!regex.test(value)) {
+          newErrors[field.name] = field.patternMessage || `${field.label || 'This field'} is invalid`;
+          return;
+        }
+      }
+      
+      // Email validation
+      if (field.type === 'email' && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          newErrors[field.name] = 'Please enter a valid email address';
+          return;
+        }
+      }
+      
+      // Min/max length validation
+      if (field.minLength && value && value.length < field.minLength) {
+        newErrors[field.name] = `Minimum ${field.minLength} characters required`;
+        return;
+      }
+      if (field.maxLength && value && value.length > field.maxLength) {
+        newErrors[field.name] = `Maximum ${field.maxLength} characters allowed`;
+        return;
       }
     });
     
+    // Apply form-level validation rules
+    const validation = form.data?.validation;
+    if (validation) {
+      Object.entries(validation).forEach(([fieldName, rules]) => {
+        if (newErrors[fieldName]) return;
+        
+        const value = values[fieldName];
+        
+        if (rules.pattern && value) {
+          const regex = new RegExp(rules.pattern);
+          if (!regex.test(value)) {
+            newErrors[fieldName] = rules.message || `${fieldName} is invalid`;
+          }
+        }
+      });
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [form.data?.fields, values]);
+  }, [formFields, values, form.data?.validation]);
+
+  const resetForm = useCallback(() => {
+    const defaults = {};
+    formFields.forEach(f => {
+      if (['buttons', 'divider', 'heading'].includes(f.type)) return;
+      if (f.defaultValue !== undefined) defaults[f.name] = f.defaultValue;
+      else if (f.type === 'checkbox') defaults[f.name] = false;
+      else defaults[f.name] = '';
+    });
+    if (form.data?.defaults) {
+      Object.assign(defaults, form.data.defaults);
+    }
+    setValues(defaults);
+    setErrors({});
+  }, [formFields, form.data?.defaults]);
 
   const handleSubmit = useCallback((e) => {
     e?.preventDefault();
@@ -103,29 +238,57 @@ export function ArtifactuseInlineForm({
     
     setIsSubmitting(true);
     onSubmit?.({
-      formId: form.id,
+      formId,
       action: 'submit',
-      values,
+      values: { ...values },
       timestamp: Date.now()
     });
     
     setTimeout(() => setIsSubmitting(false), 500);
-  }, [form.id, values, onSubmit, validate]);
+  }, [formId, values, onSubmit, validate]);
 
-  const handleButtonClick = useCallback((action) => {
-    if (action === 'cancel') {
-      onCancel?.({ formId: form.id, action: 'cancel', timestamp: Date.now() });
-    } else {
-      onSubmit?.({
-        formId: form.id,
-        action,
-        values: {},
-        timestamp: Date.now()
-      });
+  const handleButtonAction = useCallback((btn) => {
+    const action = btn.action || 'custom';
+    
+    switch (action) {
+      case 'submit':
+        handleSubmit();
+        break;
+        
+      case 'cancel':
+        onCancel?.({
+          formId,
+          action: 'cancel',
+          buttonName: btn.name || 'cancel',
+          timestamp: Date.now()
+        });
+        break;
+        
+      case 'reset':
+        resetForm();
+        onReset?.({
+          formId,
+          action: 'reset',
+          buttonName: btn.name || 'reset',
+          timestamp: Date.now()
+        });
+        break;
+        
+      case 'custom':
+      default:
+        onButtonClick?.({
+          formId,
+          action,
+          buttonName: btn.name || btn.label,
+          buttonLabel: btn.label,
+          values: { ...values },
+          timestamp: Date.now()
+        });
+        break;
     }
-  }, [form.id, onSubmit, onCancel]);
+  }, [formId, values, handleSubmit, onCancel, onReset, onButtonClick, resetForm]);
 
-  // Render buttons variant
+  // Render buttons-only variant
   if (form.variant === 'buttons') {
     return (
       <div 
@@ -133,17 +296,22 @@ export function ArtifactuseInlineForm({
         className={`artifactuse-inline-form artifactuse-form-buttons ${className}`}
         data-artifactuse-theme={theme}
       >
-        {form.title && <div className="artifactuse-form-title">{form.title}</div>}
-        {form.description && <p className="artifactuse-form-description">{form.description}</p>}
-        <div className="artifactuse-form-button-group">
-          {(form.data?.buttons || []).map(btn => (
+        {form.title && (
+          <div className="artifactuse-form-header">
+            <div className="artifactuse-form-title">{form.title}</div>
+            {form.description && <p className="artifactuse-form-description">{form.description}</p>}
+          </div>
+        )}
+        <div className="artifactuse-form-buttons">
+          {buttonFields.map((btn, idx) => (
             <button
-              key={btn.id}
+              key={btn.name || btn.label || idx}
               type="button"
-              className={`artifactuse-form-btn artifactuse-form-btn-${btn.style || 'primary'}`}
-              onClick={() => handleButtonClick(btn.id)}
-              disabled={btn.disabled}
+              className={`artifactuse-form-btn artifactuse-form-btn-${btn.variant || 'secondary'}`}
+              onClick={() => handleButtonAction(btn)}
+              disabled={btn.disabled || isSubmitting}
             >
+              {btn.icon && <span className="artifactuse-form-btn-icon" dangerouslySetInnerHTML={{ __html: btn.icon }} />}
               {btn.label}
             </button>
           ))}
@@ -159,38 +327,48 @@ export function ArtifactuseInlineForm({
       className={`artifactuse-inline-form artifactuse-form-fields ${className}`}
       data-artifactuse-theme={theme}
     >
-      {form.title && <div className="artifactuse-form-title">{form.title}</div>}
-      {form.description && <p className="artifactuse-form-description">{form.description}</p>}
+      {(form.title || form.description) && (
+        <div className="artifactuse-form-header">
+          {form.title && <div className="artifactuse-form-title">{form.title}</div>}
+          {form.description && <p className="artifactuse-form-description">{form.description}</p>}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="artifactuse-form">
-        <div className="artifactuse-form-grid">
-          {(form.data?.fields || []).map(field => (
+        <div className="artifactuse-form-fields">
+          {formFields.map((field, idx) => (
             <FormField
-              key={field.name}
+              key={field.name || idx}
               field={field}
+              formId={formId}
               value={values[field.name]}
               error={errors[field.name]}
+              isSubmitting={isSubmitting}
               onChange={(val) => handleChange(field.name, val)}
+              onButtonAction={handleButtonAction}
             />
           ))}
         </div>
-        <div className="artifactuse-form-actions">
-          {form.cancelLabel && (
+        
+        {/* Default buttons if no buttons field exists */}
+        {!hasButtonsField && (
+          <div className="artifactuse-form-buttons artifactuse-form-buttons-default">
             <button
               type="button"
-              className="artifactuse-form-btn artifactuse-form-btn-secondary"
-              onClick={() => handleButtonClick('cancel')}
+              className="artifactuse-form-btn artifactuse-form-btn-ghost"
+              onClick={() => handleButtonAction({ action: 'cancel', label: 'Cancel' })}
             >
-              {form.cancelLabel}
+              Cancel
             </button>
-          )}
-          <button 
-            type="submit" 
-            className="artifactuse-form-btn artifactuse-form-btn-primary"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : (form.submitLabel || 'Submit')}
-          </button>
-        </div>
+            <button 
+              type="submit" 
+              className="artifactuse-form-btn artifactuse-form-btn-primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <span className="artifactuse-form-btn-spinner" />}
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
@@ -199,126 +377,168 @@ export function ArtifactuseInlineForm({
 /**
  * Individual Form Field
  */
-function FormField({ field, value, error, onChange }) {
-  const inputId = `form-${field.name}`;
+function FormField({ field, formId, value, error, isSubmitting, onChange, onButtonAction }) {
+  const inputId = `${formId}-${field.name}`;
   
-  const renderInput = () => {
-    switch (field.type) {
-      case 'text':
-      case 'email':
-      case 'password':
-      case 'tel':
-      case 'url':
-      case 'number':
-        return (
-          <input
-            type={field.type}
-            id={inputId}
-            name={field.name}
-            value={value || ''}
-            placeholder={field.placeholder}
-            disabled={field.disabled}
-            required={field.required}
-            className="artifactuse-input"
-            onChange={(e) => onChange(field.type === 'number' ? Number(e.target.value) : e.target.value)}
-          />
-        );
-        
-      case 'textarea':
-        return (
-          <textarea
-            id={inputId}
-            name={field.name}
-            value={value || ''}
-            placeholder={field.placeholder}
-            disabled={field.disabled}
-            required={field.required}
-            rows={field.rows || 3}
-            className="artifactuse-textarea"
-            onChange={(e) => onChange(e.target.value)}
-          />
-        );
-        
-      case 'select':
-        return (
-          <select
-            id={inputId}
-            name={field.name}
-            value={value || ''}
-            disabled={field.disabled}
-            required={field.required}
-            className="artifactuse-select"
-            onChange={(e) => onChange(e.target.value)}
+  // Buttons group
+  if (field.type === 'buttons') {
+    return (
+      <div className="artifactuse-form-buttons">
+        {(field.fields || []).map((btn, idx) => (
+          <button
+            key={btn.name || btn.label || idx}
+            type={btn.action === 'submit' ? 'submit' : 'button'}
+            className={`artifactuse-form-btn artifactuse-form-btn-${btn.variant || 'secondary'}`}
+            onClick={btn.action !== 'submit' ? () => onButtonAction(btn) : undefined}
+            disabled={btn.disabled || (btn.action === 'submit' && isSubmitting)}
           >
-            <option value="">Select...</option>
-            {(field.options || []).map(opt => (
-              <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        );
-        
-      case 'checkbox':
-        return (
-          <label className="artifactuse-checkbox-label">
-            <input
-              type="checkbox"
-              id={inputId}
-              name={field.name}
-              checked={value || false}
-              disabled={field.disabled}
-              className="artifactuse-checkbox"
-              onChange={(e) => onChange(e.target.checked)}
-            />
-            <span>{field.label}{field.required && <span className="artifactuse-required">*</span>}</span>
-          </label>
-        );
-        
-      case 'radio':
-        return (
-          <div className="artifactuse-radio-group">
-            {(field.options || []).map(opt => (
-              <label key={opt.value} className="artifactuse-radio-label">
-                <input
-                  type="radio"
-                  name={field.name}
-                  value={opt.value}
-                  checked={value === opt.value}
-                  disabled={opt.disabled || field.disabled}
-                  className="artifactuse-radio"
-                  onChange={() => onChange(opt.value)}
-                />
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        );
-        
-      default:
-        return (
-          <input
-            type="text"
-            id={inputId}
-            name={field.name}
-            value={value || ''}
-            disabled={field.disabled}
-            className="artifactuse-input"
-            onChange={(e) => onChange(e.target.value)}
-          />
-        );
-    }
-  };
-
-  // Checkbox has its own label
+            {isSubmitting && btn.action === 'submit' ? (
+              <span className="artifactuse-form-btn-spinner" />
+            ) : btn.icon ? (
+              <span className="artifactuse-form-btn-icon" dangerouslySetInnerHTML={{ __html: btn.icon }} />
+            ) : null}
+            {isSubmitting && btn.action === 'submit' ? 'Submitting...' : btn.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  
+  // Divider
+  if (field.type === 'divider') {
+    return <div className="artifactuse-form-divider" />;
+  }
+  
+  // Heading
+  if (field.type === 'heading') {
+    return <div className="artifactuse-form-heading">{field.label}</div>;
+  }
+  
+  // Checkbox
   if (field.type === 'checkbox') {
     return (
       <div className="artifactuse-form-field">
-        {renderInput()}
+        <label className="artifactuse-checkbox-label">
+          <input
+            type="checkbox"
+            id={inputId}
+            name={field.name}
+            checked={value || false}
+            disabled={field.disabled}
+            className="artifactuse-checkbox"
+            onChange={(e) => onChange(e.target.checked)}
+          />
+          <span className="artifactuse-checkbox-text">
+            {field.label}
+            {field.required && <span className="artifactuse-required">*</span>}
+          </span>
+        </label>
+        {field.helpText && <span className="artifactuse-help-text">{field.helpText}</span>}
         {error && <span className="artifactuse-error-text">{error}</span>}
       </div>
     );
   }
+  
+  // Radio group
+  if (field.type === 'radio') {
+    return (
+      <div className="artifactuse-form-field">
+        {field.label && (
+          <label className="artifactuse-label">
+            {field.label}
+            {field.required && <span className="artifactuse-required">*</span>}
+          </label>
+        )}
+        <div className="artifactuse-radio-group">
+          {normalizeOptions(field.options).map(opt => (
+            <label key={opt.value} className="artifactuse-radio-label">
+              <input
+                type="radio"
+                name={field.name}
+                value={opt.value}
+                checked={value === opt.value}
+                disabled={opt.disabled || field.disabled}
+                className="artifactuse-radio"
+                onChange={() => onChange(opt.value)}
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </div>
+        {field.helpText && <span className="artifactuse-help-text">{field.helpText}</span>}
+        {error && <span className="artifactuse-error-text">{error}</span>}
+      </div>
+    );
+  }
+
+  // Render input based on type
+  const renderInput = () => {
+    if (isTextInput(field.type)) {
+      return (
+        <input
+          type={field.type}
+          id={inputId}
+          name={field.name}
+          value={value || ''}
+          placeholder={field.placeholder}
+          disabled={field.disabled}
+          required={field.required}
+          className="artifactuse-input"
+          onChange={(e) => onChange(field.type === 'number' ? Number(e.target.value) : e.target.value)}
+        />
+      );
+    }
+    
+    if (field.type === 'textarea') {
+      return (
+        <textarea
+          id={inputId}
+          name={field.name}
+          value={value || ''}
+          placeholder={field.placeholder}
+          disabled={field.disabled}
+          required={field.required}
+          rows={field.rows || 3}
+          className="artifactuse-textarea"
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
+    }
+    
+    if (field.type === 'select') {
+      return (
+        <select
+          id={inputId}
+          name={field.name}
+          value={value || ''}
+          disabled={field.disabled}
+          required={field.required}
+          className="artifactuse-select"
+          onChange={(e) => onChange(e.target.value)}
+        >
+          <option value="">{field.placeholder || 'Select...'}</option>
+          {normalizeOptions(field.options).map(opt => (
+            <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    
+    // Default text input
+    return (
+      <input
+        type="text"
+        id={inputId}
+        name={field.name}
+        value={value || ''}
+        disabled={field.disabled}
+        className="artifactuse-input"
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
+  };
 
   return (
     <div className="artifactuse-form-field">

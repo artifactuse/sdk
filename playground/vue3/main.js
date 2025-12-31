@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import 'artifactuse/styles'
+import '../../src/styles/artifactuse.css';
 
 createApp(App).mount('#app')

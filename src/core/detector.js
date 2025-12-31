@@ -18,11 +18,6 @@ export const ARTIFACT_TYPES = {
 };
 
 /**
- * Inline artifact types (rendered in message, not panel)
- */
-export const INLINE_ARTIFACT_TYPES = ['form', 'social'];
-
-/**
  * Supported social platforms
  */
 export const SOCIAL_PLATFORMS = [
@@ -31,30 +26,33 @@ export const SOCIAL_PLATFORMS = [
 ];
 
 /**
- * Languages that support live preview in panel
+ * Languages/types that support live preview
  */
 export const PREVIEWABLE_LANGUAGES = [
+  // Code languages
   'html', 'htm', 'svg', 'markdown', 'md', 'jsx', 'vue',
-  'diff', 'patch',
-  'json',
-  'javascript', 'js',
-  'python', 'py',
+  'diff', 'patch', 'json',
+  'javascript', 'js', 'python', 'py',
+  // Visual editors
   'canvas', 'whiteboard', 'drawing',
   'video', 'videoeditor', 'timeline',
+  // Structured artifacts
+  'form', 'social',
 ];
 
 /**
- * Languages that open in panel (vs inline preview)
+ * Languages/types that open in panel (vs inline)
  */
 export const PANEL_LANGUAGES = [
+  // Visual editors (always panel)
   'video', 'videoeditor', 'timeline',
   'canvas', 'whiteboard', 'drawing',
-  'json',
-  'svg',
-  'diff', 'patch',
-  'javascript', 'js',
-  'python', 'py',
+  // Code (panel for preview)
+  'json', 'svg', 'diff', 'patch',
+  'javascript', 'js', 'python', 'py',
   'jsx', 'vue', 'html', 'htm',
+  // Structured artifacts (form can be panel based on complexity)
+  'form',
 ];
 
 /**
@@ -65,24 +63,17 @@ export function generateArtifactId(prefix = 'artifact') {
 }
 
 /**
- * Check if language supports preview
+ * Check if language/type supports preview
  */
 export function isPreviewable(language) {
   return PREVIEWABLE_LANGUAGES.includes(language?.toLowerCase());
 }
 
 /**
- * Check if language should open in panel
+ * Check if language/type should open in panel by default
  */
 export function isPanelArtifact(language) {
   return PANEL_LANGUAGES.includes(language?.toLowerCase());
-}
-
-/**
- * Check if artifact type renders inline
- */
-export function isInlineArtifact(type) {
-  return INLINE_ARTIFACT_TYPES.includes(type?.toLowerCase());
 }
 
 /**
@@ -93,10 +84,11 @@ export function isSupportedSocialPlatform(platform) {
 }
 
 /**
- * Get display name for language
+ * Get display name for language/type
  */
 export function getLanguageDisplayName(language) {
   const names = {
+    // Code languages
     html: 'HTML',
     htm: 'HTML',
     css: 'CSS',
@@ -140,18 +132,22 @@ export function getLanguageDisplayName(language) {
     docker: 'Docker',
     diff: 'Diff',
     patch: 'Patch',
+    // Visual editors
     canvas: 'Canvas',
     video: 'Video Editor',
     videoeditor: 'Video Editor',
     timeline: 'Timeline',
     whiteboard: 'Whiteboard',
     drawing: 'Drawing',
+    // Structured artifacts
+    form: 'Form',
+    social: 'Social Preview',
   };
   return names[language?.toLowerCase()] || language?.toUpperCase() || 'Code';
 }
 
 /**
- * Get file extension for language
+ * Get file extension for language/type
  */
 export function getFileExtension(language) {
   const extensions = {
@@ -191,8 +187,62 @@ export function getFileExtension(language) {
     markdown: 'md',
     md: 'md',
     svg: 'svg',
+    form: 'json',
+    social: 'json',
   };
   return extensions[language?.toLowerCase()] || 'txt';
+}
+
+/**
+ * Get language/type icon SVG path
+ */
+export function getLanguageIcon(language) {
+  const icons = {
+    html: '<path d="M12 17.56l4.07-1.13.55-6.1H9.38l-.16-1.7h7.78l.16-1.7H6.85l.48 5.1h6.3l-.25 2.9-2.38.63-2.38-.63-.15-1.7H6.76l.3 3.2L12 17.56M4.07 3h15.86L18.5 19.2 12 21l-6.5-1.8L4.07 3z"/>',
+    htm: '<path d="M12 17.56l4.07-1.13.55-6.1H9.38l-.16-1.7h7.78l.16-1.7H6.85l.48 5.1h6.3l-.25 2.9-2.38.63-2.38-.63-.15-1.7H6.76l.3 3.2L12 17.56M4.07 3h15.86L18.5 19.2 12 21l-6.5-1.8L4.07 3z"/>',
+    css: '<path d="M5 3l.65 3.34h12.59l-.44 2.16H6.11l.65 3.34h11.04l-.78 3.86-5.02 1.67-4.96-1.67-.33-1.69H4.38l.65 3.35L12 19.31l7.02-2.31L20.93 3H5z"/>',
+    javascript: '<path d="M3 3h18v18H3V3m4.73 15.04c.4.85 1.19 1.55 2.54 1.55 1.5 0 2.53-.8 2.53-2.55v-5.78h-1.7V17c0 .86-.35 1.08-.9 1.08-.58 0-.82-.4-1.09-.87l-1.38.83m5.98-.18c.5.98 1.51 1.73 3.09 1.73 1.6 0 2.8-.83 2.8-2.36 0-1.41-.81-2.04-2.25-2.66l-.42-.18c-.73-.31-1.04-.52-1.04-1.02 0-.41.31-.73.81-.73.48 0 .8.21 1.09.73l1.31-.87c-.55-.96-1.33-1.33-2.4-1.33-1.51 0-2.48.96-2.48 2.23 0 1.38.81 2.03 2.03 2.55l.42.18c.78.34 1.24.55 1.24 1.13 0 .48-.45.83-1.15.83-.83 0-1.31-.43-1.67-1.03l-1.38.8z"/>',
+    js: '<path d="M3 3h18v18H3V3m4.73 15.04c.4.85 1.19 1.55 2.54 1.55 1.5 0 2.53-.8 2.53-2.55v-5.78h-1.7V17c0 .86-.35 1.08-.9 1.08-.58 0-.82-.4-1.09-.87l-1.38.83m5.98-.18c.5.98 1.51 1.73 3.09 1.73 1.6 0 2.8-.83 2.8-2.36 0-1.41-.81-2.04-2.25-2.66l-.42-.18c-.73-.31-1.04-.52-1.04-1.02 0-.41.31-.73.81-.73.48 0 .8.21 1.09.73l1.31-.87c-.55-.96-1.33-1.33-2.4-1.33-1.51 0-2.48.96-2.48 2.23 0 1.38.81 2.03 2.03 2.55l.42.18c.78.34 1.24.55 1.24 1.13 0 .48-.45.83-1.15.83-.83 0-1.31-.43-1.67-1.03l-1.38.8z"/>',
+    typescript: '<path d="M3 3h18v18H3V3m10.71 14.86c.5.98 1.51 1.73 3.09 1.73 1.6 0 2.8-.83 2.8-2.36 0-1.41-.81-2.04-2.25-2.66l-.42-.18c-.73-.31-1.04-.52-1.04-1.02 0-.41.31-.73.81-.73.48 0 .8.21 1.09.73l1.31-.87c-.55-.96-1.33-1.33-2.4-1.33-1.51 0-2.48.96-2.48 2.23 0 1.38.81 2.03 2.03 2.55l.42.18c.78.34 1.24.55 1.24 1.13 0 .48-.45.83-1.15.83-.83 0-1.31-.43-1.67-1.03l-1.38.8M10 17V9H6v8"/>',
+    ts: '<path d="M3 3h18v18H3V3m10.71 14.86c.5.98 1.51 1.73 3.09 1.73 1.6 0 2.8-.83 2.8-2.36 0-1.41-.81-2.04-2.25-2.66l-.42-.18c-.73-.31-1.04-.52-1.04-1.02 0-.41.31-.73.81-.73.48 0 .8.21 1.09.73l1.31-.87c-.55-.96-1.33-1.33-2.4-1.33-1.51 0-2.48.96-2.48 2.23 0 1.38.81 2.03 2.03 2.55l.42.18c.78.34 1.24.55 1.24 1.13 0 .48-.45.83-1.15.83-.83 0-1.31-.43-1.67-1.03l-1.38.8M10 17V9H6v8"/>',
+    python: '<path d="M12 2C9.2 2 7.5 3.2 7.5 5.5v2.3H12v.7H5.5C3.4 8.5 2 10.4 2 12.8c0 2.4 1.4 4.3 3.5 4.3H7v-2.5c0-2.3 1.9-4.3 4.2-4.3h4.6c1.9 0 3.5-1.6 3.5-3.5V5.5C19.3 3.2 17.6 2 14.8 2h-2.8zM9 3.8c.6 0 1 .5 1 1s-.4 1-1 1-1-.5-1-1 .4-1 1-1z"/><path d="M12 22c2.8 0 4.5-1.2 4.5-3.5v-2.3H12v-.7h6.5c2.1 0 3.5-1.9 3.5-4.3 0-2.4-1.4-4.3-3.5-4.3H17v2.5c0 2.3-1.9 4.3-4.2 4.3H8.2c-1.9 0-3.5 1.6-3.5 3.5v1.3c0 2.3 1.7 3.5 4.5 3.5h2.8zm3-1.8c-.6 0-1-.5-1-1s.4-1 1-1 1 .5 1 1-.4 1-1 1z"/>',
+    py: '<path d="M12 2C9.2 2 7.5 3.2 7.5 5.5v2.3H12v.7H5.5C3.4 8.5 2 10.4 2 12.8c0 2.4 1.4 4.3 3.5 4.3H7v-2.5c0-2.3 1.9-4.3 4.2-4.3h4.6c1.9 0 3.5-1.6 3.5-3.5V5.5C19.3 3.2 17.6 2 14.8 2h-2.8zM9 3.8c.6 0 1 .5 1 1s-.4 1-1 1-1-.5-1-1 .4-1 1-1z"/><path d="M12 22c2.8 0 4.5-1.2 4.5-3.5v-2.3H12v-.7h6.5c2.1 0 3.5-1.9 3.5-4.3 0-2.4-1.4-4.3-3.5-4.3H17v2.5c0 2.3-1.9 4.3-4.2 4.3H8.2c-1.9 0-3.5 1.6-3.5 3.5v1.3c0 2.3 1.7 3.5 4.5 3.5h2.8zm3-1.8c-.6 0-1-.5-1-1s.4-1 1-1 1 .5 1 1-.4 1-1 1z"/>',
+    vue: '<path d="M2 3h3.5L12 14.5 18.5 3H22L12 21 2 3m4.5 0h3L12 7.58 14.5 3h3L12 13.08 6.5 3z"/>',
+    jsx: '<circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(120 12 12)"/>',
+    tsx: '<circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(120 12 12)"/>',
+    json: '<path d="M5 3h2v2H5v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5h2v2H5c-1.07-.27-2-.9-2-2v-4a2 2 0 0 0-2-2H0v-2h1a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2m14 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3h2m-7 12a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-4 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m8 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1z"/>',
+    markdown: '<path d="M2 4h20v16H2V4m2 2v12h16V6H4m2 2h3l1.5 3 1.5-3h3v8h-2v-5l-2.5 4-2.5-4v5H6V8m11 0h2v4h2l-3 4-3-4h2V8z"/>',
+    md: '<path d="M2 4h20v16H2V4m2 2v12h16V6H4m2 2h3l1.5 3 1.5-3h3v8h-2v-5l-2.5 4-2.5-4v5H6V8m11 0h2v4h2l-3 4-3-4h2V8z"/>',
+    svg: '<path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m0 2v14h14V5H5m3 4a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2m8 0l3 8h-2l-.5-1.5h-3L13 17h-2l3-8h2m-.5 2.5l-1 3h2l-1-3z"/>',
+    bash: '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m0 2v12h16V6H4m2 2l4 3-4 3V8m5 5h5v2h-5v-2z"/>',
+    shell: '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m0 2v12h16V6H4m2 2l4 3-4 3V8m5 5h5v2h-5v-2z"/>',
+    sh: '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m0 2v12h16V6H4m2 2l4 3-4 3V8m5 5h5v2h-5v-2z"/>',
+    sql: '<path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2M6 17v-2.7c1.56.84 3.67 1.36 6 1.36s4.44-.52 6-1.36V17c0 .5-2.13 2-6 2s-6-1.5-6-2m0-5v-2.7c1.56.84 3.67 1.36 6 1.36s4.44-.52 6-1.36V12c0 .5-2.13 2-6 2s-6-1.5-6-2z"/>',
+    diff: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>',
+    patch: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>',
+    canvas: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+    whiteboard: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+    drawing: '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/>',
+    video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+    videoeditor: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+    timeline: '<line x1="2" y1="12" x2="22" y2="12"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/>',
+    form: '<path d="M4 4h16v2H4V4zm0 4h10v2H4V8zm0 4h16v2H4v-2zm0 4h10v2H4v-2z"/><rect x="16" y="8" width="4" height="4" rx="1"/><rect x="16" y="16" width="4" height="4" rx="1"/>',
+    social: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+  };
+  
+  const defaultIcon = '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>';
+  return icons[language?.toLowerCase()] || defaultIcon;
+}
+
+/**
+ * Format bytes to human readable string
+ */
+export function formatBytes(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 /**
@@ -205,6 +255,9 @@ export function decodeHtml(encoded) {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&amp;/g, '&')
+    .replace(/&#10;/g, '\n')
+    .replace(/&#13;/g, '\r')
+    .replace(/&#9;/g, '\t')
     .replace(/&nbsp;/g, ' ');
 }
 
@@ -221,9 +274,71 @@ export function encodeHtml(code) {
 }
 
 /**
+ * Encode JSON for safe embedding in HTML attributes using Base64
+ */
+export function encodeJsonForAttribute(obj) {
+  const json = JSON.stringify(obj);
+  if (typeof btoa === 'function') {
+    return btoa(unescape(encodeURIComponent(json)));
+  } else if (typeof Buffer !== 'undefined') {
+    return Buffer.from(json, 'utf-8').toString('base64');
+  }
+  return json
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Decode JSON from a Base64-encoded HTML attribute value
+ */
+export function decodeJsonFromAttribute(encoded) {
+  if (!encoded) return null;
+  try {
+    let json;
+    if (typeof atob === 'function') {
+      json = decodeURIComponent(escape(atob(encoded)));
+    } else if (typeof Buffer !== 'undefined') {
+      json = Buffer.from(encoded, 'base64').toString('utf-8');
+    } else {
+      json = decodeHtml(encoded);
+    }
+    return JSON.parse(json);
+  } catch (e) {
+    try {
+      const decoded = decodeHtml(encoded);
+      return JSON.parse(decoded);
+    } catch (e2) {
+      console.error('Failed to decode JSON from attribute:', e);
+      return null;
+    }
+  }
+}
+
+/**
  * Extract title from code content
  */
 export function extractArtifactTitle(code, language) {
+  const langLower = language?.toLowerCase();
+  
+  // For form/social, try to extract title from JSON
+  if (langLower === 'form' || langLower === 'social') {
+    try {
+      const json = JSON.parse(code);
+      if (langLower === 'form') {
+        return json.title || 'Form';
+      }
+      if (langLower === 'social') {
+        const platform = json.platform || 'twitter';
+        return `Social Preview - ${platform}`;
+      }
+    } catch {
+      // Fall through to default
+    }
+  }
+  
   // Check for explicit filename comment
   const filenameMatch = code.match(/(?:\/\/|\/\*|<!--)\s*(?:filename|file):\s*([^\n*\->\s]+)/i);
   if (filenameMatch) return filenameMatch[1].trim();
@@ -248,7 +363,7 @@ export function extractArtifactTitle(code, language) {
   if (constComponentMatch) return constComponentMatch[1];
 
   // Python class or main function
-  if (language === 'python' || language === 'py') {
+  if (langLower === 'python' || langLower === 'py') {
     const pyClassMatch = code.match(/class\s+([A-Z][a-zA-Z0-9_]+)/);
     if (pyClassMatch) return pyClassMatch[1];
     
@@ -269,24 +384,20 @@ export function extractArtifactTitle(code, language) {
   if (code.includes('CREATE TABLE')) return 'SQL Schema';
   if (code.includes('SELECT') && code.includes('FROM')) return 'SQL Query';
 
-  // Fallback to language display name
   return `${getLanguageDisplayName(language)} Code`;
 }
 
 /**
  * Create artifact placeholder HTML
- * @param {Object} artifact - The artifact object
- * @param {string} placeholderType - Type of placeholder: 'panel' | 'inline-form' | 'inline-social'
  */
 function createArtifactPlaceholder(artifact, placeholderType = 'panel') {
-  const encodedData = encodeHtml(JSON.stringify(artifact));
+  const encodedData = encodeJsonForAttribute(artifact);
   const className = `artifactuse-placeholder artifactuse-${placeholderType}`;
-  return `<div class="${className}" data-artifact-id="${artifact.id}" data-artifact-type="${artifact.type}" data-artifact='${encodedData}'></div>`;
+  return `<div class="${className}" data-artifact-id="${artifact.id}" data-artifact-type="${artifact.type}" data-artifact="${encodedData}"></div>`;
 }
 
 /**
  * Try to parse JSON from code block content
- * Returns parsed object or null if not valid JSON
  */
 function tryParseJson(code) {
   try {
@@ -298,17 +409,21 @@ function tryParseJson(code) {
 
 /**
  * Determine if form should render inline or in panel
+ * Parses JSON from code to check complexity
  */
-export function shouldFormBeInline(form) {
+export function shouldFormBeInline(code) {
+  const json = tryParseJson(code);
+  if (!json) return true; // Default to inline if can't parse
+  
   // Explicit display setting
-  if (form.display === 'inline') return true;
-  if (form.display === 'panel') return false;
+  if (json.display === 'inline') return true;
+  if (json.display === 'panel') return false;
   
   // Auto-detect based on complexity
-  if (form.variant === 'wizard') return false;
-  if (form.variant === 'buttons') return true;
+  if (json.variant === 'wizard') return false;
+  if (json.variant === 'buttons') return true;
   
-  const fields = form.data?.fields || [];
+  const fields = json.data?.fields || [];
   
   // File uploads always go to panel
   if (fields.some(f => f.type === 'file')) return false;
@@ -317,63 +432,71 @@ export function shouldFormBeInline(form) {
   const complexTypes = ['multiselect', 'rating', 'color', 'range'];
   if (fields.some(f => complexTypes.includes(f.type))) return false;
   
-  // More than 3 fields go to panel
-  if (fields.length > 3) return false;
+  // More than 4 fields go to panel
+  if (fields.filter(f => f.type !== 'buttons' && f.type !== 'divider' && f.type !== 'heading').length > 4) return false;
   
   // Textarea with many rows goes to panel
-  if (fields.some(f => f.type === 'textarea' && (f.rows || 3) > 3)) return false;
+  if (fields.some(f => f.type === 'textarea' && (f.rows || 3) > 4)) return false;
   
   return true;
 }
 
 /**
- * Detect artifact type from JSON content
- * Returns { type, artifact } or null
+ * Determine if artifact should be inline based on language
  */
-function detectJsonArtifactType(json, code, messageId, blockIndex) {
-  if (!json || typeof json !== 'object') return null;
+export function getIsInline(language, code) {
+  const langLower = language?.toLowerCase();
   
-  // Form artifact
-  if (json.type === 'form') {
-    return {
-      type: ARTIFACT_TYPES.FORM,
-      artifact: {
-        id: json.id || `${messageId}-form-${blockIndex}`,
-        messageId,
-        type: ARTIFACT_TYPES.FORM,
-        variant: json.variant || 'fields',
-        title: json.title,
-        description: json.description,
-        submitLabel: json.submitLabel,
-        cancelLabel: json.cancelLabel,
-        data: json.data || {},
-        display: json.display || 'auto',
-        isInline: shouldFormBeInline(json),
-        code,
-        createdAt: new Date().toISOString(),
-      }
-    };
-  }
+  // Social is always inline
+  if (langLower === 'social') return true;
   
-  // Social preview artifact
-  if (json.type === 'social') {
-    return {
-      type: ARTIFACT_TYPES.SOCIAL,
-      artifact: {
-        id: `${messageId}-social-${blockIndex}`,
-        messageId,
-        type: ARTIFACT_TYPES.SOCIAL,
-        platform: json.platform || 'twitter',
-        variant: json.variant || 'post',
-        data: json.data || {},
-        code,
-        isInline: true, // Social previews are always inline
-        createdAt: new Date().toISOString(),
-      }
-    };
-  }
+  // Form depends on complexity
+  if (langLower === 'form') return shouldFormBeInline(code);
   
-  return null;
+  // Everything else defaults to panel
+  return false;
+}
+
+/**
+ * Get artifact type from language
+ */
+function getArtifactType(language) {
+  const langLower = language?.toLowerCase();
+  
+  if (langLower === 'form') return ARTIFACT_TYPES.FORM;
+  if (langLower === 'social') return ARTIFACT_TYPES.SOCIAL;
+  
+  return ARTIFACT_TYPES.CODE;
+}
+
+/**
+ * Create artifact from code block
+ * Unified method for all artifact types (code, form, social)
+ * 
+ * @param {string} code - Code/JSON content
+ * @param {string} language - Language identifier (js, html, form, social, etc.)
+ * @param {string} messageId - Message ID
+ * @param {number} blockIndex - Block index
+ */
+function createArtifact(code, language, messageId, blockIndex) {
+  const langLower = language?.toLowerCase();
+  const type = getArtifactType(langLower);
+  const isInline = getIsInline(langLower, code);
+  
+  return {
+    id: `${messageId}-${type}-${blockIndex}`,
+    messageId,
+    type,
+    language: langLower,
+    title: extractArtifactTitle(code, langLower),
+    code,
+    isInline,
+    isPreviewable: isPreviewable(langLower),
+    isPanelArtifact: isPanelArtifact(langLower),
+    size: code.length,
+    lineCount: code.split('\n').length,
+    createdAt: new Date().toISOString(),
+  };
 }
 
 /**
@@ -397,33 +520,18 @@ export function parseArtifacts(html, messageId) {
       }
     }
     
-    // Check for JSON-based artifacts (form, social)
-    if (langLower === 'json') {
+    // Validate JSON for form/social
+    if (langLower === 'form' || langLower === 'social') {
       const json = tryParseJson(code);
-      const detected = detectJsonArtifactType(json, code, messageId, blockIndex);
-      if (detected) {
-        artifacts.push(detected.artifact);
+      if (!json) {
+        // Invalid JSON, treat as regular code
+        artifacts.push(createArtifact(code, 'json', messageId, blockIndex));
         blockIndex++;
         continue;
       }
     }
     
-    // Regular code artifact
-    artifacts.push({
-      id: generateArtifactId('code'),
-      messageId,
-      type: ARTIFACT_TYPES.CODE,
-      language: langLower,
-      code,
-      title: extractArtifactTitle(code, langLower),
-      size: code.length,
-      lineCount: code.split('\n').length,
-      isPreviewable: isPreviewable(langLower),
-      isPanelArtifact: isPanelArtifact(langLower),
-      isInline: false,
-      createdAt: new Date().toISOString(),
-    });
-    
+    artifacts.push(createArtifact(code, langLower, messageId, blockIndex));
     blockIndex++;
   }
   
@@ -458,25 +566,7 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
       }
     }
     
-    // Check for JSON-based artifacts (form, social)
-    if (langLower === 'json') {
-      const json = tryParseJson(code);
-      const detected = detectJsonArtifactType(json, code, messageId, blockIndex);
-      
-      if (detected) {
-        blockIndex++;
-        artifacts.push(detected.artifact);
-        
-        // Determine placeholder type
-        const placeholderType = detected.artifact.isInline 
-          ? `inline-${detected.type}` 
-          : 'panel';
-        
-        return createArtifactPlaceholder(detected.artifact, placeholderType);
-      }
-    }
-    
-    // Regular code artifact extraction logic
+    // Artifact extraction logic
     const isPreviewableLang = isPreviewable(langLower);
     
     let shouldExtract = false;
@@ -492,26 +582,17 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
     }
     
     if (shouldExtract) {
-      const artifact = {
-        id: `${messageId}-code-${blockIndex}`,
-        messageId,
-        type: ARTIFACT_TYPES.CODE,
-        language: langLower,
-        code,
-        title: extractArtifactTitle(code, langLower),
-        size: code.length,
-        lineCount,
-        isPreviewable: isPreviewable(langLower),
-        isPanelArtifact: isPanelArtifact(langLower),
-        isInline: false,
-        createdAt: new Date().toISOString(),
-        autoOpen: false,
-      };
-      
+      const artifact = createArtifact(code, langLower, messageId, blockIndex);
       blockIndex++;
       artifacts.push(artifact);
       
-      return createArtifactPlaceholder(artifact, 'panel');
+      // Determine placeholder type based on artifact
+      let placeholderType = 'panel';
+      if (artifact.isInline) {
+        placeholderType = artifact.type === 'social' ? 'inline-social' : 'inline-form';
+      }
+      
+      return createArtifactPlaceholder(artifact, placeholderType);
     }
     
     blockIndex++;
@@ -526,19 +607,22 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
 
 export default {
   ARTIFACT_TYPES,
-  INLINE_ARTIFACT_TYPES,
   PREVIEWABLE_LANGUAGES,
   PANEL_LANGUAGES,
   SOCIAL_PLATFORMS,
   generateArtifactId,
   isPreviewable,
   isPanelArtifact,
-  isInlineArtifact,
   isSupportedSocialPlatform,
   getLanguageDisplayName,
   getFileExtension,
+  getLanguageIcon,
+  getIsInline,
+  formatBytes,
   decodeHtml,
   encodeHtml,
+  encodeJsonForAttribute,
+  decodeJsonFromAttribute,
   extractArtifactTitle,
   parseArtifacts,
   extractCodeBlockArtifacts,

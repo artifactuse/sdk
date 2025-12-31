@@ -1,46 +1,92 @@
 <script>
-  import { onMount, createEventDispatcher } from 'svelte';
-  import { getArtifactuseContext } from './index.js';
+  import { onMount, onDestroy, afterUpdate } from 'svelte';
+  import { getArtifactuseContext } from './context.js';
   import ArtifactuseCard from './ArtifactuseCard.svelte';
   import ArtifactuseInlineForm from './ArtifactuseInlineForm.svelte';
   import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.svelte';
+  import ArtifactuseViewer from './ArtifactuseViewer.svelte';
+  import { createEventDispatcher } from 'svelte';
   
+  // Props
   export let content = '';
-  export let messageId = null;
+  export let messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   export let inlineCards = true;
+  export let typing = false;
   
   const dispatch = createEventDispatcher();
-  const { processMessage, openArtifact, getTheme } = getArtifactuseContext();
   
-  // Get current theme
-  $: theme = getTheme?.() || 'dark';
+  // Get Artifactuse context
+  const { 
+    processMessage, 
+    openArtifact, 
+    state, 
+    getTheme,
+    instance 
+  } = getArtifactuseContext();
   
-  // Generate message ID if not provided
-  $: resolvedMessageId = messageId || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  // Local state
+  let messageRef;
+  let contentRef;
+  let processedHtml = '';
+  let messageArtifacts = [];
+  let contentSegments = [];
+  let initTimeout = null;
+  let prevTyping = typing;
   
-  // Process message content
-  $: result = content ? processMessage(content, resolvedMessageId) : { html: '', artifacts: [] };
-  $: html = result.html;
-  $: artifacts = result.artifacts;
+  // Viewer state
+  let viewerOpen = false;
+  let viewerType = 'image';
+  let viewerSrc = '';
+  let viewerAlt = '';
+  let viewerCaption = '';
   
-  // Parse content into segments
-  $: segments = parseContentSegments(html);
+  // Reactive theme
+  $: theme = typeof getTheme === 'function' ? getTheme() : 'dark';
   
-  // Emit detected artifacts
-  $: if (artifacts.length > 0) {
-    dispatch('artifactDetected', artifacts);
+  // Reactive active artifact ID
+  $: activeArtifactId = $state?.activeArtifactId || null;
+  
+  /**
+   * Decode Base64 string to JSON object
+   * Falls back to HTML entity decoding for legacy data
+   */
+  function decodeArtifactData(encoded) {
+    if (!encoded) return null;
+    
+    // Try Base64 decoding first
+    try {
+      const json = decodeURIComponent(escape(atob(encoded)));
+      return JSON.parse(json);
+    } catch (e) {
+      // Fallback: try HTML entity decoding for legacy data
+      try {
+        const decoded = encoded
+          .replace(/&#10;/g, '\n')
+          .replace(/&#13;/g, '\r')
+          .replace(/&#9;/g, '\t')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&');
+        return JSON.parse(decoded);
+      } catch (e2) {
+        console.error('Failed to parse artifact data:', e2);
+        return null;
+      }
+    }
   }
   
   /**
-   * Parse HTML and extract content segments with artifact placeholders
+   * Parse HTML and extract segments (HTML + artifact placeholders)
    */
   function parseContentSegments(html) {
     const segments = [];
     
     if (!html) return segments;
     
-    // Find all artifact placeholders
-    const placeholderRegex = /<div class="artifactuse-placeholder[^"]*"[^>]*data-artifact-id="([^"]+)"[^>]*data-artifact-type="([^"]+)"[^>]*data-artifact='([^']*)'[^>]*><\/div>/g;
+    // Regex to match artifact placeholders with Base64 or HTML-encoded data
+    const placeholderRegex = /<div\s+class="artifactuse-placeholder[^"]*"[^>]*data-artifact-id="([^"]+)"[^>]*data-artifact-type="([^"]+)"[^>]*data-artifact=["']([^"']*)["'][^>]*><\/div>/gi;
     
     let lastIndex = 0;
     let match;
@@ -50,32 +96,23 @@
       if (match.index > lastIndex) {
         const htmlContent = html.slice(lastIndex, match.index);
         if (htmlContent.trim()) {
-          segments.push({ type: 'html', content: htmlContent, key: `html-${lastIndex}` });
+          segments.push({ type: 'html', content: htmlContent });
         }
       }
       
-      // Parse artifact data
-      try {
-        const artifactData = JSON.parse(
-          match[3]
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&amp;/g, '&')
-        );
-        const artifactType = match[2];
-        
+      // Parse artifact data using Base64 decoding
+      const artifactData = decodeArtifactData(match[3]);
+      const artifactType = match[2];
+      
+      if (artifactData) {
         if (artifactType === 'form' && artifactData.isInline) {
-          segments.push({ type: 'form', artifact: artifactData, key: `form-${artifactData.id}` });
+          segments.push({ type: 'form', artifact: artifactData });
         } else if (artifactType === 'social') {
-          segments.push({ type: 'social', artifact: artifactData, key: `social-${artifactData.id}` });
+          segments.push({ type: 'social', artifact: artifactData });
         } else {
           // Panel artifact (code, non-inline form)
-          segments.push({ type: 'panel', artifact: artifactData, key: `panel-${artifactData.id}` });
+          segments.push({ type: 'panel', artifact: artifactData });
         }
-      } catch (e) {
-        console.error('Failed to parse artifact data:', e);
       }
       
       lastIndex = match.index + match[0].length;
@@ -85,179 +122,354 @@
     if (lastIndex < html.length) {
       const htmlContent = html.slice(lastIndex);
       if (htmlContent.trim()) {
-        segments.push({ type: 'html', content: htmlContent, key: `html-${lastIndex}` });
+        segments.push({ type: 'html', content: htmlContent });
       }
     }
     
     // If no placeholders found, return whole HTML as single segment
     if (segments.length === 0 && html.trim()) {
-      segments.push({ type: 'html', content: html, key: 'html-full' });
+      segments.push({ type: 'html', content: html });
     }
     
     return segments;
   }
   
-  function handleOpenArtifact(event) {
-    const artifact = event.detail || event;
+  /**
+   * Open the media viewer
+   */
+  function openViewer(data) {
+    viewerType = data.type || 'image';
+    viewerSrc = data.src || '';
+    viewerAlt = data.alt || '';
+    viewerCaption = data.caption || '';
+    viewerOpen = true;
+    
+    dispatch('media-open', data);
+  }
+  
+  /**
+   * Close the media viewer
+   */
+  function closeViewer() {
+    viewerOpen = false;
+    viewerSrc = '';
+    viewerAlt = '';
+    viewerCaption = '';
+  }
+  
+  /**
+   * Attach click listeners to interactive media elements
+   */
+  function attachMediaListeners() {
+    if (!contentRef) return;
+    
+    // Image lightbox listeners
+    const images = contentRef.querySelectorAll('img[data-lightbox="true"]');
+    images.forEach(img => {
+      if (img._lightboxHandler) {
+        img.removeEventListener('click', img._lightboxHandler);
+      }
+      
+      img._lightboxHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openViewer({
+          type: 'image',
+          src: img.src,
+          alt: img.alt || '',
+          caption: img.dataset.caption || img.alt || '',
+        });
+      };
+      
+      img.addEventListener('click', img._lightboxHandler);
+      img.style.cursor = 'zoom-in';
+    });
+    
+    // Images in containers
+    const imageContainers = contentRef.querySelectorAll('.artifactuse-image-container img');
+    imageContainers.forEach(img => {
+      if (img._lightboxHandler) return;
+      
+      img._lightboxHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const container = img.closest('.artifactuse-image-container');
+        const captionEl = container?.querySelector('.artifactuse-image-caption');
+        const caption = captionEl?.textContent || img.dataset.caption || img.alt || '';
+        
+        openViewer({
+          type: 'image',
+          src: img.src,
+          alt: img.alt || '',
+          caption: caption,
+        });
+      };
+      
+      img.addEventListener('click', img._lightboxHandler);
+      img.style.cursor = 'zoom-in';
+    });
+    
+    // Gallery images
+    const galleryImages = contentRef.querySelectorAll('.artifactuse-gallery-item img, .artifactuse-image-gallery img');
+    galleryImages.forEach(img => {
+      if (img._lightboxHandler) return;
+      
+      img._lightboxHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const container = img.closest('.artifactuse-gallery-item');
+        const captionEl = container?.querySelector('.artifactuse-gallery-caption');
+        const caption = captionEl?.textContent || img.dataset.caption || img.alt || '';
+        
+        openViewer({
+          type: 'image',
+          src: img.src,
+          alt: img.alt || '',
+          caption: caption,
+        });
+      };
+      
+      img.addEventListener('click', img._lightboxHandler);
+      img.style.cursor = 'zoom-in';
+    });
+    
+    // PDF links
+    const pdfLinks = contentRef.querySelectorAll('a[href$=".pdf"], a[data-type="pdf"]');
+    pdfLinks.forEach(link => {
+      if (link._pdfHandler) {
+        link.removeEventListener('click', link._pdfHandler);
+      }
+      
+      link._pdfHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openViewer({
+          type: 'pdf',
+          src: link.href,
+          alt: link.textContent || 'PDF Document',
+          caption: link.title || link.textContent || '',
+        });
+      };
+      
+      link.addEventListener('click', link._pdfHandler);
+    });
+    
+    // PDF embeds
+    const pdfEmbeds = contentRef.querySelectorAll('.artifactuse-pdf-container, [data-pdf-viewer]');
+    pdfEmbeds.forEach(embed => {
+      if (embed._pdfHandler) {
+        embed.removeEventListener('click', embed._pdfHandler);
+      }
+      
+      const pdfSrc = embed.dataset.pdfSrc || embed.querySelector('iframe')?.src || '';
+      if (!pdfSrc) return;
+      
+      embed._pdfHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openViewer({
+          type: 'pdf',
+          src: pdfSrc,
+          alt: 'PDF Document',
+          caption: embed.dataset.caption || '',
+        });
+      };
+      
+      embed.addEventListener('click', embed._pdfHandler);
+      embed.style.cursor = 'pointer';
+    });
+    
+    // Video previews
+    const videoPreviews = contentRef.querySelectorAll('.artifactuse-video-preview-wrapper, .video-preview-wrapper');
+    videoPreviews.forEach(preview => {
+      if (preview._clickHandler) {
+        preview.removeEventListener('click', preview._clickHandler);
+      }
+      
+      preview._clickHandler = (e) => {
+        if (e.target.closest('.artifactuse-video-play-button')) return;
+        
+        const videoUrl = preview.dataset.videoUrl || preview.dataset.url;
+        if (videoUrl) {
+          window.open(videoUrl, '_blank', 'noopener,noreferrer');
+        }
+      };
+      
+      preview.addEventListener('click', preview._clickHandler);
+    });
+  }
+  
+  /**
+   * Remove media listeners
+   */
+  function removeMediaListeners() {
+    if (!contentRef) return;
+    
+    const images = contentRef.querySelectorAll('img');
+    images.forEach(img => {
+      if (img._lightboxHandler) {
+        img.removeEventListener('click', img._lightboxHandler);
+        delete img._lightboxHandler;
+      }
+    });
+    
+    const pdfLinks = contentRef.querySelectorAll('a[href$=".pdf"], a[data-type="pdf"]');
+    pdfLinks.forEach(link => {
+      if (link._pdfHandler) {
+        link.removeEventListener('click', link._pdfHandler);
+        delete link._pdfHandler;
+      }
+    });
+    
+    const pdfEmbeds = contentRef.querySelectorAll('.artifactuse-pdf-container, [data-pdf-viewer]');
+    pdfEmbeds.forEach(embed => {
+      if (embed._pdfHandler) {
+        embed.removeEventListener('click', embed._pdfHandler);
+        delete embed._pdfHandler;
+      }
+    });
+    
+    const videoPreviews = contentRef.querySelectorAll('.artifactuse-video-preview-wrapper, .video-preview-wrapper');
+    videoPreviews.forEach(preview => {
+      if (preview._clickHandler) {
+        preview.removeEventListener('click', preview._clickHandler);
+        delete preview._clickHandler;
+      }
+    });
+  }
+  
+  /**
+   * Initialize interactive content (math, mermaid, tables, syntax highlighting)
+   * Debounced to prevent multiple rapid calls during streaming
+   */
+  function initializeContent() {
+    if (initTimeout) {
+      clearTimeout(initTimeout);
+    }
+    
+    initTimeout = setTimeout(async () => {
+      if (instance?.initializeContent && contentRef) {
+        try {
+          await instance.initializeContent(contentRef);
+        } catch (error) {
+          console.error('Failed to initialize content:', error);
+        }
+      }
+      
+      // Attach media listeners after content is initialized
+      attachMediaListeners();
+    }, 100);
+  }
+  
+  // Process content when it changes
+  $: if (content) {
+    const result = processMessage(content, messageId);
+    processedHtml = result.html;
+    messageArtifacts = result.artifacts;
+    contentSegments = parseContentSegments(processedHtml);
+    
+    // Emit detected artifacts
+    if (result.artifacts.length > 0) {
+      dispatch('artifact-detected', result.artifacts);
+    }
+    
+    // Initialize content after render (debounced)
+    // Skip during typing for better performance
+    if (!typing) {
+      initializeContent();
+    }
+  }
+  
+  // Watch for typing changes
+  $: {
+    if (prevTyping === true && typing === false) {
+      // Typing just finished - initialize content
+      initializeContent();
+    }
+    prevTyping = typing;
+  }
+  
+  // Event handlers
+  function handleOpenArtifact(artifact) {
     openArtifact(artifact);
-    dispatch('artifactOpen', artifact);
+    dispatch('artifact-open', artifact);
+  }
+  
+  function handleArtifactCopy(event) {
+    dispatch('artifact-copy', event.detail);
+  }
+  
+  function handleArtifactDownload(event) {
+    dispatch('artifact-download', event.detail);
   }
   
   function handleFormSubmit(event) {
-    dispatch('formSubmit', event.detail || event);
+    dispatch('form-submit', event.detail);
   }
   
   function handleFormCancel(event) {
-    dispatch('formCancel', event.detail || event);
+    dispatch('form-cancel', event.detail);
   }
   
   function handleSocialCopy(event) {
-    dispatch('socialCopy', event.detail || event);
+    dispatch('social-copy', event.detail);
   }
+  
+  // Initialize on mount
+  onMount(() => {
+    if (!typing) {
+      initializeContent();
+    }
+  });
+  
+  // Cleanup
+  onDestroy(() => {
+    if (initTimeout) {
+      clearTimeout(initTimeout);
+    }
+    removeMediaListeners();
+  });
 </script>
 
-<div class="artifactuse-agent-message">
-  <div class="artifactuse-message-content">
-    {#each segments as segment (segment.key)}
+<div class="artifactuse-agent-message" bind:this={messageRef}>
+  <div class="artifactuse-message-content" bind:this={contentRef}>
+    {#each contentSegments as segment, index (segment.type === 'html' ? `html-${index}` : `${segment.type}-${segment.artifact?.id}`)}
       {#if segment.type === 'html'}
-        {@html segment.content}
+        <div>{@html segment.content}</div>
       {:else if segment.type === 'form' && segment.artifact.isInline}
-        <ArtifactuseInlineForm 
-          form={segment.artifact} 
+        <ArtifactuseInlineForm
+          artifact={segment.artifact}
           {theme}
           on:submit={handleFormSubmit}
           on:cancel={handleFormCancel}
         />
       {:else if segment.type === 'social'}
-        <ArtifactuseSocialPreview 
-          social={segment.artifact} 
+        <ArtifactuseSocialPreview
+          artifact={segment.artifact}
           {theme}
           on:copy={handleSocialCopy}
         />
       {:else if segment.type === 'panel' && inlineCards}
-        <ArtifactuseCard 
-          artifact={segment.artifact} 
-          on:open={handleOpenArtifact}
+        <ArtifactuseCard
+          artifact={segment.artifact}
+          isActive={activeArtifactId === segment.artifact.id}
+          on:open={(e) => handleOpenArtifact(e.detail)}
+          on:copy={handleArtifactCopy}
+          on:download={handleArtifactDownload}
         />
       {/if}
     {/each}
   </div>
+  
+  <!-- Media Viewer -->
+  <ArtifactuseViewer
+    isOpen={viewerOpen}
+    type={viewerType}
+    src={viewerSrc}
+    alt={viewerAlt}
+    caption={viewerCaption}
+    on:close={closeViewer}
+  />
 </div>
-
-<style>
-  .artifactuse-agent-message {
-    width: 100%;
-  }
-
-  .artifactuse-message-content {
-    line-height: 1.6;
-  }
-
-  /* Inline artifacts spacing */
-  .artifactuse-message-content :global(.artifactuse-social),
-  .artifactuse-message-content :global(.artifactuse-inline-form) {
-    margin: 1em 0;
-  }
-
-  .artifactuse-message-content :global(p) {
-    margin: 0 0 1em 0;
-  }
-
-  .artifactuse-message-content :global(p:last-child) {
-    margin-bottom: 0;
-  }
-
-  .artifactuse-message-content :global(h1),
-  .artifactuse-message-content :global(h2),
-  .artifactuse-message-content :global(h3),
-  .artifactuse-message-content :global(h4),
-  .artifactuse-message-content :global(h5),
-  .artifactuse-message-content :global(h6) {
-    margin: 1.5em 0 0.5em 0;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-
-  .artifactuse-message-content :global(h1:first-child),
-  .artifactuse-message-content :global(h2:first-child),
-  .artifactuse-message-content :global(h3:first-child) {
-    margin-top: 0;
-  }
-
-  .artifactuse-message-content :global(ul),
-  .artifactuse-message-content :global(ol) {
-    margin: 0 0 1em 0;
-    padding-left: 1.5em;
-  }
-
-  .artifactuse-message-content :global(li) {
-    margin: 0.25em 0;
-  }
-
-  .artifactuse-message-content :global(code) {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-    font-size: 0.9em;
-    padding: 0.15em 0.4em;
-    background: rgba(var(--artifactuse-surface), 0.5);
-    border-radius: 4px;
-  }
-
-  .artifactuse-message-content :global(pre) {
-    margin: 1em 0;
-    padding: 1em;
-    background: rgb(var(--artifactuse-surface));
-    border-radius: 8px;
-    overflow-x: auto;
-  }
-
-  .artifactuse-message-content :global(pre code) {
-    padding: 0;
-    background: none;
-  }
-
-  .artifactuse-message-content :global(a) {
-    color: rgb(var(--artifactuse-primary));
-    text-decoration: none;
-  }
-
-  .artifactuse-message-content :global(a:hover) {
-    text-decoration: underline;
-  }
-
-  .artifactuse-message-content :global(blockquote) {
-    margin: 1em 0;
-    padding: 0.5em 1em;
-    border-left: 4px solid rgb(var(--artifactuse-border));
-    background: rgba(var(--artifactuse-surface), 0.3);
-  }
-
-  .artifactuse-message-content :global(hr) {
-    margin: 1.5em 0;
-    border: none;
-    border-top: 1px solid rgb(var(--artifactuse-border));
-  }
-
-  .artifactuse-message-content :global(table) {
-    width: 100%;
-    margin: 1em 0;
-    border-collapse: collapse;
-  }
-
-  .artifactuse-message-content :global(th),
-  .artifactuse-message-content :global(td) {
-    padding: 0.5em 0.75em;
-    border: 1px solid rgb(var(--artifactuse-border));
-    text-align: left;
-  }
-
-  .artifactuse-message-content :global(th) {
-    background: rgba(var(--artifactuse-surface), 0.5);
-    font-weight: 600;
-  }
-
-  .artifactuse-message-content :global(img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-  }
-</style>
