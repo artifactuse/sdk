@@ -1,0 +1,50 @@
+/* ============================================================
+   BASE STYLES / RESET
+   ============================================================ */
+
+/* Apply font to all artifactuse components */
+[class^="artifactuse-"],
+[class*=" artifactuse-"],
+.artifactuse {
+  font-family: var(--artifactuse-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Monospace font for code elements */
+[class^="artifactuse-"] code,
+[class*=" artifactuse-"] code,
+[class^="artifactuse-"] pre,
+[class*=" artifactuse-"] pre,
+.artifactuse code,
+.artifactuse pre {
+  font-family: var(--artifactuse-font-mono);
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.artifactuse-hidden {
+  display: none !important;
+}
+
+.artifactuse-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.artifactuse-fade-in {
+  animation: artifactuse-fade-in 0.3s ease;
+}
+
+.artifactuse-slide-up {
+  animation: artifactuse-slide-up 0.3s ease;
+}

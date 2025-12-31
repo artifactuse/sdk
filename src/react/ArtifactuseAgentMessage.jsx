@@ -2,7 +2,7 @@
 // React component for rendering AI agent messages with artifact support
 
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { useArtifactuse } from './hooks';
+import { useArtifactuse } from './index';
 import ArtifactuseCard from './ArtifactuseCard';
 import ArtifactuseInlineForm from './ArtifactuseInlineForm';
 import ArtifactuseSocialPreview from './ArtifactuseSocialPreview';

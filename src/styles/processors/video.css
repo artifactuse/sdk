@@ -1,0 +1,221 @@
+/* ============================================================
+   VIDEO STYLES
+   ============================================================ */
+
+.artifactuse-video-wrapper {
+  position: relative;
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-video {
+  width: 100%;
+  display: block;
+}
+
+.artifactuse-video-iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+}
+
+/* ============================================================
+   VIDEO PREVIEW (Pexels style)
+   ============================================================ */
+
+.artifactuse-video-preview-container {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  background-color: rgb(var(--artifactuse-background));
+}
+
+.artifactuse-video-preview-wrapper {
+  position: relative;
+  cursor: pointer;
+  aspect-ratio: 16/9;
+}
+
+.artifactuse-video-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.artifactuse-video-preview-wrapper:hover .artifactuse-video-preview-image {
+  transform: scale(1.05);
+}
+
+.artifactuse-video-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  transition: background-color 0.3s ease;
+}
+
+.artifactuse-video-preview-wrapper:hover .artifactuse-video-play-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.artifactuse-play-icon {
+  width: 4rem;
+  height: 4rem;
+  color: white;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.artifactuse-video-preview-wrapper:hover .artifactuse-play-icon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.artifactuse-video-info-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, black, rgba(0, 0, 0, 0.7), transparent);
+  color: white;
+  padding: 1rem;
+}
+
+.artifactuse-video-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.artifactuse-video-alt {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.artifactuse-video-actions {
+  padding: 1rem;
+  background-color: rgb(var(--artifactuse-surface));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.artifactuse-video-link {
+  color: rgb(var(--artifactuse-info));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.artifactuse-video-link:hover {
+  color: rgb(var(--artifactuse-primary));
+}
+
+/* ============================================================
+   LAZY-LOADED VIDEO FACADES
+   ============================================================ */
+
+.artifactuse-video-lazy {
+  position: relative;
+  background: rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-video-facade {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.artifactuse-video-facade:focus {
+  outline: 2px solid rgb(var(--artifactuse-primary));
+  outline-offset: 2px;
+}
+
+.artifactuse-video-thumbnail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.artifactuse-video-facade:hover .artifactuse-video-thumbnail {
+  transform: scale(1.05);
+}
+
+/* Play button - centered overlay */
+.artifactuse-video-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.artifactuse-video-facade:hover .artifactuse-video-play-button {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* YouTube play button specific styling */
+.artifactuse-youtube-play svg {
+  display: block;
+}
+
+.artifactuse-youtube-play-bg {
+  transition: fill 0.2s ease;
+}
+
+.artifactuse-video-facade:hover .artifactuse-youtube-play-bg {
+  fill: #ff0000;
+}
+
+/* Vimeo play button */
+.artifactuse-vimeo-play svg circle {
+  transition: fill 0.2s ease;
+}
+
+.artifactuse-video-facade:hover .artifactuse-vimeo-play svg circle {
+  fill: #00adef;
+}
+
+/* Loom play button */
+.artifactuse-loom-play svg circle {
+  transition: fill 0.2s ease;
+}
+
+.artifactuse-video-facade:hover .artifactuse-loom-play svg circle {
+  fill: #7c3aed;
+}
+
+/* Dailymotion play button */
+.artifactuse-dailymotion-play svg circle {
+  transition: fill 0.2s ease;
+}
+
+.artifactuse-video-facade:hover .artifactuse-dailymotion-play svg circle {
+  fill: #0082f0;
+}
+
+/* Fallback when thumbnail fails to load */
+.artifactuse-video-lazy:has(img[style*="display: none"]) {
+  background: linear-gradient(135deg, 
+    rgb(var(--artifactuse-surface)) 0%, 
+    rgba(var(--artifactuse-primary), 0.1) 100%
+  );
+}

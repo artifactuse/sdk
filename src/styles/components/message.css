@@ -1,0 +1,127 @@
+/* ============================================================
+   AGENT MESSAGE COMPONENT
+   ============================================================ */
+
+.artifactuse-agent-message {
+  width: 100%;
+}
+
+.artifactuse-message-content {
+  line-height: 1.6;
+}
+
+/* Inline artifacts spacing */
+.artifactuse-message-content > .artifactuse-social,
+.artifactuse-message-content > .artifactuse-inline-form {
+  margin: 1em 0;
+}
+
+/* Typography */
+.artifactuse-message-content p {
+  margin: 0 0 1em 0;
+}
+
+.artifactuse-message-content p:last-child {
+  margin-bottom: 0;
+}
+
+.artifactuse-message-content h1,
+.artifactuse-message-content h2,
+.artifactuse-message-content h3,
+.artifactuse-message-content h4,
+.artifactuse-message-content h5,
+.artifactuse-message-content h6 {
+  margin: 1.5em 0 0.5em 0;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.artifactuse-message-content h1:first-child,
+.artifactuse-message-content h2:first-child,
+.artifactuse-message-content h3:first-child {
+  margin-top: 0;
+}
+
+.artifactuse-message-content ul,
+.artifactuse-message-content ol {
+  margin: 0 0 1em 0;
+  padding: 0;
+  list-style: none;
+}
+
+.artifactuse-message-content li {
+  margin: 0.25em 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Code */
+.artifactuse-message-content code {
+  font-family: var(--artifactuse-font-mono);
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: rgba(var(--artifactuse-surface), 0.5);
+  border-radius: 4px;
+}
+
+.artifactuse-message-content pre {
+  margin: 1em 0;
+  padding: 1em;
+  background: rgb(var(--artifactuse-surface));
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.artifactuse-message-content pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Links */
+.artifactuse-message-content a {
+  color: rgb(var(--artifactuse-primary));
+  text-decoration: none;
+}
+
+.artifactuse-message-content a:hover {
+  text-decoration: underline;
+}
+
+/* Blockquote */
+.artifactuse-message-content blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid rgb(var(--artifactuse-border));
+  background: rgba(var(--artifactuse-surface), 0.3);
+}
+
+/* Horizontal rule */
+.artifactuse-message-content hr {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 1px solid rgb(var(--artifactuse-border));
+}
+
+/* Tables */
+.artifactuse-message-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.artifactuse-message-content th,
+.artifactuse-message-content td {
+  padding: 0.5em 0.75em;
+  border: 1px solid rgb(var(--artifactuse-border));
+  text-align: left;
+}
+
+.artifactuse-message-content th {
+  background: rgba(var(--artifactuse-surface), 0.5);
+  font-weight: 600;
+}
+
+/* Images */
+.artifactuse-message-content img {
+  max-width: 100%;
+  border-radius: 8px;
+}

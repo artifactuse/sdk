@@ -1,0 +1,1151 @@
+/* ============================================================
+   ARTIFACTUSE SOCIAL PREVIEW STYLES
+   Platform-accurate social media post previews
+   Uses artifactuse CSS variables - no Tailwind dependency
+   ============================================================ */
+
+/* Base Container */
+.artifactuse-social {
+  /* width: 100%; */
+  max-width: 550px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgb(var(--artifactuse-border));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: border-color 0.2s ease;
+}
+
+.artifactuse-social[data-theme="dark"] {
+  background: rgb(var(--artifactuse-background));
+  border-color: rgb(var(--artifactuse-border));
+}
+
+.artifactuse-social[data-theme="light"] {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+
+/* ============================================================
+   TWITTER / X STYLES
+   ============================================================ */
+
+.artifactuse-social-twitter {
+  padding: 16px;
+}
+
+.artifactuse-social-twitter[data-theme="dark"] {
+  --social-text-primary: #e7e9ea;
+  --social-text-secondary: #71767b;
+  --social-text-link: #1d9bf0;
+  --social-bg-hover: rgba(239, 243, 244, 0.1);
+  --social-border: #2f3336;
+}
+
+.artifactuse-social-twitter[data-theme="light"] {
+  --social-text-primary: #0f1419;
+  --social-text-secondary: #536471;
+  --social-text-link: #1d9bf0;
+  --social-bg-hover: rgba(15, 20, 25, 0.1);
+  --social-border: #eff3f4;
+}
+
+/* Twitter Header */
+.artifactuse-social-twitter .artifactuse-social-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #4b5563;
+}
+
+.artifactuse-social-twitter .artifactuse-social-author {
+  flex: 1;
+  min-width: 0;
+}
+
+.artifactuse-social-twitter .artifactuse-social-author-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-verified {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.artifactuse-social-twitter .artifactuse-social-verified-blue {
+  color: #1d9bf0;
+}
+
+.artifactuse-social-twitter .artifactuse-social-verified-gold {
+  color: #e2b719;
+}
+
+.artifactuse-social-twitter .artifactuse-social-author-handle {
+  font-size: 15px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-author-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-timestamp {
+  font-size: 15px;
+  color: var(--social-text-secondary);
+}
+
+/* Twitter Content */
+.artifactuse-social-twitter .artifactuse-social-content {
+  margin-top: 12px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-text {
+  font-size: 15px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-text a,
+.artifactuse-social-twitter .artifactuse-social-text .artifactuse-social-hashtag,
+.artifactuse-social-twitter .artifactuse-social-text .artifactuse-social-mention {
+  color: var(--social-text-link);
+  text-decoration: none;
+}
+
+.artifactuse-social-twitter .artifactuse-social-text a:hover,
+.artifactuse-social-twitter .artifactuse-social-text .artifactuse-social-hashtag:hover,
+.artifactuse-social-twitter .artifactuse-social-text .artifactuse-social-mention:hover {
+  text-decoration: underline;
+}
+
+/* Twitter Media */
+.artifactuse-social-twitter .artifactuse-social-media {
+  margin-top: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--social-border);
+}
+
+.artifactuse-social-twitter .artifactuse-social-media-grid {
+  display: grid;
+  gap: 2px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-media-grid[data-count="1"] {
+  grid-template-columns: 1fr;
+}
+
+.artifactuse-social-twitter .artifactuse-social-media-grid[data-count="2"] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.artifactuse-social-twitter .artifactuse-social-media-grid[data-count="3"],
+.artifactuse-social-twitter .artifactuse-social-media-grid[data-count="4"] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.artifactuse-social-twitter .artifactuse-social-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artifactuse-social-twitter .artifactuse-social-media-single img {
+  max-height: 300px;
+}
+
+/* Twitter Link Card */
+.artifactuse-social-twitter .artifactuse-social-link-card {
+  margin-top: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--social-border);
+}
+
+.artifactuse-social-twitter .artifactuse-social-link-image {
+  width: 100%;
+  height: 125px;
+  object-fit: cover;
+}
+
+.artifactuse-social-twitter .artifactuse-social-link-info {
+  padding: 12px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-link-domain {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-link-domain svg {
+  width: 12px;
+  height: 12px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-link-title {
+  font-size: 15px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-link-description {
+  font-size: 15px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--social-text-secondary);
+}
+
+/* Twitter Poll */
+.artifactuse-social-twitter .artifactuse-social-poll {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-poll-option {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--social-border);
+  height: 36px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-poll-bar {
+  position: absolute;
+  inset: 0;
+  background: rgba(29, 155, 240, 0.2);
+  transition: width 0.3s ease;
+}
+
+.artifactuse-social-twitter .artifactuse-social-poll-label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 100%;
+  font-size: 15px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-poll-label-percent {
+  font-weight: 500;
+}
+
+.artifactuse-social-twitter .artifactuse-social-poll-meta {
+  font-size: 13px;
+  margin-top: 8px;
+  color: var(--social-text-secondary);
+}
+
+/* Twitter Engagement */
+.artifactuse-social-twitter .artifactuse-social-engagement {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--social-border);
+}
+
+.artifactuse-social-twitter .artifactuse-social-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-stat:hover {
+  color: var(--social-text-link);
+}
+
+.artifactuse-social-twitter .artifactuse-social-stat svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Twitter Quote */
+.artifactuse-social-twitter .artifactuse-social-quote {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--social-border);
+}
+
+.artifactuse-social-twitter .artifactuse-social-quote-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artifactuse-social-twitter .artifactuse-social-quote-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.artifactuse-social-twitter .artifactuse-social-quote-author {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-quote-handle {
+  font-size: 13px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-twitter .artifactuse-social-quote-text {
+  font-size: 15px;
+  margin-top: 4px;
+  color: var(--social-text-primary);
+}
+
+/* ============================================================
+   LINKEDIN STYLES
+   ============================================================ */
+
+.artifactuse-social-linkedin {
+  padding: 16px;
+}
+
+.artifactuse-social-linkedin[data-theme="dark"] {
+  --social-text-primary: #ffffff;
+  --social-text-secondary: rgba(255, 255, 255, 0.6);
+  --social-text-link: #70b5f9;
+  --social-border: rgba(255, 255, 255, 0.15);
+  --social-bg-card: rgba(255, 255, 255, 0.05);
+}
+
+.artifactuse-social-linkedin[data-theme="light"] {
+  --social-text-primary: rgba(0, 0, 0, 0.9);
+  --social-text-secondary: rgba(0, 0, 0, 0.6);
+  --social-text-link: #0a66c2;
+  --social-border: rgba(0, 0, 0, 0.08);
+  --social-bg-card: #f9fafb;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #9ca3af;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-author-info {
+  flex: 1;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-author-name {
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-author-connection {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-author-headline {
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-timestamp {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-timestamp svg {
+  width: 12px;
+  height: 12px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-content {
+  margin-top: 12px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-text {
+  font-size: 14px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-text .artifactuse-social-hashtag {
+  color: var(--social-text-link);
+  font-weight: 600;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-link-card {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--social-border);
+  background: var(--social-bg-card);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-link-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-link-info {
+  padding: 12px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-link-title {
+  font-weight: 600;
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-link-domain {
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-engagement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--social-border);
+  font-size: 12px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-linkedin .artifactuse-social-reactions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-reaction-icons {
+  display: flex;
+  margin-left: -4px;
+}
+
+.artifactuse-social-linkedin .artifactuse-social-reaction-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid white;
+  margin-left: -4px;
+}
+
+/* ============================================================
+   INSTAGRAM STYLES
+   ============================================================ */
+
+.artifactuse-social-instagram {
+  padding: 0 0 10px 0;
+}
+
+.artifactuse-social-instagram[data-theme="dark"] {
+  --social-text-primary: #f5f5f5;
+  --social-text-secondary: #a8a8a8;
+  --social-border: #363636;
+  --social-bg: #000000;
+}
+
+.artifactuse-social-instagram[data-theme="light"] {
+  --social-text-primary: #262626;
+  --social-text-secondary: #8e8e8e;
+  --social-border: #dbdbdb;
+  --social-bg: #ffffff;
+}
+
+.artifactuse-social-instagram .artifactuse-social-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.artifactuse-social-instagram .artifactuse-social-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px var(--social-bg), 0 0 0 4px #e1306c;
+  background: #9ca3af;
+}
+
+.artifactuse-social-instagram .artifactuse-social-author-name {
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-instagram .artifactuse-social-verified {
+  width: 12px;
+  height: 12px;
+  color: #0095f6;
+}
+
+.artifactuse-social-instagram .artifactuse-social-media {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #000;
+}
+
+.artifactuse-social-instagram .artifactuse-social-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artifactuse-social-instagram .artifactuse-social-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+}
+
+.artifactuse-social-instagram .artifactuse-social-action {
+  cursor: pointer;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-instagram .artifactuse-social-action svg {
+  width: 24px;
+  height: 24px;
+}
+
+.artifactuse-social-instagram .artifactuse-social-likes {
+  padding: 0 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-instagram .artifactuse-social-caption {
+  padding: 0 12px 12px;
+}
+
+.artifactuse-social-instagram .artifactuse-social-caption-author {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-instagram .artifactuse-social-caption-text {
+  font-size: 14px;
+  margin-left: 4px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-instagram .artifactuse-social-timestamp {
+  padding: 0 12px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--social-text-secondary);
+}
+
+/* ============================================================
+   FACEBOOK STYLES
+   ============================================================ */
+
+.artifactuse-social-facebook {
+  padding: 16px;
+}
+
+.artifactuse-social-facebook[data-theme="dark"] {
+  --social-text-primary: #e4e6eb;
+  --social-text-secondary: #b0b3b8;
+  --social-text-link: #2d88ff;
+  --social-border: #3e4042;
+  --social-bg-card: #242526;
+}
+
+.artifactuse-social-facebook[data-theme="light"] {
+  --social-text-primary: #050505;
+  --social-text-secondary: #65676b;
+  --social-text-link: #0064d1;
+  --social-border: #dddfe2;
+  --social-bg-card: #f0f2f5;
+}
+
+.artifactuse-social-facebook .artifactuse-social-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.artifactuse-social-facebook .artifactuse-social-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #9ca3af;
+}
+
+.artifactuse-social-facebook .artifactuse-social-author-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-timestamp {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-timestamp svg {
+  width: 12px;
+  height: 12px;
+}
+
+.artifactuse-social-facebook .artifactuse-social-content {
+  margin-top: 12px;
+}
+
+.artifactuse-social-facebook .artifactuse-social-text {
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-link-card {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--social-border);
+}
+
+.artifactuse-social-facebook .artifactuse-social-link-image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.artifactuse-social-facebook .artifactuse-social-link-info {
+  padding: 12px;
+  background: var(--social-bg-card);
+}
+
+.artifactuse-social-facebook .artifactuse-social-link-domain {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-link-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 4px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-link-description {
+  font-size: 14px;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-engagement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--social-border);
+}
+
+.artifactuse-social-facebook .artifactuse-social-reactions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artifactuse-social-facebook .artifactuse-social-reaction-emojis {
+  display: flex;
+  margin-left: -4px;
+}
+
+.artifactuse-social-facebook .artifactuse-social-reaction-emoji {
+  width: 18px;
+  height: 18px;
+  margin-left: -4px;
+}
+
+.artifactuse-social-facebook .artifactuse-social-reaction-count {
+  font-size: 15px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-facebook .artifactuse-social-comments-shares {
+  font-size: 15px;
+  color: var(--social-text-secondary);
+}
+
+/* ============================================================
+   THREADS STYLES
+   ============================================================ */
+
+.artifactuse-social-threads {
+  padding: 16px;
+}
+
+.artifactuse-social-threads[data-theme="dark"] {
+  --social-text-primary: #f5f5f5;
+  --social-text-secondary: #777777;
+  --social-border: #363636;
+}
+
+.artifactuse-social-threads[data-theme="light"] {
+  --social-text-primary: #000000;
+  --social-text-secondary: #999999;
+  --social-border: #e0e0e0;
+}
+
+.artifactuse-social-threads .artifactuse-social-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.artifactuse-social-threads .artifactuse-social-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #9ca3af;
+}
+
+.artifactuse-social-threads .artifactuse-social-author-name {
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-threads .artifactuse-social-verified {
+  width: 16px;
+  height: 16px;
+}
+
+.artifactuse-social-threads .artifactuse-social-timestamp {
+  font-size: 15px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-threads .artifactuse-social-content {
+  margin-top: 8px;
+  margin-left: 48px;
+}
+
+.artifactuse-social-threads .artifactuse-social-text {
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-threads .artifactuse-social-engagement {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  margin-left: 48px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-threads .artifactuse-social-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+}
+
+.artifactuse-social-threads .artifactuse-social-stat svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================================
+   TIKTOK STYLES
+   ============================================================ */
+
+.artifactuse-social-tiktok {
+  padding: 0 0 10px 0;
+}
+
+.artifactuse-social-tiktok[data-theme="dark"] {
+  --social-text-primary: #ffffff;
+  --social-text-secondary: rgba(255, 255, 255, 0.75);
+  --social-bg: #121212;
+}
+
+.artifactuse-social-tiktok[data-theme="light"] {
+  --social-text-primary: #161823;
+  --social-text-secondary: rgba(22, 24, 35, 0.75);
+  --social-bg: #ffffff;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 400px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-play-button {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-play-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-play-icon svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+  margin-left: 4px;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 12px;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-info {
+  padding: 12px;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #9ca3af;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-author-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-tiktok .artifactuse-social-text {
+  font-size: 14px;
+  margin-top: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-tiktok .artifactuse-social-sound {
+  font-size: 12px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-tiktok .artifactuse-social-sound svg {
+  width: 12px;
+  height: 12px;
+}
+
+.artifactuse-social-tiktok .artifactuse-social-engagement {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--social-text-secondary);
+}
+
+/* ============================================================
+   YOUTUBE STYLES
+   ============================================================ */
+
+.artifactuse-social-youtube {
+  padding: 0 0 10px 0;
+}
+
+.artifactuse-social-youtube[data-theme="dark"] {
+  --social-text-primary: #f1f1f1;
+  --social-text-secondary: #aaaaaa;
+  --social-bg: #0f0f0f;
+}
+
+.artifactuse-social-youtube[data-theme="light"] {
+  --social-text-primary: #0f0f0f;
+  --social-text-secondary: #606060;
+  --social-bg: #ffffff;
+}
+
+.artifactuse-social-youtube .artifactuse-social-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.artifactuse-social-youtube .artifactuse-social-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artifactuse-social-youtube .artifactuse-social-duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 12px;
+  color: white;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.artifactuse-social-youtube .artifactuse-social-info {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+
+.artifactuse-social-youtube .artifactuse-social-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #9ca3af;
+}
+
+.artifactuse-social-youtube .artifactuse-social-title {
+  font-weight: 500;
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  color: var(--social-text-primary);
+}
+
+.artifactuse-social-youtube .artifactuse-social-channel {
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-youtube .artifactuse-social-meta {
+  font-size: 12px;
+  color: var(--social-text-secondary);
+}
+
+/* ============================================================
+   COMMON UTILITIES
+   ============================================================ */
+
+/* Actions Bar */
+.artifactuse-social-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-social-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background: rgba(var(--artifactuse-surface), 0.5);
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-social-copy-btn:hover {
+  background: rgba(var(--artifactuse-surface), 0.8);
+}
+
+.artifactuse-social-copy-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.artifactuse-social-platform-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  background: rgba(var(--artifactuse-surface), 0.5);
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-social-platform-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Show More */
+.artifactuse-social-show-more {
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--social-text-secondary);
+}
+
+.artifactuse-social-show-more:hover {
+  text-decoration: underline;
+}
+
+/* Character Counter */
+.artifactuse-social-char-counter {
+  font-size: 12px;
+  margin-top: 8px;
+  text-align: right;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-social-char-counter.artifactuse-social-char-warning {
+  color: #eab308;
+}
+
+.artifactuse-social-char-counter.artifactuse-social-char-error {
+  color: #ef4444;
+}
+
+/* Draft/Scheduled Badge */
+.artifactuse-social-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.artifactuse-social-badge-draft {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+.artifactuse-social-badge-scheduled {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}

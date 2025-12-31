@@ -1,0 +1,463 @@
+/* ============================================================
+   MAP STYLES
+   ============================================================ */
+
+.artifactuse-map-wrapper {
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-map-iframe {
+  width: 100%;
+  height: 400px;
+  border: none;
+}
+
+.artifactuse-map-actions {
+  padding: 8px 12px;
+  background: rgb(var(--artifactuse-surface));
+  border-top: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-map-link {
+  color: rgb(var(--artifactuse-primary));
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.artifactuse-map-link:hover {
+  text-decoration: underline;
+}
+
+.artifactuse-map-icon {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   DOCUMENT STYLES
+   ============================================================ */
+
+.artifactuse-pdf-wrapper,
+.artifactuse-google-doc-wrapper,
+.artifactuse-office-wrapper {
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-pdf-header,
+.artifactuse-google-doc-header,
+.artifactuse-office-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgb(var(--artifactuse-surface));
+  border-bottom: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-pdf-filename,
+.artifactuse-office-filename {
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-google-doc-type {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text-secondary));
+  text-transform: uppercase;
+}
+
+.artifactuse-pdf-download,
+.artifactuse-google-doc-link,
+.artifactuse-office-download {
+  color: rgb(var(--artifactuse-primary));
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.artifactuse-pdf-download:hover,
+.artifactuse-google-doc-link:hover,
+.artifactuse-office-download:hover {
+  text-decoration: underline;
+}
+
+.artifactuse-pdf-iframe,
+.artifactuse-google-doc-iframe,
+.artifactuse-office-iframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+}
+
+.artifactuse-pdf-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: rgb(var(--artifactuse-error));
+}
+
+.artifactuse-office-type {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+/* Google Forms */
+.artifactuse-google-form-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-google-form-iframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+}
+
+/* ============================================================
+   DATA VIZ STYLES
+   ============================================================ */
+
+.artifactuse-flourish-wrapper,
+.artifactuse-datawrapper-wrapper {
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.artifactuse-flourish-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+.artifactuse-datawrapper-iframe {
+  width: 100%;
+  height: 400px;
+  border: none;
+}
+
+/* Tableau */
+.artifactuse-tableau-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-tableau-iframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+}
+
+/* Infogram */
+.artifactuse-infogram-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-infogram-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+/* ============================================================
+   DESIGN/3D STYLES
+   ============================================================ */
+
+.artifactuse-figma-wrapper,
+.artifactuse-sketchfab-wrapper {
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.artifactuse-figma-iframe {
+  width: 100%;
+  height: 450px;
+  border: 1px solid rgb(var(--artifactuse-border));
+  border-radius: 8px;
+}
+
+.artifactuse-sketchfab-iframe {
+  width: 100%;
+  height: 480px;
+  border: none;
+}
+
+/* Canva */
+.artifactuse-canva-wrapper {
+  margin: 1.5rem 0;
+}
+
+.artifactuse-canva-preview {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-canva-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: linear-gradient(to bottom right, rgb(var(--artifactuse-primary)), rgb(var(--artifactuse-gradient)));
+  color: white;
+}
+
+.artifactuse-canva-icon {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+}
+
+.artifactuse-canva-placeholder p {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.artifactuse-canva-link {
+  padding: 0.5rem 1.5rem;
+  background-color: white;
+  color: rgb(var(--artifactuse-primary));
+  border-radius: 9999px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.artifactuse-canva-link:hover {
+  background-color: rgb(var(--artifactuse-surface));
+}
+
+/* Dribbble */
+.artifactuse-dribbble-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-dribbble-iframe {
+  width: 100%;
+  height: 400px;
+  border: none;
+}
+
+/* Behance */
+.artifactuse-behance-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-behance-iframe {
+  width: 100%;
+  height: 400px;
+  border: none;
+}
+
+/* ============================================================
+   INTERACTIVE STYLES
+   ============================================================ */
+
+.artifactuse-typeform-wrapper,
+.artifactuse-calendly-wrapper,
+.artifactuse-airtable-wrapper,
+.artifactuse-miro-wrapper {
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.artifactuse-typeform-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+.artifactuse-calendly-iframe {
+  width: 100%;
+  height: 650px;
+  border: none;
+}
+
+.artifactuse-airtable-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+.artifactuse-miro-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+/* Google Calendar */
+.artifactuse-google-calendar-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-google-calendar-iframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+}
+
+/* Cal.com */
+.artifactuse-calcom-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-calcom-iframe {
+  width: 100%;
+  height: 650px;
+  border: none;
+}
+
+/* Notion */
+.artifactuse-notion-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-notion-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+/* ============================================================
+   SOCIAL EMBED STYLES (Platform embeds, not previews)
+   ============================================================ */
+
+.artifactuse-twitter-wrapper,
+.artifactuse-instagram-wrapper,
+.artifactuse-tiktok-wrapper {
+  margin: 1em 0;
+}
+
+.artifactuse-instagram-embed {
+  width: 100%;
+  min-height: 500px;
+  border-radius: 8px;
+  border: none;
+}
+
+.artifactuse-instagram-reel {
+  min-height: 700px;
+}
+
+.artifactuse-tiktok-embed {
+  width: 100%;
+  height: 740px;
+  border-radius: 8px;
+  border: none;
+}
+
+/* LinkedIn */
+.artifactuse-linkedin-wrapper {
+  margin: 1.5rem 0;
+}
+
+.artifactuse-linkedin-embed {
+  width: 100%;
+  height: 400px;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+/* Reddit */
+.artifactuse-reddit-wrapper {
+  margin: 1.5rem 0;
+}
+
+.artifactuse-reddit-embed {
+  width: 100%;
+  height: 400px;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+/* Facebook */
+.artifactuse-facebook-wrapper {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.artifactuse-facebook-embed {
+  border-radius: 0.5rem;
+}
+
+/* Pinterest */
+.artifactuse-pinterest-wrapper {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* Twitter */
+.artifactuse-twitter-wrapper {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* TikTok */
+.artifactuse-tiktok-wrapper {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.artifactuse-tiktok-embed {
+  max-width: 325px;
+  height: 740px;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+/* Embed fallback */
+.artifactuse-embed-fallback {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.artifactuse-embed-fallback a {
+  color: rgb(var(--artifactuse-info));
+  text-decoration: none;
+}
+
+.artifactuse-embed-fallback a:hover {
+  color: rgb(var(--artifactuse-primary));
+  text-decoration: underline;
+}

@@ -1,0 +1,192 @@
+/* ============================================================
+   ANIMATIONS & KEYFRAMES
+   ============================================================ */
+
+@keyframes artifactuse-expanding {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes artifactuse-moving {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes artifactuse-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--artifactuse-primary), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(var(--artifactuse-primary), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--artifactuse-primary), 0);
+  }
+}
+
+@keyframes artifactuse-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes artifactuse-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes artifactuse-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   LOADING BAR
+   ============================================================ */
+
+.artifactuse-loading-bar {
+  height: 0.8rem;
+  margin-bottom: 10px;
+  transform-origin: left;
+  animation: artifactuse-expanding 0.4s 0.7s forwards linear, 
+             artifactuse-moving 1s 1s infinite forwards linear;
+  border-top-right-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+  background-size: 200% auto;
+  opacity: 0;
+  animation-delay: 100ms;
+}
+
+.artifactuse-loading-bar.artifactuse-gradient-1 {
+  width: 90%;
+  background-image: linear-gradient(
+    to right, 
+    transparent 30%, 
+    rgba(var(--artifactuse-gradient), var(--artifactuse-gradient-opacity)) 60%, 
+    transparent
+  );
+}
+
+.artifactuse-loading-bar.artifactuse-gradient-2 {
+  width: 80%;
+  background-image: linear-gradient(
+    to right, 
+    rgba(var(--artifactuse-gradient), var(--artifactuse-gradient-opacity)), 
+    transparent 60%, 
+    rgba(var(--artifactuse-gradient), var(--artifactuse-gradient-opacity))
+  );
+}
+
+.artifactuse-loading-bar.artifactuse-gradient-3 {
+  width: 70%;
+  background-image: linear-gradient(
+    to right, 
+    transparent 30%, 
+    rgba(var(--artifactuse-gradient), var(--artifactuse-gradient-opacity)) 60%, 
+    transparent
+  );
+}
+
+/* ============================================================
+   TRANSITION CLASSES
+   ============================================================ */
+
+/* Panel Transitions */
+.artifactuse-panel-enter-active,
+.artifactuse-panel-leave-active {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.artifactuse-panel-enter-from,
+.artifactuse-panel-leave-to {
+  width: 0 !important;
+  min-width: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.artifactuse-panel--fullscreen.artifactuse-panel-enter-active,
+.artifactuse-panel--fullscreen.artifactuse-panel-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.artifactuse-panel--fullscreen.artifactuse-panel-enter-from,
+.artifactuse-panel--fullscreen.artifactuse-panel-leave-to {
+  width: 100% !important;
+  opacity: 0;
+}
+
+/* Backdrop Transitions */
+.artifactuse-backdrop-enter-active,
+.artifactuse-backdrop-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.artifactuse-backdrop-enter-from,
+.artifactuse-backdrop-leave-to {
+  opacity: 0;
+}
+
+/* Popup Transitions */
+.artifactuse-popup-enter-active,
+.artifactuse-popup-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.artifactuse-popup-enter-from,
+.artifactuse-popup-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* Viewer Transitions */
+.artifactuse-viewer-enter-active,
+.artifactuse-viewer-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.artifactuse-viewer-enter-from,
+.artifactuse-viewer-leave-to {
+  opacity: 0;
+}
+
+.artifactuse-viewer-enter-active .artifactuse-viewer-content,
+.artifactuse-viewer-leave-active .artifactuse-viewer-content {
+  transition: transform 0.2s ease;
+}
+
+.artifactuse-viewer-enter-from .artifactuse-viewer-content,
+.artifactuse-viewer-leave-to .artifactuse-viewer-content {
+  transform: scale(0.95);
+}
+
+/* Vue 2 transition class names */
+.artifactuse-viewer-enter,
+.artifactuse-viewer-leave-to {
+  opacity: 0;
+}
+
+.artifactuse-viewer-enter .artifactuse-viewer-content,
+.artifactuse-viewer-leave-to .artifactuse-viewer-content {
+  transform: scale(0.95);
+}

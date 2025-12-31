@@ -1,0 +1,112 @@
+/* ============================================================
+   CODE BLOCK STYLES
+   ============================================================ */
+
+/* Code scroll container */
+.artifactuse-panel__code-scroll {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: auto;
+  align-items: flex-start;
+  background: rgb(var(--artifactuse-surface));
+}
+
+/* Line numbers */
+.artifactuse-panel__line-numbers {
+  padding: 16px 12px;
+  text-align: right;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgb(var(--artifactuse-text-muted));
+  border-right: 1px solid rgba(var(--artifactuse-text), 0.1);
+  user-select: none;
+  flex-shrink: 0;
+  background: inherit;
+}
+
+.artifactuse-panel__line-numbers div {
+  padding-right: 4px;
+}
+
+/* Code block */
+.artifactuse-panel__code-block {
+  flex: 1;
+  margin: 0;
+  padding: 16px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow: visible;
+}
+
+.artifactuse-panel__code-block code {
+  font-family: inherit;
+}
+
+/* Prism pre override */
+.artifactuse-panel__code pre[class*="language-"],
+.artifactuse-panel__code code[class*="language-"] {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 16px 12px;
+  margin: 0;
+  overflow: visible;
+}
+
+/* ============================================================
+   CODE EMBED STYLES
+   ============================================================ */
+
+.artifactuse-codepen-wrapper,
+.artifactuse-codesandbox-wrapper,
+.artifactuse-jsfiddle-wrapper,
+.artifactuse-stackblitz-wrapper,
+.artifactuse-gist-wrapper {
+  margin: 1em 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.artifactuse-codepen-embed {
+  width: 100%;
+  height: 400px;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.artifactuse-codesandbox-embed {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.artifactuse-jsfiddle-embed {
+  width: 100%;
+  height: 400px;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.artifactuse-stackblitz-wrapper {
+  margin: 1.5rem 0;
+}
+
+.artifactuse-stackblitz-embed {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.artifactuse-replit-wrapper {
+  margin: 1.5rem 0;
+}
+
+.artifactuse-replit-embed {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: none;
+}

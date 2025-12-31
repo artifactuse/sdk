@@ -1,0 +1,50 @@
+/* ============================================================
+   AUDIO STYLES
+   ============================================================ */
+
+.artifactuse-audio-wrapper {
+  margin: 1em 0;
+  padding: 12px;
+  background: rgb(var(--artifactuse-surface));
+  border-radius: 8px;
+}
+
+.artifactuse-audio {
+  width: 100%;
+}
+
+.artifactuse-audio-info {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-audio-player {
+  background-color: rgb(var(--artifactuse-surface));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.artifactuse-audio-filename {
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text));
+}
+
+/* Spotify */
+.artifactuse-spotify-embed {
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* Apple Music */
+.artifactuse-apple-music-embed {
+  width: 100%;
+  border-radius: 0.75rem;
+}
+
+/* SoundCloud */
+.artifactuse-soundcloud-embed {
+  width: 100%;
+  border-radius: 8px;
+}

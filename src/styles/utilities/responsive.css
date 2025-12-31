@@ -1,0 +1,223 @@
+/* ============================================================
+   RESPONSIVE OVERRIDES
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .artifactuse-table-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .artifactuse-table-search {
+    max-width: none;
+  }
+  
+  .artifactuse-table-actions {
+    justify-content: flex-end;
+  }
+  
+  .artifactuse-image-gallery {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .artifactuse-gallery-item img.artifactuse-gallery-image {
+    height: 8rem;
+  }
+  
+  .artifactuse-video-preview-container {
+    margin: 1rem 0;
+  }
+  
+  .artifactuse-play-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .artifactuse-tiktok-embed,
+  .artifactuse-instagram-embed {
+    max-width: 100%;
+  }
+}
+
+/* Panel Mobile */
+@media (max-width: 768px) {
+  .artifactuse-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100% !important;
+    min-width: 0;
+    max-width: none;
+    z-index: 1000;
+  }
+  
+  .artifactuse-panel__resize-handle {
+    display: none;
+  }
+  
+  .artifactuse-panel__tabs {
+    display: none;
+  }
+  
+  .artifactuse-panel__content--split {
+    flex-direction: column;
+  }
+  
+  .artifactuse-panel__content--split .artifactuse-panel__preview,
+  .artifactuse-panel__content--split .artifactuse-panel__code {
+    width: 100% !important;
+    height: 50%;
+  }
+  
+  .artifactuse-panel__split-handle {
+    width: 100%;
+    height: 12px;
+    margin: -3px 0;
+    cursor: ns-resize;
+  }
+  
+  .artifactuse-panel__split-handle-line {
+    width: 48px;
+    height: 4px;
+  }
+  
+  .artifactuse-panel__footer {
+    flex-wrap: wrap;
+  }
+}
+
+/* Panel Container Queries */
+@container artifactuse-panel (max-width: 450px) {
+  .artifactuse-panel__header {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  
+  .artifactuse-panel__footer {
+    padding: 6px 10px;
+  }
+  
+  .artifactuse-panel__badge {
+    display: none;
+  }
+
+  .artifactuse-panel__nav-trigger span {
+    display: none;
+  }
+}
+
+@container artifactuse-panel (max-width: 320px) {
+  .artifactuse-panel__title-content {
+    display: none;
+  }
+}
+
+/* Card Container Queries */
+@container (max-width: 300px) {
+  .artifactuse-card {
+    padding: 8px;
+    flex-direction: column;
+  }
+  
+  .artifactuse-card__icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .artifactuse-card__icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .artifactuse-card__actions {
+    display: none;
+  }
+}
+
+/* Form Mobile */
+@media (max-width: 480px) {
+  .artifactuse-inline-form {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: none;
+  }
+  
+  .artifactuse-form-buttons {
+    flex-direction: column;
+  }
+  
+  .artifactuse-form-btn {
+    width: 100%;
+  }
+  
+  .artifactuse-inline-form.artifactuse-form-horizontal .artifactuse-form-fields {
+    flex-direction: column;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+
+@media print {
+  .artifactuse-video-wrapper,
+  .artifactuse-video-preview-container,
+  .artifactuse-audio-wrapper,
+  .artifactuse-map-wrapper,
+  .artifactuse-twitter-wrapper,
+  .artifactuse-instagram-wrapper,
+  .artifactuse-tiktok-wrapper,
+  .artifactuse-linkedin-wrapper,
+  .artifactuse-reddit-wrapper,
+  .artifactuse-facebook-wrapper,
+  .artifactuse-pinterest-wrapper,
+  .artifactuse-typeform-wrapper,
+  .artifactuse-calendly-wrapper,
+  .artifactuse-calcom-wrapper,
+  .artifactuse-google-calendar-wrapper,
+  .artifactuse-miro-wrapper,
+  .artifactuse-airtable-wrapper {
+    display: none !important;
+  }
+
+  .artifactuse-table-controls,
+  .artifactuse-table-footer {
+    display: none !important;
+  }
+  
+  .artifactuse-table-container,
+  .artifactuse-mermaid-container {
+    border: none !important;
+  }
+  
+  .artifactuse-mermaid-loading {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .artifactuse-image,
+  .artifactuse-hero-image,
+  .artifactuse-inline-image,
+  .artifactuse-gallery-item img,
+  .artifactuse-video-preview-image,
+  .artifactuse-play-icon,
+  .artifactuse-table-action-btn,
+  .artifactuse-sortable-header,
+  .artifactuse-video-link,
+  .artifactuse-canva-link {
+    transition: none !important;
+  }
+  
+  .artifactuse-gallery-item:hover img.artifactuse-gallery-image,
+  .artifactuse-video-preview-wrapper:hover .artifactuse-video-preview-image,
+  .artifactuse-video-preview-wrapper:hover .artifactuse-play-icon {
+    transform: none !important;
+  }
+}

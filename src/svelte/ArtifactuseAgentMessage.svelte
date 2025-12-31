@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, afterUpdate } from 'svelte';
-  import { getArtifactuseContext } from './context.js';
+  import { getArtifactuseContext } from './index.js';
   import ArtifactuseCard from './ArtifactuseCard.svelte';
   import ArtifactuseInlineForm from './ArtifactuseInlineForm.svelte';
   import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.svelte';
@@ -19,9 +19,9 @@
   const { 
     processMessage, 
     openArtifact, 
-    state, 
     getTheme,
-    instance 
+    instance,
+    activeArtifactId: activeArtifactIdProp
   } = getArtifactuseContext();
   
   // Local state
@@ -44,7 +44,7 @@
   $: theme = typeof getTheme === 'function' ? getTheme() : 'dark';
   
   // Reactive active artifact ID
-  $: activeArtifactId = $state?.activeArtifactId || null;
+  $: activeArtifactId = activeArtifactIdProp || null;
   
   /**
    * Decode Base64 string to JSON object

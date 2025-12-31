@@ -1,0 +1,63 @@
+/* ============================================================
+   CSS VARIABLES / THEME
+   ============================================================ */
+
+:root,
+[data-artifactuse-theme="dark"] {
+  /* Typography */
+  --artifactuse-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --artifactuse-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  
+  /* Colors */
+  --artifactuse-primary: 99, 102, 241;
+  --artifactuse-primary-hover: 79, 70, 229;
+  --artifactuse-background: 17, 24, 39;
+  --artifactuse-surface: 31, 41, 55;
+  --artifactuse-surface-hover: 55, 65, 81;
+  --artifactuse-text: 243, 244, 246;
+  --artifactuse-text-secondary: 156, 163, 175;
+  --artifactuse-text-muted: 107, 114, 128;
+  --artifactuse-border: 75, 85, 99;
+  --artifactuse-border-light: 55, 65, 81;
+  --artifactuse-success: 34, 197, 94;
+  --artifactuse-warning: 234, 179, 8;
+  --artifactuse-error: 239, 68, 68;
+  --artifactuse-info: 59, 130, 246;
+  --artifactuse-gradient: 99, 102, 241;
+  --artifactuse-gradient-opacity: 0.38;
+}
+
+[data-artifactuse-theme="light"] {
+  --artifactuse-primary: 79, 70, 229;
+  --artifactuse-primary-hover: 67, 56, 202;
+  --artifactuse-background: 255, 255, 255;
+  --artifactuse-surface: 249, 250, 251;
+  --artifactuse-surface-hover: 243, 244, 246;
+  --artifactuse-text: 17, 24, 39;
+  --artifactuse-text-secondary: 75, 85, 99;
+  --artifactuse-text-muted: 156, 163, 175;
+  --artifactuse-border: 229, 231, 235;
+  --artifactuse-border-light: 243, 244, 246;
+  --artifactuse-success: 22, 163, 74;
+  --artifactuse-warning: 202, 138, 4;
+  --artifactuse-error: 220, 38, 38;
+  --artifactuse-info: 37, 99, 235;
+  --artifactuse-gradient: 79, 70, 229;
+  --artifactuse-gradient-opacity: 0.25;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-artifactuse-theme]) {
+    --artifactuse-primary: 79, 70, 229;
+    --artifactuse-primary-hover: 67, 56, 202;
+    --artifactuse-background: 255, 255, 255;
+    --artifactuse-surface: 249, 250, 251;
+    --artifactuse-surface-hover: 243, 244, 246;
+    --artifactuse-text: 17, 24, 39;
+    --artifactuse-text-secondary: 75, 85, 99;
+    --artifactuse-text-muted: 156, 163, 175;
+    --artifactuse-border: 229, 231, 235;
+    --artifactuse-border-light: 243, 244, 246;
+    --artifactuse-gradient-opacity: 0.25;
+  }
+}

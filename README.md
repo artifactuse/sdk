@@ -8,7 +8,8 @@ Artifactuse is a lightweight SDK that transforms AI-generated content into rich,
 
 - 🎨 **Rich Content Detection** - Automatically detect and render code blocks, images, videos, maps, embeds, and more
 - 📦 **Artifact Cards** - Beautiful inline cards for code artifacts
-- 🖼️ **Panel Viewer** - Side panel with preview, code view, and split mode
+- 🖼️ **Media Lightbox** - Click images and PDFs to view fullscreen with zoom and download
+- 🖥️ **Panel Viewer** - Side panel with preview, code view, and split mode
 - 📝 **Interactive Forms** - Inline and panel forms with 17+ field types
 - 📱 **Social Previews** - Platform-accurate previews for Twitter, LinkedIn, Instagram, and more
 - 🌗 **Theme Support** - Dark/light mode with customizable colors
@@ -17,6 +18,7 @@ Artifactuse is a lightweight SDK that transforms AI-generated content into rich,
 - ☁️ **Cloud Ready** - Built for SaaS integration
 
 ## Installation
+
 ```bash
 npm install artifactuse
 ```
@@ -43,6 +45,7 @@ import 'prismjs/themes/prism-tomorrow.css'  // dark theme
 ```
 
 Or use CDN:
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
@@ -50,6 +53,7 @@ Or use CDN:
 ```
 
 ## Quick Start (Vue 3 / Nuxt 3)
+
 ```vue
 <template>
   <div class="app-container">
@@ -134,6 +138,7 @@ html, body {
 ```
 
 ## Quick Start (Vue 2.7 / Nuxt 2)
+
 ```vue
 <template>
   <div class="app-container">
@@ -214,6 +219,7 @@ html, body {
 If you're using Vue 2.6 with `@vue/composition-api` or `@nuxtjs/composition-api`, add this alias to your build config:
 
 **Nuxt 2:**
+
 ```js
 // nuxt.config.js
 export default {
@@ -226,6 +232,7 @@ export default {
 ```
 
 **Webpack:**
+
 ```js
 // webpack.config.js
 module.exports = {
@@ -238,6 +245,7 @@ module.exports = {
 ```
 
 **Vue CLI:**
+
 ```js
 // vue.config.js
 module.exports = {
@@ -254,6 +262,7 @@ module.exports = {
 > **Note:** Vue 2.7+ has the Composition API built-in and works without any alias configuration.
 
 ## Quick Start (React / Next.js)
+
 ```jsx
 import { useState } from 'react';
 import { 
@@ -322,6 +331,7 @@ html, body, #root {
 ```
 
 ## Quick Start (Svelte / SvelteKit)
+
 ```svelte
 <!-- +layout.svelte -->
 <script>
@@ -342,6 +352,7 @@ html, body, #root {
   }
 </style>
 ```
+
 ```svelte
 <!-- Chat.svelte -->
 <script>
@@ -389,34 +400,85 @@ html, body, #root {
 
 ### `<ArtifactuseAgentMessage>`
 
-Renders AI agent messages with automatic artifact detection. Inline artifacts (simple forms, social previews) are rendered directly in the message. Panel artifacts (code, complex forms) show as clickable cards.
+Renders AI agent messages with automatic artifact detection. Inline artifacts (simple forms, social previews) are rendered directly in the message. Panel artifacts (code, complex forms) show as clickable cards. Images and PDFs automatically open in a lightbox viewer when clicked.
+
 ```vue
 <ArtifactuseAgentMessage
   :content="message.content"
   :message-id="message.id"
+  :typing="isStreaming"
   @artifact-detected="onDetected"
   @artifact-open="onOpen"
   @form-submit="onFormSubmit"
   @form-cancel="onFormCancel"
   @social-copy="onSocialCopy"
+  @media-open="onMediaOpen"
 />
 ```
 
 **Props:**
-- `content` (string, required) - The raw message content from AI
-- `messageId` (string) - Unique identifier for the message
-- `inlineCards` (boolean, default: true) - Show artifact cards inline
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `content` | string | required | The raw message content from AI |
+| `messageId` | string | auto | Unique identifier for the message |
+| `inlineCards` | boolean | `true` | Show artifact cards inline |
+| `typing` | boolean | `false` | Whether message is still streaming |
 
 **Events:**
-- `artifact-detected` - Emitted when artifacts are found
-- `artifact-open` - Emitted when user opens an artifact
-- `form-submit` - Emitted when inline form is submitted
-- `form-cancel` - Emitted when inline form is cancelled
-- `social-copy` - Emitted when social preview text is copied
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `artifact-detected` | `artifacts[]` | Emitted when artifacts are found |
+| `artifact-open` | `artifact` | Emitted when user opens an artifact |
+| `form-submit` | `{ formId, values }` | Emitted when inline form is submitted |
+| `form-cancel` | `{ formId }` | Emitted when inline form is cancelled |
+| `social-copy` | `{ platform, text }` | Emitted when social preview text is copied |
+| `media-open` | `{ type, src, alt, caption }` | Emitted when image/PDF is opened in viewer |
+
+### `<ArtifactuseViewer>`
+
+Fullscreen lightbox viewer for images and PDFs. Automatically integrated with `ArtifactuseAgentMessage` - you don't need to add this component manually unless you want standalone usage.
+
+```vue
+<ArtifactuseViewer
+  :is-open="viewerOpen"
+  :type="viewerType"
+  :src="viewerSrc"
+  :alt="viewerAlt"
+  :caption="viewerCaption"
+  @close="viewerOpen = false"
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `isOpen` | boolean | `false` | Whether viewer is open |
+| `type` | string | `'image'` | Content type: `'image'` or `'pdf'` |
+| `src` | string | `''` | Media URL |
+| `alt` | string | `''` | Alt text for images |
+| `caption` | string | `''` | Caption displayed below media |
+
+**Events:**
+
+| Event | Description |
+|-------|-------------|
+| `close` | Emitted when viewer is closed (click overlay, Escape key, or close button) |
+
+**Features:**
+
+- Zoom toggle for images (click image or zoom button)
+- Download button
+- Keyboard support (Escape to close)
+- Click outside to close
+- Body scroll lock when open
 
 ### `<ArtifactusePanel>`
 
 Side panel for viewing artifact previews and code.
+
 ```vue
 <ArtifactusePanel
   @ai-request="handleAIRequest"
@@ -429,6 +491,7 @@ Side panel for viewing artifact previews and code.
 ### `<ArtifactusePanelToggle>`
 
 Toggle button with artifact count badge.
+
 ```vue
 <ArtifactusePanelToggle />
 ```
@@ -460,6 +523,7 @@ Inline artifacts render directly within the message.
 #### Forms (Inline)
 
 Simple forms render inline. Set `display: "inline"` or use buttons variant with few simple fields.
+
 ```json
 {
   "type": "form",
@@ -480,6 +544,7 @@ Simple forms render inline. Set `display: "inline"` or use buttons variant with 
 #### Social Previews
 
 Platform-accurate social media post previews:
+
 ```json
 {
   "type": "social",
@@ -519,6 +584,7 @@ Platform-accurate social media post previews:
 | **Data Viz** | Flourish, Datawrapper, Tableau Public |
 
 ## Composable / Hooks
+
 ```js
 // Vue 3
 import { useArtifactuse } from 'artifactuse/vue';
@@ -554,6 +620,7 @@ const {
 ```
 
 ## Configuration
+
 ```js
 provideArtifactuse({
   // CDN URL for panel artifacts
@@ -598,6 +665,7 @@ provideArtifactuse({
 ```
 
 ## Events
+
 ```js
 const { on } = useArtifactuse();
 
@@ -629,6 +697,11 @@ on('form:cancel', ({ formId }) => {
 on('social:copy', ({ platform, text }) => {
   console.log('Copied from:', platform);
 });
+
+// Media events
+on('media:open', ({ type, src, alt, caption }) => {
+  console.log('Media opened:', type, src);
+});
 ```
 
 ## Framework Support
@@ -646,6 +719,7 @@ on('social:copy', ({ platform, text }) => {
 | SvelteKit | `artifactuse/svelte` | ✅ |
 
 ## Theming
+
 ```js
 const { setTheme } = useArtifactuse();
 
@@ -655,6 +729,7 @@ setTheme('auto'); // Follow system preference
 ```
 
 Or use CSS variables:
+
 ```css
 :root {
   --artifactuse-primary: 99, 102, 241;
@@ -663,6 +738,66 @@ Or use CSS variables:
   --artifactuse-text: 243, 244, 246;
 }
 ```
+
+### Modular CSS Imports
+
+Import all styles:
+
+```js
+import 'artifactuse/styles';
+```
+
+Or import only what you need:
+
+```js
+// Base (required)
+import 'artifactuse/styles/base/variables.css';
+import 'artifactuse/styles/base/reset.css';
+
+// Components (pick what you use)
+import 'artifactuse/styles/components/message.css';
+import 'artifactuse/styles/components/panel.css';
+import 'artifactuse/styles/components/card.css';
+import 'artifactuse/styles/components/viewer.css';
+import 'artifactuse/styles/components/form.css';
+import 'artifactuse/styles/components/social.css';
+import 'artifactuse/styles/components/toggle.css';
+
+// Processors (pick what you use)
+import 'artifactuse/styles/processors/image.css';
+import 'artifactuse/styles/processors/video.css';
+import 'artifactuse/styles/processors/audio.css';
+import 'artifactuse/styles/processors/code.css';
+import 'artifactuse/styles/processors/table.css';
+import 'artifactuse/styles/processors/math.css';
+import 'artifactuse/styles/processors/embed.css';
+
+// Utilities
+import 'artifactuse/styles/utilities/animations.css';
+import 'artifactuse/styles/utilities/responsive.css';
+```
+
+## Development
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup and guidelines.
+
+### Architecture
+
+Artifactuse uses a modular processor pipeline:
+
+```
+AI Content → Markdown Parser → Processors → Rendered HTML
+                                   ↓
+                              Detector → Artifacts
+```
+
+**Key modules:**
+
+- `src/core/processors/` - Content processors (images, videos, audio, social, etc.)
+- `src/core/detector.js` - Artifact detection and creation
+- `src/core/state.js` - Reactive state management
+- `src/styles/` - Modular CSS (base, components, processors, utilities)
+- `src/vue/`, `src/vue2/`, `src/react/`, `src/svelte/` - Framework components
 
 ## Browser Support
 
@@ -677,4 +812,4 @@ MIT © [Artifactuse](https://artifactuse.com). Crafted with ❤️ by the [Boost
 
 ---
 
-**[Documentation](https://artifactuse.com/docs)** · **[Examples](https://artifactuse.com/docs/examples)**
+**[Documentation](https://artifactuse.com/docs)** · **[Examples](https://artifactuse.com/docs/examples)** · **[Contributing](./CONTRIBUTING.md)**

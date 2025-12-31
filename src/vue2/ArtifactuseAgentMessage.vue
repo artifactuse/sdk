@@ -51,7 +51,7 @@
 
 <script>
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
-import { useArtifactuse } from './composable.js';
+import { useArtifactuse } from './composables.js';
 import ArtifactuseCard from './ArtifactuseCard.vue';
 import ArtifactuseInlineForm from './ArtifactuseInlineForm.vue';
 import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.vue';

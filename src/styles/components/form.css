@@ -1,0 +1,403 @@
+/* ============================================================
+   ARTIFACTUSE INLINE FORMS - CHAT-NATIVE STYLING
+   Forms that feel native to the chat interface
+   ============================================================ */
+
+/* Base Form Container */
+.artifactuse-inline-form {
+  background: rgba(var(--artifactuse-surface), 0.5);
+  border: 1px solid rgba(var(--artifactuse-border), 0.5);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 8px 0;
+  font-family: var(--artifactuse-font-family);
+  max-width: 400px;
+  animation: artifactuse-slide-up 0.2s ease-out;
+}
+
+/* Buttons-only variant - more compact */
+.artifactuse-inline-form.artifactuse-form-buttons {
+  padding: 12px;
+  background: transparent;
+  border: none;
+  max-width: none;
+}
+
+/* Form Header */
+.artifactuse-form-header {
+  margin-bottom: 12px;
+}
+
+.artifactuse-form-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  margin: 0 0 4px 0;
+}
+
+.artifactuse-form-description {
+  font-size: 13px;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Form Fields Container */
+.artifactuse-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Individual Field */
+.artifactuse-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Labels */
+.artifactuse-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin-bottom: 2px;
+}
+
+.artifactuse-required {
+  color: rgb(var(--artifactuse-error));
+  margin-left: 2px;
+}
+
+/* Text Inputs - Chat-native style */
+.artifactuse-input,
+.artifactuse-textarea,
+.artifactuse-select {
+  padding: 10px 12px;
+  background: rgba(var(--artifactuse-surface-hover), 0.5);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: rgb(var(--artifactuse-text));
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.artifactuse-input:hover,
+.artifactuse-textarea:hover,
+.artifactuse-select:hover {
+  background: rgba(var(--artifactuse-surface-hover), 0.7);
+}
+
+.artifactuse-input:focus,
+.artifactuse-textarea:focus,
+.artifactuse-select:focus {
+  outline: none;
+  background: rgba(var(--artifactuse-surface-hover), 0.8);
+  border-color: rgba(var(--artifactuse-primary), 0.5);
+  box-shadow: 0 0 0 3px rgba(var(--artifactuse-primary), 0.1);
+}
+
+.artifactuse-input::placeholder,
+.artifactuse-textarea::placeholder {
+  color: rgb(var(--artifactuse-text-muted));
+}
+
+/* Textarea */
+.artifactuse-textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.4;
+}
+
+/* Select */
+.artifactuse-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Checkbox & Radio - Chat-native style */
+.artifactuse-checkbox-label,
+.artifactuse-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: rgb(var(--artifactuse-text));
+  padding: 8px 12px;
+  margin: -8px -12px;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.artifactuse-checkbox-label:hover,
+.artifactuse-radio-label:hover {
+  background: rgba(var(--artifactuse-surface-hover), 0.5);
+}
+
+.artifactuse-checkbox,
+.artifactuse-radio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgb(var(--artifactuse-border));
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  appearance: none;
+  flex-shrink: 0;
+}
+
+.artifactuse-checkbox {
+  border-radius: 6px;
+}
+
+.artifactuse-radio {
+  border-radius: 50%;
+}
+
+.artifactuse-checkbox:checked {
+  background: rgb(var(--artifactuse-primary));
+  border-color: rgb(var(--artifactuse-primary));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.artifactuse-radio:checked {
+  border-color: rgb(var(--artifactuse-primary));
+  background: rgb(var(--artifactuse-primary));
+  box-shadow: inset 0 0 0 3px rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-checkbox-text {
+  line-height: 1.4;
+}
+
+.artifactuse-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Help Text */
+.artifactuse-help-text {
+  font-size: 12px;
+  color: rgb(var(--artifactuse-text-muted));
+  margin-top: 2px;
+}
+
+/* Error Text */
+.artifactuse-error-text {
+  font-size: 12px;
+  color: rgb(var(--artifactuse-error));
+  margin-top: 2px;
+}
+
+/* Input with error */
+.artifactuse-form-field:has(.artifactuse-error-text) .artifactuse-input,
+.artifactuse-form-field:has(.artifactuse-error-text) .artifactuse-textarea,
+.artifactuse-form-field:has(.artifactuse-error-text) .artifactuse-select {
+  border-color: rgba(var(--artifactuse-error), 0.5);
+}
+
+/* Divider */
+.artifactuse-form-divider {
+  height: 1px;
+  background: rgba(var(--artifactuse-border), 0.5);
+  margin: 4px 0;
+}
+
+/* Section Heading */
+.artifactuse-form-heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  margin-top: 4px;
+}
+
+/* ============================================================
+   BUTTONS - Chat-native pill style
+   ============================================================ */
+
+.artifactuse-form-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* Default buttons at bottom of form */
+.artifactuse-form-buttons-default {
+  padding-top: 12px;
+  border-top: 1px solid rgba(var(--artifactuse-border), 0.3);
+  justify-content: flex-end;
+}
+
+/* Buttons-only variant - centered */
+.artifactuse-form-buttons:only-child {
+  margin-top: 0;
+  justify-content: flex-start;
+}
+
+/* Base Button Style - Pill shaped */
+.artifactuse-form-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  min-height: 36px;
+}
+
+.artifactuse-form-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.artifactuse-form-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--artifactuse-primary), 0.3);
+}
+
+/* Button Variants */
+
+/* Primary - Solid accent color */
+.artifactuse-form-btn-primary {
+  background: rgb(var(--artifactuse-primary));
+  color: white;
+}
+
+.artifactuse-form-btn-primary:hover:not(:disabled) {
+  background: rgb(var(--artifactuse-primary-hover));
+  transform: translateY(-1px);
+}
+
+.artifactuse-form-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Secondary - Subtle background */
+.artifactuse-form-btn-secondary {
+  background: rgba(var(--artifactuse-surface-hover), 0.8);
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-form-btn-secondary:hover:not(:disabled) {
+  background: rgb(var(--artifactuse-surface-hover));
+}
+
+/* Ghost - Outlined */
+.artifactuse-form-btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(var(--artifactuse-border), 0.5);
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-form-btn-ghost:hover:not(:disabled) {
+  background: rgba(var(--artifactuse-surface-hover), 0.5);
+  border-color: rgb(var(--artifactuse-border));
+  color: rgb(var(--artifactuse-text));
+}
+
+/* Danger */
+.artifactuse-form-btn-danger {
+  background: rgba(var(--artifactuse-error), 0.15);
+  color: rgb(var(--artifactuse-error));
+}
+
+.artifactuse-form-btn-danger:hover:not(:disabled) {
+  background: rgba(var(--artifactuse-error), 0.25);
+}
+
+/* Success */
+.artifactuse-form-btn-success {
+  background: rgba(var(--artifactuse-success), 0.15);
+  color: rgb(var(--artifactuse-success));
+}
+
+.artifactuse-form-btn-success:hover:not(:disabled) {
+  background: rgba(var(--artifactuse-success), 0.25);
+}
+
+/* Size variants */
+.artifactuse-form-btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  min-height: 32px;
+}
+
+.artifactuse-form-btn-lg {
+  padding: 10px 20px;
+  font-size: 15px;
+  min-height: 42px;
+}
+
+/* Icon only button */
+.artifactuse-form-btn-icon {
+  padding: 8px;
+  min-width: 36px;
+}
+
+.artifactuse-form-btn-icon.artifactuse-form-btn-sm {
+  padding: 6px;
+  min-width: 32px;
+}
+
+/* Horizontal form layout */
+.artifactuse-inline-form.artifactuse-form-horizontal .artifactuse-form-fields {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.artifactuse-inline-form.artifactuse-form-horizontal .artifactuse-form-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.artifactuse-inline-form.artifactuse-form-horizontal .artifactuse-form-buttons {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* ============================================================
+   LIGHT THEME OVERRIDES
+   ============================================================ */
+
+[data-artifactuse-theme="light"] .artifactuse-input,
+[data-artifactuse-theme="light"] .artifactuse-textarea,
+[data-artifactuse-theme="light"] .artifactuse-select {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(var(--artifactuse-border), 0.3);
+}
+
+[data-artifactuse-theme="light"] .artifactuse-input:focus,
+[data-artifactuse-theme="light"] .artifactuse-textarea:focus,
+[data-artifactuse-theme="light"] .artifactuse-select:focus {
+  background: white;
+  border-color: rgba(var(--artifactuse-primary), 0.5);
+}
+
+[data-artifactuse-theme="light"] .artifactuse-form-btn-secondary {
+  background: rgba(var(--artifactuse-surface), 0.8);
+}
+
+[data-artifactuse-theme="light"] .artifactuse-form-btn-ghost {
+  border-color: rgba(var(--artifactuse-border), 0.3);
+}

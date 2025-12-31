@@ -1,0 +1,170 @@
+/* ============================================================
+   MATH PROCESSOR STYLES
+   ============================================================ */
+
+.artifactuse-math-container {
+  display: inline;
+}
+
+.artifactuse-math-display {
+  display: block;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.artifactuse-math-inline {
+  display: inline;
+  margin: 0 0.125rem;
+}
+
+.artifactuse-math-error {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(var(--artifactuse-error), 0.15);
+  color: rgb(var(--artifactuse-error));
+  font-family: var(--artifactuse-font-mono);
+  font-size: 0.875rem;
+  border: 1px solid rgba(var(--artifactuse-error), 0.3);
+}
+
+.artifactuse-math-fallback {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgb(var(--artifactuse-surface));
+  color: rgb(var(--artifactuse-text));
+  font-family: var(--artifactuse-font-mono);
+  font-size: 0.875rem;
+}
+
+.artifactuse-math-fallback-container {
+  background-color: rgba(var(--artifactuse-warning), 0.15);
+  border: 1px solid rgba(var(--artifactuse-warning), 0.3);
+  border-radius: 0.25rem;
+}
+
+/* KaTeX color override for theme compatibility */
+.artifactuse-math-container .katex {
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-math-container .katex .mord,
+.artifactuse-math-container .katex .mbin,
+.artifactuse-math-container .katex .mrel,
+.artifactuse-math-container .katex .mopen,
+.artifactuse-math-container .katex .mclose,
+.artifactuse-math-container .katex .mpunct,
+.artifactuse-math-container .katex .minner {
+  color: inherit;
+}
+
+/* ============================================================
+   MERMAID PROCESSOR STYLES
+   ============================================================ */
+
+.artifactuse-mermaid-container {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--artifactuse-border));
+  overflow: hidden;
+  background-color: rgb(var(--artifactuse-background));
+}
+
+.artifactuse-mermaid-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: rgb(var(--artifactuse-text-muted));
+  font-size: 0.875rem;
+}
+
+.artifactuse-mermaid-rendered {
+  padding: 1.5rem;
+}
+
+.artifactuse-mermaid-rendered svg {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+/* Mermaid Error States */
+.artifactuse-mermaid-error {
+  padding: 1.5rem;
+}
+
+.artifactuse-mermaid-error-container {
+  border-color: rgb(var(--artifactuse-error));
+}
+
+.artifactuse-mermaid-error-title {
+  color: rgb(var(--artifactuse-error));
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.artifactuse-mermaid-error-message {
+  font-size: 0.875rem;
+  color: rgb(var(--artifactuse-error));
+  background-color: rgba(var(--artifactuse-error), 0.1);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--artifactuse-font-mono);
+  overflow-x: auto;
+}
+
+.artifactuse-mermaid-error-details {
+  font-size: 0.875rem;
+}
+
+.artifactuse-mermaid-error-details summary {
+  cursor: pointer;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-mermaid-error-details summary:hover {
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-mermaid-error-details pre {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: rgb(var(--artifactuse-surface));
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-family: var(--artifactuse-font-mono);
+  overflow-x: auto;
+  color: rgb(var(--artifactuse-text));
+}
+
+/* Mermaid Fallback (when library fails to load) */
+.artifactuse-mermaid-fallback {
+  padding: 1.5rem;
+}
+
+.artifactuse-mermaid-fallback-container {
+  background-color: rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-mermaid-fallback-title {
+  color: rgb(var(--artifactuse-text-secondary));
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.artifactuse-mermaid-fallback-source {
+  font-size: 0.875rem;
+  font-family: var(--artifactuse-font-mono);
+  color: rgb(var(--artifactuse-text));
+  background-color: rgb(var(--artifactuse-background));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}

@@ -1,0 +1,174 @@
+/* ============================================================
+   TABLE PROCESSOR STYLES
+   ============================================================ */
+
+.artifactuse-table-container {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--artifactuse-border));
+  overflow: hidden;
+  background-color: rgb(var(--artifactuse-background));
+}
+
+.artifactuse-table-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-table-search {
+  position: relative;
+  flex: 1;
+  max-width: 16rem;
+}
+
+.artifactuse-table-search-input {
+  width: 70%;
+  padding: 0.4rem 1rem 0.4rem 2.25rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--artifactuse-border));
+  background-color: rgb(var(--artifactuse-background));
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-table-search-input::placeholder {
+  color: rgb(var(--artifactuse-text-muted));
+}
+
+.artifactuse-table-search-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(var(--artifactuse-primary));
+  border-color: transparent;
+}
+
+.artifactuse-table-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: rgb(var(--artifactuse-text-muted));
+}
+
+.artifactuse-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.artifactuse-table-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  background-color: rgb(var(--artifactuse-background));
+  border: 1px solid rgb(var(--artifactuse-border));
+  color: rgb(var(--artifactuse-text-secondary));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.artifactuse-table-action-btn:hover {
+  background-color: rgb(var(--artifactuse-surface-hover));
+}
+
+.artifactuse-table-action-btn svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.artifactuse-table-action-btn.copied {
+  background-color: rgba(var(--artifactuse-success), 0.15);
+  color: rgb(var(--artifactuse-success));
+  border-color: rgba(var(--artifactuse-success), 0.3);
+}
+
+.artifactuse-table-wrapper {
+  overflow-x: auto;
+}
+
+.artifactuse-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.artifactuse-enhanced-table th,
+.artifactuse-enhanced-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-enhanced-table th {
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  background-color: rgb(var(--artifactuse-surface));
+}
+
+.artifactuse-enhanced-table td {
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-enhanced-table tbody tr:hover {
+  background-color: rgba(var(--artifactuse-surface), 0.5);
+}
+
+/* Sortable headers */
+.artifactuse-sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.artifactuse-sortable-header:hover {
+  background-color: rgb(var(--artifactuse-surface-hover));
+}
+
+.artifactuse-th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.artifactuse-sort-indicator {
+  width: 1rem;
+  height: 1rem;
+  color: rgb(var(--artifactuse-text-muted));
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.artifactuse-sortable-header:hover .artifactuse-sort-indicator {
+  opacity: 1;
+}
+
+.artifactuse-sortable-header.sort-asc .artifactuse-sort-indicator,
+.artifactuse-sortable-header.sort-desc .artifactuse-sort-indicator {
+  opacity: 1;
+  color: rgb(var(--artifactuse-primary));
+}
+
+.artifactuse-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: rgb(var(--artifactuse-surface));
+  font-size: 0.75rem;
+  color: rgb(var(--artifactuse-text-muted));
+}
+
+.artifactuse-table-row-count {
+  font-size: 0.75rem;
+  color: rgb(var(--artifactuse-text-muted));
+}
