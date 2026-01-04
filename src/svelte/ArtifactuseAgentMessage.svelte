@@ -12,6 +12,7 @@
   export let messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   export let inlineCards = true;
   export let typing = false;
+  export let isLastMessage = false; // Whether this is the last/most recent message
   
   const dispatch = createEventDispatcher();
   
@@ -33,6 +34,9 @@
   let initTimeout = null;
   let prevTyping = typing;
   
+  // Track if this message was ever "live" (typed/streamed) in this session
+  let wasLiveInSession = false;
+  
   // Viewer state
   let viewerOpen = false;
   let viewerType = 'image';
@@ -45,6 +49,19 @@
   
   // Reactive active artifact ID
   $: activeArtifactId = activeArtifactIdProp || null;
+  
+  // Determine form initial state
+  // - 'active' if this message was typed/streamed in current session
+  // - 'active' if this is the last message (allows interaction after page reload)
+  // - 'inactive' if this message was loaded from history (page refresh)
+  $: formInitialState = wasLiveInSession || isLastMessage ? 'active' : 'inactive';
+  
+  // Track typing to determine if message was live
+  $: {
+    if (typing) {
+      wasLiveInSession = true;
+    }
+  }
   
   /**
    * Decode Base64 string to JSON object
@@ -413,12 +430,21 @@
     dispatch('form-cancel', event.detail);
   }
   
+  function handleFormButtonClick(event) {
+    dispatch('form-button-click', event.detail);
+  }
+  
   function handleSocialCopy(event) {
     dispatch('social-copy', event.detail);
   }
   
   // Initialize on mount
   onMount(() => {
+    // If typing when mounted, mark as live
+    if (typing) {
+      wasLiveInSession = true;
+    }
+    
     if (!typing) {
       initializeContent();
     }
@@ -442,8 +468,10 @@
         <ArtifactuseInlineForm
           artifact={segment.artifact}
           {theme}
+          initialState={formInitialState}
           on:submit={handleFormSubmit}
           on:cancel={handleFormCancel}
+          on:button-click={handleFormButtonClick}
         />
       {:else if segment.type === 'social'}
         <ArtifactuseSocialPreview

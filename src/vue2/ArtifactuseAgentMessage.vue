@@ -11,8 +11,10 @@
           :key="'form-' + index"
           :artifact="segment.artifact"
           :theme="theme"
+          :initial-state="formInitialState"
           @submit="handleFormSubmit"
           @cancel="handleFormCancel"
+          @button-click="handleFormButtonClick"
         />
         
         <!-- Inline Social Preview -->
@@ -88,6 +90,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Whether this is the last/most recent message in the conversation
+    // Used to keep forms active after page reload for the latest message
+    isLastMessage: {
+      type: Boolean,
+      default: false,
+    },
   },
   
   setup(props, { emit }) {
@@ -117,6 +125,42 @@ export default {
 
     // Get active artifact ID from state
     const activeArtifactId = computed(() => state.activeArtifactId);
+
+    /**
+     * Track if this message was ever "live" (typed/streamed) in this session
+     * Used to determine if forms should be active or inactive
+     */
+    const wasLiveInSession = ref(false);
+
+    onMounted(() => {
+      // If the message is currently typing when mounted, it's live
+      if (props.typing) {
+        wasLiveInSession.value = true;
+      }
+      
+      if (!props.typing) {
+        initializeContent();
+      }
+    });
+
+    // Watch for typing to become true (message starts streaming)
+    watch(() => props.typing, (isTyping) => {
+      if (isTyping) {
+        wasLiveInSession.value = true;
+      }
+    });
+
+    /**
+     * Determine the initial state for inline forms
+     * - 'active' if this message was typed/streamed in current session
+     * - 'active' if this is the last message (allows interaction after page reload)
+     * - 'inactive' if this message was loaded from history (page refresh)
+     */
+    const formInitialState = computed(() => {
+      if (wasLiveInSession.value) return 'active';
+      if (props.isLastMessage) return 'active';
+      return 'inactive';
+    });
 
     /**
      * Decode Base64 string to JSON object
@@ -456,12 +500,6 @@ export default {
       }
     );
 
-    onMounted(() => {
-      if (!props.typing) {
-        initializeContent();
-      }
-    });
-
     onBeforeUnmount(() => {
       if (initTimeout) {
         clearTimeout(initTimeout);
@@ -490,6 +528,10 @@ export default {
       emit('form-cancel', data);
     }
 
+    function handleFormButtonClick(data) {
+      emit('form-button-click', data);
+    }
+
     function handleSocialCopy(data) {
       emit('social-copy', data);
     }
@@ -511,6 +553,7 @@ export default {
       theme,
       activeArtifactId,
       contentSegments,
+      formInitialState,
       openViewer,
       closeViewer,
       attachMediaListeners,
@@ -519,6 +562,7 @@ export default {
       handleArtifactDownload,
       handleFormSubmit,
       handleFormCancel,
+      handleFormButtonClick,
       handleSocialCopy,
       messageArtifactsFromState,
     };

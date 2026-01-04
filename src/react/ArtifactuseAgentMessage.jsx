@@ -112,12 +112,14 @@ export default function ArtifactuseAgentMessage({
   messageId = generateMessageId(),
   inlineCards = true,
   typing = false,
+  isLastMessage = false, // Whether this is the last/most recent message
   onArtifactDetected,
   onArtifactOpen,
   onArtifactCopy,
   onArtifactDownload,
   onFormSubmit,
   onFormCancel,
+  onFormButtonClick,
   onSocialCopy,
   onMediaOpen,
   className = '',
@@ -138,6 +140,9 @@ export default function ArtifactuseAgentMessage({
   const [processedHtml, setProcessedHtml] = useState('');
   const [messageArtifacts, setMessageArtifacts] = useState([]);
   
+  // Track if this message was ever "live" (typed/streamed) in this session
+  const [wasLiveInSession, setWasLiveInSession] = useState(false);
+  
   // Viewer state
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerType, setViewerType] = useState('image');
@@ -157,6 +162,25 @@ export default function ArtifactuseAgentMessage({
   const contentSegments = useMemo(() => {
     return parseContentSegments(processedHtml);
   }, [processedHtml]);
+  
+  /**
+   * Determine form initial state
+   * - 'active' if this message was typed/streamed in current session
+   * - 'active' if this is the last message (allows interaction after page reload)
+   * - 'inactive' if this message was loaded from history (page refresh)
+   */
+  const formInitialState = useMemo(() => {
+    if (wasLiveInSession) return 'active';
+    if (isLastMessage) return 'active';
+    return 'inactive';
+  }, [wasLiveInSession, isLastMessage]);
+  
+  // Track typing to determine if message was live
+  useEffect(() => {
+    if (typing) {
+      setWasLiveInSession(true);
+    }
+  }, [typing]);
   
   /**
    * Open the media viewer
@@ -420,6 +444,11 @@ export default function ArtifactuseAgentMessage({
   
   // Initialize on mount
   useEffect(() => {
+    // If typing when mounted, mark as live
+    if (typing) {
+      setWasLiveInSession(true);
+    }
+    
     if (!typing) {
       initializeContent();
     }
@@ -465,6 +494,12 @@ export default function ArtifactuseAgentMessage({
     }
   }, [onFormCancel]);
   
+  const handleFormButtonClick = useCallback((data) => {
+    if (onFormButtonClick) {
+      onFormButtonClick(data);
+    }
+  }, [onFormButtonClick]);
+  
   const handleSocialCopy = useCallback((data) => {
     if (onSocialCopy) {
       onSocialCopy(data);
@@ -489,8 +524,10 @@ export default function ArtifactuseAgentMessage({
               key={`form-${segment.artifact.id}`}
               artifact={segment.artifact}
               theme={theme}
+              initialState={formInitialState}
               onSubmit={handleFormSubmit}
               onCancel={handleFormCancel}
+              onButtonClick={handleFormButtonClick}
             />
           );
         }
@@ -570,6 +607,12 @@ ArtifactuseAgentMessage.propTypes = {
   },
   /** Whether the message is still being typed/streamed */
   typing: (props, propName) => {
+    if (props[propName] !== undefined && typeof props[propName] !== 'boolean') {
+      return new Error(`${propName} must be a boolean`);
+    }
+  },
+  /** Whether this is the last/most recent message in the conversation */
+  isLastMessage: (props, propName) => {
     if (props[propName] !== undefined && typeof props[propName] !== 'boolean') {
       return new Error(`${propName} must be a boolean`);
     }

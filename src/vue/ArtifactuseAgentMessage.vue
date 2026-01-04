@@ -10,8 +10,10 @@
           v-else-if="segment.type === 'form' && segment.artifact.isInline"
           :artifact="segment.artifact"
           :theme="theme"
+          :initial-state="formInitialState"
           @submit="handleFormSubmit"
           @cancel="handleFormCancel"
+          @button-click="handleFormButtonClick"
         />
         
         <!-- Inline Social Preview -->
@@ -75,6 +77,12 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Whether this is the last/most recent message in the conversation
+  // Used to keep forms active after page reload for the latest message
+  isLastMessage: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits([
@@ -84,6 +92,7 @@ const emit = defineEmits([
   'artifact-download',
   'form-submit',
   'form-cancel',
+  'form-button-click',
   'social-copy',
   'media-open',
 ]);
@@ -114,6 +123,38 @@ const theme = computed(() => getTheme?.() || 'dark');
 
 // Get active artifact ID from state
 const activeArtifactId = computed(() => state.activeArtifactId);
+
+/**
+ * Track if this message was ever "live" (typed/streamed) in this session
+ * Used to determine if forms should be active or inactive
+ */
+const wasLiveInSession = ref(false);
+
+onMounted(() => {
+  // If the message is currently typing when mounted, it's live
+  if (props.typing) {
+    wasLiveInSession.value = true;
+  }
+});
+
+// Watch for typing to become true (message starts streaming)
+watch(() => props.typing, (isTyping) => {
+  if (isTyping) {
+    wasLiveInSession.value = true;
+  }
+});
+
+/**
+ * Determine the initial state for inline forms
+ * - 'active' if this message was typed/streamed in current session
+ * - 'active' if this is the last message (allows interaction after page reload)
+ * - 'inactive' if this message was loaded from history (page refresh)
+ */
+const formInitialState = computed(() => {
+  if (wasLiveInSession.value) return 'active';
+  if (props.isLastMessage) return 'active';
+  return 'inactive';
+});
 
 /**
  * Decode Base64 string to JSON object
@@ -508,6 +549,10 @@ function handleFormSubmit(data) {
 
 function handleFormCancel(data) {
   emit('form-cancel', data);
+}
+
+function handleFormButtonClick(data) {
+  emit('form-button-click', data);
 }
 
 function handleSocialCopy(data) {

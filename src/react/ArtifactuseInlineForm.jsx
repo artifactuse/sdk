@@ -67,8 +67,15 @@ export function ArtifactuseInlineForm({
   className = '',
   theme = 'dark',
   accent = null,
+  initialState = 'active', // 'active' | 'submitted' | 'cancelled' | 'inactive'
 }) {
   const containerRef = useRef(null);
+  
+  // Form state management
+  const [formState, setFormState] = useState(initialState);
+  
+  const isCollapsed = formState !== 'active';
+  const stateClass = formState === 'active' ? '' : `artifactuse-form--${formState}`;
   
   // Parse form data from artifact.code
   const form = useMemo(() => {
@@ -81,6 +88,7 @@ export function ArtifactuseInlineForm({
   
   const formId = artifact.id || form.id || `form-${Date.now()}`;
   const formFields = form.data?.fields || [];
+  const collapsedTitle = form.title || 'Form';
   
   // Check if form has a buttons field
   const hasButtonsField = useMemo(() => {
@@ -114,6 +122,11 @@ export function ArtifactuseInlineForm({
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Sync formState with initialState prop
+  useEffect(() => {
+    setFormState(initialState);
+  }, [initialState]);
+
   // Re-initialize values when artifact changes
   useEffect(() => {
     const defaults = {};
@@ -143,6 +156,13 @@ export function ArtifactuseInlineForm({
       }
     }
   }, [theme, accent]);
+
+  /**
+   * Collapse the form
+   */
+  const collapseForm = useCallback((state) => {
+    setFormState(state);
+  }, []);
 
   const handleChange = useCallback((name, value) => {
     setValues(prev => ({ ...prev, [name]: value }));
@@ -244,8 +264,12 @@ export function ArtifactuseInlineForm({
       timestamp: Date.now()
     });
     
-    setTimeout(() => setIsSubmitting(false), 500);
-  }, [formId, values, onSubmit, validate]);
+    // Collapse after brief delay for visual feedback
+    setTimeout(() => {
+      setIsSubmitting(false);
+      collapseForm('submitted');
+    }, 300);
+  }, [formId, values, onSubmit, validate, collapseForm]);
 
   const handleButtonAction = useCallback((btn) => {
     const action = btn.action || 'custom';
@@ -262,6 +286,10 @@ export function ArtifactuseInlineForm({
           buttonName: btn.name || 'cancel',
           timestamp: Date.now()
         });
+        // Collapse as cancelled
+        setTimeout(() => {
+          collapseForm('cancelled');
+        }, 150);
         break;
         
       case 'reset':
@@ -272,6 +300,7 @@ export function ArtifactuseInlineForm({
           buttonName: btn.name || 'reset',
           timestamp: Date.now()
         });
+        // Reset doesn't collapse - form stays active
         break;
         
       case 'custom':
@@ -284,9 +313,46 @@ export function ArtifactuseInlineForm({
           values: { ...values },
           timestamp: Date.now()
         });
+        // Custom actions collapse as submitted (action was taken)
+        setTimeout(() => {
+          collapseForm('submitted');
+        }, 150);
         break;
     }
-  }, [formId, values, handleSubmit, onCancel, onReset, onButtonClick, resetForm]);
+  }, [formId, values, handleSubmit, onCancel, onReset, onButtonClick, resetForm, collapseForm]);
+
+  // Render collapsed state
+  if (isCollapsed) {
+    return (
+      <div
+        ref={containerRef}
+        className={`artifactuse-inline-form artifactuse-form-${form.variant || 'fields'} ${stateClass} ${className}`}
+        data-artifactuse-theme={theme}
+      >
+        <div className="artifactuse-form-collapsed">
+          <div className="artifactuse-form-collapsed-icon">
+            {formState === 'submitted' && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            )}
+            {formState === 'cancelled' && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            )}
+            {formState === 'inactive' && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            )}
+          </div>
+          <span className="artifactuse-form-collapsed-title">{collapsedTitle}</span>
+        </div>
+      </div>
+    );
+  }
 
   // Render buttons-only variant
   if (form.variant === 'buttons') {
@@ -296,9 +362,9 @@ export function ArtifactuseInlineForm({
         className={`artifactuse-inline-form artifactuse-form-buttons ${className}`}
         data-artifactuse-theme={theme}
       >
-        {form.title && (
+        {(form.title || form.description) && (
           <div className="artifactuse-form-header">
-            <div className="artifactuse-form-title">{form.title}</div>
+            {form.title && <div className="artifactuse-form-title">{form.title}</div>}
             {form.description && <p className="artifactuse-form-description">{form.description}</p>}
           </div>
         )}

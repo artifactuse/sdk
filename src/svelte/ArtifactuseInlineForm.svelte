@@ -4,6 +4,7 @@
   export let artifact;
   export let theme = 'dark';
   export let accent = null;
+  export let initialState = 'active'; // 'active' | 'submitted' | 'cancelled' | 'inactive'
   
   const dispatch = createEventDispatcher();
   
@@ -12,6 +13,12 @@
   let errors = {};
   let isSubmitting = false;
   
+  // Form state management
+  let formState = initialState;
+  
+  $: isCollapsed = formState !== 'active';
+  $: stateClass = formState === 'active' ? '' : `artifactuse-form--${formState}`;
+  
   // Parse form data from artifact.code
   $: form = parseForm(artifact?.code);
   $: formId = artifact?.id || form.id || `form-${Date.now()}`;
@@ -19,6 +26,7 @@
   $: formFields = form.data?.fields || [];
   $: buttonFields = form.variant === 'buttons' ? formFields : [];
   $: hasButtonsField = formFields.some(f => f.type === 'buttons');
+  $: collapsedTitle = form.title || 'Form';
   
   /**
    * Parse form JSON from code
@@ -29,6 +37,13 @@
     } catch {
       return { title: 'Invalid Form', variant: 'fields', data: { fields: [] } };
     }
+  }
+  
+  /**
+   * Collapse the form
+   */
+  function collapseForm(state) {
+    formState = state;
   }
   
   /**
@@ -81,8 +96,13 @@
     }
   }
   
-  onMount(applyAccent);
+  onMount(() => {
+    applyAccent();
+    formState = initialState;
+  });
+  
   $: if (accent) applyAccent();
+  $: if (initialState) formState = initialState;
   
   // Initialize values when form changes
   function initValues() {
@@ -196,9 +216,11 @@
       timestamp: Date.now(),
     });
     
+    // Collapse after brief delay for visual feedback
     setTimeout(() => {
       isSubmitting = false;
-    }, 500);
+      collapseForm('submitted');
+    }, 300);
   }
   
   function handleButtonAction(btn) {
@@ -220,6 +242,10 @@
           buttonName: btn.name || 'cancel',
           timestamp: Date.now(),
         });
+        // Collapse as cancelled
+        setTimeout(() => {
+          collapseForm('cancelled');
+        }, 150);
         break;
         
       case 'reset':
@@ -230,6 +256,7 @@
           buttonName: btn.name || 'reset',
           timestamp: Date.now(),
         });
+        // Reset doesn't collapse - form stays active
         break;
         
       case 'custom':
@@ -242,6 +269,10 @@
           values: { ...values },
           timestamp: Date.now(),
         });
+        // Custom actions collapse as submitted (action was taken)
+        setTimeout(() => {
+          collapseForm('submitted');
+        }, 150);
         break;
     }
   }
@@ -249,208 +280,236 @@
 
 <div 
   bind:this={containerEl}
-  class="artifactuse-inline-form {variantClass}"
+  class="artifactuse-inline-form {variantClass} {stateClass}"
   data-artifactuse-theme={theme}
 >
-  <!-- Header -->
-  {#if form.title || form.description}
-    <div class="artifactuse-form-header">
-      {#if form.title}
-        <div class="artifactuse-form-title">{form.title}</div>
-      {/if}
-      {#if form.description}
-        <p class="artifactuse-form-description">{form.description}</p>
-      {/if}
-    </div>
-  {/if}
-  
-  <!-- Buttons-only variant -->
-  {#if form.variant === 'buttons'}
-    <div class="artifactuse-form-buttons">
-      {#each buttonFields as btn, idx (btn.name || btn.label || idx)}
-        <button
-          type="button"
-          class="artifactuse-form-btn artifactuse-form-btn-{btn.variant || 'secondary'}"
-          disabled={btn.disabled || isSubmitting}
-          on:click={() => handleButtonAction(btn)}
-        >
-          {#if btn.icon}
-            <span class="artifactuse-form-btn-icon">{@html btn.icon}</span>
-          {/if}
-          {btn.label}
-        </button>
-      {/each}
+  <!-- Collapsed State -->
+  {#if isCollapsed}
+    <div class="artifactuse-form-collapsed">
+      <div class="artifactuse-form-collapsed-icon">
+        {#if formState === 'submitted'}
+          <!-- Checkmark -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        {:else if formState === 'cancelled'}
+          <!-- X -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        {:else}
+          <!-- Dash/minus for inactive -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        {/if}
+      </div>
+      <span class="artifactuse-form-collapsed-title">{collapsedTitle}</span>
     </div>
   {:else}
-    <!-- Fields variant -->
-    <form class="artifactuse-form" on:submit={handleSubmit}>
-      <div class="artifactuse-form-fields">
-        {#each formFields as field, idx (field.name || idx)}
-          
-          <!-- Buttons group -->
-          {#if field.type === 'buttons'}
-            <div class="artifactuse-form-buttons">
-              {#each field.fields || [] as btn, btnIdx (btn.name || btn.label || btnIdx)}
-                <button
-                  type={btn.action === 'submit' ? 'submit' : 'button'}
-                  class="artifactuse-form-btn artifactuse-form-btn-{btn.variant || 'secondary'}"
-                  disabled={btn.disabled || (btn.action === 'submit' && isSubmitting)}
-                  on:click={btn.action !== 'submit' ? () => handleButtonAction(btn) : undefined}
-                >
-                  {#if isSubmitting && btn.action === 'submit'}
-                    <span class="artifactuse-form-btn-spinner"></span>
-                  {:else if btn.icon}
-                    <span class="artifactuse-form-btn-icon">{@html btn.icon}</span>
-                  {/if}
-                  {isSubmitting && btn.action === 'submit' ? 'Submitting...' : btn.label}
-                </button>
-              {/each}
-            </div>
-          
-          <!-- Divider -->
-          {:else if field.type === 'divider'}
-            <div class="artifactuse-form-divider"></div>
-          
-          <!-- Heading -->
-          {:else if field.type === 'heading'}
-            <div class="artifactuse-form-heading">{field.label}</div>
-          
-          <!-- Checkbox -->
-          {:else if field.type === 'checkbox'}
-            <div class="artifactuse-form-field">
-              <label class="artifactuse-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={values[field.name]}
-                  disabled={field.disabled}
-                  class="artifactuse-checkbox"
-                  on:change={(e) => updateField(field.name, e.target.checked)}
-                />
-                <span class="artifactuse-checkbox-text">
-                  {field.label}
-                  {#if field.required}<span class="artifactuse-required">*</span>{/if}
-                </span>
-              </label>
-              {#if field.helpText}
-                <span class="artifactuse-help-text">{field.helpText}</span>
-              {/if}
-              {#if errors[field.name]}
-                <span class="artifactuse-error-text">{errors[field.name]}</span>
-              {/if}
-            </div>
-          
-          <!-- Radio group -->
-          {:else if field.type === 'radio'}
-            <div class="artifactuse-form-field">
-              {#if field.label}
-                <label class="artifactuse-label" for="{formId}-{field.name}">
+    <!-- Active Form State -->
+    
+    <!-- Header -->
+    {#if form.title || form.description}
+      <div class="artifactuse-form-header">
+        {#if form.title}
+          <div class="artifactuse-form-title">{form.title}</div>
+        {/if}
+        {#if form.description}
+          <p class="artifactuse-form-description">{form.description}</p>
+        {/if}
+      </div>
+    {/if}
+    
+    <!-- Buttons-only variant -->
+    {#if form.variant === 'buttons'}
+      <div class="artifactuse-form-buttons">
+        {#each buttonFields as btn, idx (btn.name || btn.label || idx)}
+          <button
+            type="button"
+            class="artifactuse-form-btn artifactuse-form-btn-{btn.variant || 'secondary'}"
+            disabled={btn.disabled || isSubmitting}
+            on:click={() => handleButtonAction(btn)}
+          >
+            {#if btn.icon}
+              <span class="artifactuse-form-btn-icon">{@html btn.icon}</span>
+            {/if}
+            {btn.label}
+          </button>
+        {/each}
+      </div>
+    {:else}
+      <!-- Fields variant -->
+      <form class="artifactuse-form" on:submit={handleSubmit}>
+        <div class="artifactuse-form-fields">
+          {#each formFields as field, idx (field.name || idx)}
+            
+            <!-- Buttons group -->
+            {#if field.type === 'buttons'}
+              <div class="artifactuse-form-buttons">
+                {#each field.fields || [] as btn, btnIdx (btn.name || btn.label || btnIdx)}
+                  <button
+                    type={btn.action === 'submit' ? 'submit' : 'button'}
+                    class="artifactuse-form-btn artifactuse-form-btn-{btn.variant || 'secondary'}"
+                    disabled={btn.disabled || (btn.action === 'submit' && isSubmitting)}
+                    on:click={btn.action !== 'submit' ? () => handleButtonAction(btn) : undefined}
+                  >
+                    {#if isSubmitting && btn.action === 'submit'}
+                      <span class="artifactuse-form-btn-spinner"></span>
+                    {:else if btn.icon}
+                      <span class="artifactuse-form-btn-icon">{@html btn.icon}</span>
+                    {/if}
+                    {isSubmitting && btn.action === 'submit' ? 'Submitting...' : btn.label}
+                  </button>
+                {/each}
+              </div>
+            
+            <!-- Divider -->
+            {:else if field.type === 'divider'}
+              <div class="artifactuse-form-divider"></div>
+            
+            <!-- Heading -->
+            {:else if field.type === 'heading'}
+              <div class="artifactuse-form-heading">{field.label}</div>
+            
+            <!-- Checkbox -->
+            {:else if field.type === 'checkbox'}
+              <div class="artifactuse-form-field">
+                <label class="artifactuse-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={values[field.name]}
+                    disabled={field.disabled}
+                    class="artifactuse-checkbox"
+                    on:change={(e) => updateField(field.name, e.target.checked)}
+                  />
+                  <span class="artifactuse-checkbox-text">
+                    {field.label}
+                    {#if field.required}<span class="artifactuse-required">*</span>{/if}
+                  </span>
+                </label>
+                {#if field.helpText}
+                  <span class="artifactuse-help-text">{field.helpText}</span>
+                {/if}
+                {#if errors[field.name]}
+                  <span class="artifactuse-error-text">{errors[field.name]}</span>
+                {/if}
+              </div>
+            
+            <!-- Radio group -->
+            {:else if field.type === 'radio'}
+              <div class="artifactuse-form-field">
+                {#if field.label}
+                  <label class="artifactuse-label" for="{formId}-{field.name}">
+                    {field.label}
+                    {#if field.required}<span class="artifactuse-required">*</span>{/if}
+                  </label>
+                {/if}
+                <div class="artifactuse-radio-group">
+                  {#each normalizeOptions(field.options) as opt (opt.value)}
+                    <label class="artifactuse-radio-label">
+                      <input
+                        type="radio"
+                        name={field.name}
+                        value={opt.value}
+                        checked={values[field.name] === opt.value}
+                        disabled={opt.disabled || field.disabled}
+                        class="artifactuse-radio"
+                        on:change={() => updateField(field.name, opt.value)}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  {/each}
+                </div>
+                {#if field.helpText}
+                  <span class="artifactuse-help-text">{field.helpText}</span>
+                {/if}
+                {#if errors[field.name]}
+                  <span class="artifactuse-error-text">{errors[field.name]}</span>
+                {/if}
+              </div>
+            
+            <!-- Regular fields -->
+            {:else}
+              <div class="artifactuse-form-field">
+                <label for="{formId}-{field.name}" class="artifactuse-label">
                   {field.label}
                   {#if field.required}<span class="artifactuse-required">*</span>{/if}
                 </label>
-              {/if}
-              <div class="artifactuse-radio-group">
-                {#each normalizeOptions(field.options) as opt (opt.value)}
-                  <label class="artifactuse-radio-label">
-                    <input
-                      type="radio"
-                      name={field.name}
-                      value={opt.value}
-                      checked={values[field.name] === opt.value}
-                      disabled={opt.disabled || field.disabled}
-                      class="artifactuse-radio"
-                      on:change={() => updateField(field.name, opt.value)}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                {/each}
+                
+                {#if isTextInput(field.type)}
+                  <input
+                    id="{formId}-{field.name}"
+                    type={field.type}
+                    value={values[field.name] || ''}
+                    placeholder={field.placeholder}
+                    disabled={field.disabled}
+                    required={field.required}
+                    class="artifactuse-input"
+                    on:input={(e) => updateField(field.name, e.target.value)}
+                  />
+                {:else if field.type === 'textarea'}
+                  <textarea
+                    id="{formId}-{field.name}"
+                    value={values[field.name] || ''}
+                    placeholder={field.placeholder}
+                    disabled={field.disabled}
+                    required={field.required}
+                    rows={field.rows || 3}
+                    class="artifactuse-textarea"
+                    on:input={(e) => updateField(field.name, e.target.value)}
+                  ></textarea>
+                {:else if field.type === 'select'}
+                  <select
+                    id="{formId}-{field.name}"
+                    value={values[field.name] || ''}
+                    disabled={field.disabled}
+                    required={field.required}
+                    class="artifactuse-select"
+                    on:change={(e) => updateField(field.name, e.target.value)}
+                  >
+                    <option value="">{field.placeholder || 'Select...'}</option>
+                    {#each normalizeOptions(field.options) as opt (opt.value)}
+                      <option value={opt.value} disabled={opt.disabled}>{opt.label}</option>
+                    {/each}
+                  </select>
+                {/if}
+                
+                {#if field.helpText}
+                  <span class="artifactuse-help-text">{field.helpText}</span>
+                {/if}
+                {#if errors[field.name]}
+                  <span class="artifactuse-error-text">{errors[field.name]}</span>
+                {/if}
               </div>
-              {#if field.helpText}
-                <span class="artifactuse-help-text">{field.helpText}</span>
-              {/if}
-              {#if errors[field.name]}
-                <span class="artifactuse-error-text">{errors[field.name]}</span>
-              {/if}
-            </div>
-          
-          <!-- Regular fields -->
-          {:else}
-            <div class="artifactuse-form-field">
-              <label for="{formId}-{field.name}" class="artifactuse-label">
-                {field.label}
-                {#if field.required}<span class="artifactuse-required">*</span>{/if}
-              </label>
-              
-              {#if isTextInput(field.type)}
-                <input
-                  id="{formId}-{field.name}"
-                  type={field.type}
-                  value={values[field.name] || ''}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                  required={field.required}
-                  class="artifactuse-input"
-                  on:input={(e) => updateField(field.name, e.target.value)}
-                />
-              {:else if field.type === 'textarea'}
-                <textarea
-                  id="{formId}-{field.name}"
-                  value={values[field.name] || ''}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                  required={field.required}
-                  rows={field.rows || 3}
-                  class="artifactuse-textarea"
-                  on:input={(e) => updateField(field.name, e.target.value)}
-                ></textarea>
-              {:else if field.type === 'select'}
-                <select
-                  id="{formId}-{field.name}"
-                  value={values[field.name] || ''}
-                  disabled={field.disabled}
-                  required={field.required}
-                  class="artifactuse-select"
-                  on:change={(e) => updateField(field.name, e.target.value)}
-                >
-                  <option value="">{field.placeholder || 'Select...'}</option>
-                  {#each normalizeOptions(field.options) as opt (opt.value)}
-                    <option value={opt.value} disabled={opt.disabled}>{opt.label}</option>
-                  {/each}
-                </select>
-              {/if}
-              
-              {#if field.helpText}
-                <span class="artifactuse-help-text">{field.helpText}</span>
-              {/if}
-              {#if errors[field.name]}
-                <span class="artifactuse-error-text">{errors[field.name]}</span>
-              {/if}
-            </div>
-          {/if}
-        {/each}
-      </div>
-      
-      <!-- Default buttons if no buttons field -->
-      {#if !hasButtonsField}
-        <div class="artifactuse-form-buttons artifactuse-form-buttons-default">
-          <button
-            type="button"
-            class="artifactuse-form-btn artifactuse-form-btn-ghost"
-            on:click={() => handleButtonAction({ action: 'cancel', label: 'Cancel' })}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="artifactuse-form-btn artifactuse-form-btn-primary"
-            disabled={isSubmitting}
-          >
-            {#if isSubmitting}
-              <span class="artifactuse-form-btn-spinner"></span>
             {/if}
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
+          {/each}
         </div>
-      {/if}
-    </form>
+        
+        <!-- Default buttons if no buttons field -->
+        {#if !hasButtonsField}
+          <div class="artifactuse-form-buttons artifactuse-form-buttons-default">
+            <button
+              type="button"
+              class="artifactuse-form-btn artifactuse-form-btn-ghost"
+              on:click={() => handleButtonAction({ action: 'cancel', label: 'Cancel' })}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="artifactuse-form-btn artifactuse-form-btn-primary"
+              disabled={isSubmitting}
+            >
+              {#if isSubmitting}
+                <span class="artifactuse-form-btn-spinner"></span>
+              {/if}
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        {/if}
+      </form>
+    {/if}
   {/if}
 </div>

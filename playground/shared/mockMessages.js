@@ -1383,7 +1383,46 @@ http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes
 **YouTube Video:**
 https://www.youtube.com/watch?v=dQw4w9WgXcQ
 `
+  },
+    {
+    id: 'form-feedback-survey',
+    content: `
+Quick feedback form:
+
+\`\`\`form
+{
+  "title": "How was your experience?",
+  "variant": "fields",
+  "display": "inline",
+  "data": {
+    "fields": [
+      { 
+        "name": "rating", 
+        "type": "radio", 
+        "label": "Rating",
+        "options": ["😍 Excellent", "😊 Good", "😐 Okay", "😕 Poor"],
+        "required": true 
+      },
+      { 
+        "name": "feedback", 
+        "type": "textarea", 
+        "label": "Tell us more (optional)",
+        "placeholder": "What could we improve?",
+        "rows": 2
+      },
+      {
+        "type": "buttons",
+        "fields": [
+          { "type": "button", "label": "Skip", "action": "cancel", "variant": "ghost" },
+          { "type": "button", "label": "Submit Feedback", "action": "submit", "variant": "primary" }
+        ]
+      }
+    ]
   }
+}
+\`\`\`
+`
+  },
 ];
 
 export default messages;

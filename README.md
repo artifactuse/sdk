@@ -10,7 +10,7 @@ Artifactuse is a lightweight SDK that transforms AI-generated content into rich,
 - 📦 **Artifact Cards** - Beautiful inline cards for code artifacts
 - 🖼️ **Media Lightbox** - Click images and PDFs to view fullscreen with zoom and download
 - 🖥️ **Panel Viewer** - Side panel with preview, code view, and split mode
-- 📝 **Interactive Forms** - Inline and panel forms with 17+ field types
+- 📝 **Interactive Forms** - Inline and panel forms with 17+ field types, auto-collapse after submission
 - 📱 **Social Previews** - Platform-accurate previews for Twitter, LinkedIn, Instagram, and more
 - 🌗 **Theme Support** - Dark/light mode with customizable colors
 - 🔌 **Framework Agnostic** - Works with Vue 3, Vue 2, React, Svelte, or vanilla JS
@@ -60,10 +60,11 @@ Or use CDN:
     <div class="chat">
       <!-- Render AI messages with artifact detection -->
       <ArtifactuseAgentMessage 
-        v-for="msg in messages" 
+        v-for="(msg, index) in messages" 
         :key="msg.id"
         :content="msg.content"
         :message-id="msg.id"
+        :is-last-message="index === messages.length - 1"
         @form-submit="handleFormSubmit"
         @social-copy="handleSocialCopy"
       />
@@ -144,10 +145,11 @@ html, body {
   <div class="app-container">
     <div class="chat">
       <ArtifactuseAgentMessage 
-        v-for="msg in messages" 
+        v-for="(msg, index) in messages" 
         :key="msg.id"
         :content="msg.content"
         :message-id="msg.id"
+        :is-last-message="index === messages.length - 1"
         @form-submit="handleFormSubmit"
         @social-copy="handleSocialCopy"
       />
@@ -288,11 +290,12 @@ function Chat() {
   return (
     <div className="app-container">
       <div className="chat">
-        {messages.map(msg => (
+        {messages.map((msg, index) => (
           <ArtifactuseAgentMessage 
             key={msg.id}
             content={msg.content}
             messageId={msg.id}
+            isLastMessage={index === messages.length - 1}
             onFormSubmit={handleFormSubmit}
             onSocialCopy={handleSocialCopy}
           />
@@ -342,6 +345,41 @@ html, body, #root {
 </script>
 
 <slot />
+```
+
+```svelte
+<!-- +page.svelte -->
+<script>
+  import { 
+    ArtifactuseAgentMessage, 
+    ArtifactusePanel, 
+    ArtifactusePanelToggle 
+  } from 'artifactuse/svelte';
+  
+  let messages = [];
+  
+  function handleFormSubmit(event) {
+    const { formId, values } = event.detail;
+    console.log('Form submitted:', formId, values);
+  }
+</script>
+
+<div class="app-container">
+  <div class="chat">
+    {#each messages as msg, index (msg.id)}
+      <ArtifactuseAgentMessage 
+        content={msg.content}
+        messageId={msg.id}
+        isLastMessage={index === messages.length - 1}
+        on:form-submit={handleFormSubmit}
+      />
+    {/each}
+    
+    <ArtifactusePanelToggle />
+  </div>
+  
+  <ArtifactusePanel on:ai-request={handleAIRequest} />
+</div>
 
 <style>
   :global(html), :global(body) {
@@ -350,37 +388,7 @@ html, body, #root {
     height: 100%;
     overflow: hidden;
   }
-</style>
-```
-
-```svelte
-<!-- Chat.svelte -->
-<script>
-  import { 
-    ArtifactuseAgentMessage, 
-    ArtifactusePanel, 
-    ArtifactusePanelToggle 
-  } from 'artifactuse/svelte';
-</script>
-
-<div class="app-container">
-  <div class="chat">
-    {#each messages as msg (msg.id)}
-      <ArtifactuseAgentMessage 
-        content={msg.content}
-        messageId={msg.id}
-        on:formSubmit={handleFormSubmit}
-        on:socialCopy={handleSocialCopy}
-      />
-    {/each}
-    
-    <ArtifactusePanelToggle />
-  </div>
   
-  <ArtifactusePanel on:aiRequest={handleAIRequest} />
-</div>
-
-<style>
   .app-container {
     display: flex;
     height: 100%;
@@ -396,120 +404,22 @@ html, body, #root {
 </style>
 ```
 
-## Components
+## Artifacts
 
-### `<ArtifactuseAgentMessage>`
+### What are Artifacts?
 
-Renders AI agent messages with automatic artifact detection. Inline artifacts (simple forms, social previews) are rendered directly in the message. Panel artifacts (code, complex forms) show as clickable cards. Images and PDFs automatically open in a lightbox viewer when clicked.
+Artifacts are structured content blocks detected in AI responses. They can be:
 
-```vue
-<ArtifactuseAgentMessage
-  :content="message.content"
-  :message-id="message.id"
-  :typing="isStreaming"
-  @artifact-detected="onDetected"
-  @artifact-open="onOpen"
-  @form-submit="onFormSubmit"
-  @form-cancel="onFormCancel"
-  @social-copy="onSocialCopy"
-  @media-open="onMediaOpen"
-/>
-```
+- **Explicit** - JSON blocks with `type` field (forms, social previews)
+- **Implicit** - Auto-detected from content (code blocks, images, videos)
 
-**Props:**
+### Panel Artifacts
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `content` | string | required | The raw message content from AI |
-| `messageId` | string | auto | Unique identifier for the message |
-| `inlineCards` | boolean | `true` | Show artifact cards inline |
-| `typing` | boolean | `false` | Whether message is still streaming |
+Panel artifacts open in a side panel with preview, code view, and editing capabilities.
 
-**Events:**
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `artifact-detected` | `artifacts[]` | Emitted when artifacts are found |
-| `artifact-open` | `artifact` | Emitted when user opens an artifact |
-| `form-submit` | `{ formId, values }` | Emitted when inline form is submitted |
-| `form-cancel` | `{ formId }` | Emitted when inline form is cancelled |
-| `social-copy` | `{ platform, text }` | Emitted when social preview text is copied |
-| `media-open` | `{ type, src, alt, caption }` | Emitted when image/PDF is opened in viewer |
-
-### `<ArtifactuseViewer>`
-
-Fullscreen lightbox viewer for images and PDFs. Automatically integrated with `ArtifactuseAgentMessage` - you don't need to add this component manually unless you want standalone usage.
-
-```vue
-<ArtifactuseViewer
-  :is-open="viewerOpen"
-  :type="viewerType"
-  :src="viewerSrc"
-  :alt="viewerAlt"
-  :caption="viewerCaption"
-  @close="viewerOpen = false"
-/>
-```
-
-**Props:**
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `isOpen` | boolean | `false` | Whether viewer is open |
-| `type` | string | `'image'` | Content type: `'image'` or `'pdf'` |
-| `src` | string | `''` | Media URL |
-| `alt` | string | `''` | Alt text for images |
-| `caption` | string | `''` | Caption displayed below media |
-
-**Events:**
-
-| Event | Description |
-|-------|-------------|
-| `close` | Emitted when viewer is closed (click overlay, Escape key, or close button) |
-
-**Features:**
-
-- Zoom toggle for images (click image or zoom button)
-- Download button
-- Keyboard support (Escape to close)
-- Click outside to close
-- Body scroll lock when open
-
-### `<ArtifactusePanel>`
-
-Side panel for viewing artifact previews and code.
-
-```vue
-<ArtifactusePanel
-  @ai-request="handleAIRequest"
-  @save="handleSave"
-  @export="handleExport"
-  @form-submit="handleFormSubmit"
-/>
-```
-
-### `<ArtifactusePanelToggle>`
-
-Toggle button with artifact count badge.
-
-```vue
-<ArtifactusePanelToggle />
-```
-
-## Artifact Types
-
-Artifactuse automatically detects and renders various artifact types from AI responses.
-
-### Code Artifacts (Panel)
-
-Code artifacts open in the side panel with syntax highlighting and live preview.
-
-- **HTML** - HTML documents with live preview
-- **JSX / React** - React components with live preview and hot reload
-- **Vue** - Vue single-file components with live preview
-- **JavaScript** - JavaScript code with syntax highlighting and execution
-- **Python** - Python code with syntax highlighting
-- **JSON** - JSON data with tree viewer and formatting
+- **Code** - JavaScript, TypeScript, Python, HTML, CSS, React, Vue, Svelte
+- **HTML/React/Vue** - Live preview with code editing
+- **Mermaid** - Diagrams with live preview
 - **SVG** - SVG graphics with live preview and editing
 - **Diff / Patch** - Code diffs with side-by-side or unified view
 - **Canvas / Whiteboard** - Interactive drawing canvas and whiteboard
@@ -540,6 +450,8 @@ Simple forms render inline. Set `display: "inline"` or use buttons variant with 
 ```
 
 **Variants:** `fields`, `wizard`, `buttons`
+
+**Form Collapse Behavior:** Inline forms automatically collapse after user interaction (submit, cancel, or custom button click) to keep the chat clean. After page refresh, only the last message's forms remain active.
 
 #### Social Previews
 
@@ -731,6 +643,10 @@ on('form:submit', ({ formId, action, values }) => {
 
 on('form:cancel', ({ formId }) => {
   console.log('Form cancelled');
+});
+
+on('form:button-click', ({ formId, action, buttonName, values }) => {
+  console.log('Custom button clicked:', action, buttonName);
 });
 
 // Social events

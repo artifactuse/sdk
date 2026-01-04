@@ -14,10 +14,11 @@ provideArtifactuse({ theme: 'light' })
   <div class="app-container">
     <div class="chat">
       <ArtifactuseAgentMessage
-        v-for="m in messages"
+        v-for="(m, index) in messages"
         :key="m.id"
         :content="m.content"
         :message-id="m.id"
+        :is-last-message="index === messages.length - 1"
       />
       <ArtifactusePanelToggle />
     </div>
