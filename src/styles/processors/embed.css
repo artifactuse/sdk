@@ -115,7 +115,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-google-form-iframe {
@@ -152,7 +152,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-tableau-iframe {
@@ -166,7 +166,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-infogram-iframe {
@@ -207,7 +207,7 @@
 .artifactuse-canva-preview {
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-canva-placeholder {
@@ -252,7 +252,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-dribbble-iframe {
@@ -266,7 +266,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-behance-iframe {
@@ -317,7 +317,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-google-calendar-iframe {
@@ -331,7 +331,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-calcom-iframe {
@@ -345,7 +345,7 @@
   margin: 1.5rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(var(--artifactuse-shadow-color), 0.1);
 }
 
 .artifactuse-notion-iframe {

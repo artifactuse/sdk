@@ -129,6 +129,18 @@ export function createState() {
   }
   
   /**
+   * Clear active artifact (return to list view)
+   */
+  function clearActiveArtifact() {
+    state = {
+      ...state,
+      activeArtifactId: null,
+    };
+    
+    notify();
+  }
+  
+  /**
    * Set panel open state
    */
   function setPanelOpen(isOpen) {
@@ -254,6 +266,7 @@ export function createState() {
     
     // Panel state
     setActiveArtifact,
+    clearActiveArtifact,
     setPanelOpen,
     setViewMode,
     setFullscreen,

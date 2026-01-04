@@ -604,6 +604,10 @@ const {
   artifactCount,      // Number of artifacts
   hasArtifacts,       // Boolean
   
+  // Panel state
+  panelTypes,         // List of registered panel types
+  activePanelUrl,     // URL for active artifact's panel
+  
   processMessage,     // Process AI content
   openArtifact,       // Open artifact in panel
   closePanel,         // Close panel
@@ -611,6 +615,14 @@ const {
   toggleFullscreen,   // Toggle fullscreen mode
   setViewMode,        // Set 'preview' | 'code' | 'split'
   getPanelUrl,        // Get panel URL for artifact
+  
+  // Panel management
+  hasPanel,           // Check if panel exists for artifact
+  registerPanel,      // Register panel (string or string[])
+  unregisterPanel,    // Disable panel (string or string[])
+  getPanelTypes,      // Get all panel types
+  
+  // Theme
   getTheme,           // Get current theme
   setTheme,           // Set theme
   
@@ -663,6 +675,34 @@ provideArtifactuse({
   },
 });
 ```
+
+## Panels
+
+The SDK supports configurable panels that can be added, overridden, or disabled without updating the SDK.
+
+```js
+provideArtifactuse({
+  panels: {
+    // Add new panel type
+    'chart': 'chart-panel',
+    
+    // Use a different CDN for specific panel
+    'video': 'https://my-video-cdn.com/editor-panel',
+    
+    // Disable a built-in panel
+    'canvas': null,
+  }
+});
+
+// Runtime registration with aliases
+const { registerPanel, unregisterPanel } = useArtifactuse();
+
+registerPanel(['python', 'py'], 'code-panel');
+registerPanel(['typescript', 'ts', 'tsx'], 'code-panel');
+unregisterPanel(['canvas', 'whiteboard', 'drawing']);
+```
+
+For full documentation on panel configuration, runtime management, and examples, see **[PANELS.md](./PANELS.md)**.
 
 ## Events
 

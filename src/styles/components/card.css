@@ -148,6 +148,29 @@
   opacity: 1;
 }
 
+/* Card Container Queries */
+@container (max-width: 300px) {
+  .artifactuse-card {
+    padding: 8px;
+    flex-direction: column;
+  }
+  
+  .artifactuse-card__icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .artifactuse-card__icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .artifactuse-card__actions {
+    display: none;
+  }
+}
+
+
 /* Light theme overrides */
 [data-artifactuse-theme="light"] .artifactuse-card {
   background: rgb(var(--artifactuse-surface));

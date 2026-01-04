@@ -12,7 +12,11 @@ export {
 // Video processor
 export {
   processVideos,
+  isVideoUrl,           // NEW - check if URL is a video
+  renderVideoHtml,
   createVideoPlayer,
+  processVideoGalleries, 
+  createVideoGallery,    
   createVideoWithPreview,
   createYouTubeEmbed,
   createVimeoEmbed,
@@ -28,6 +32,11 @@ export {
   createSpotifyEmbed,
   createAppleMusicEmbed,
 } from './audio.js';
+
+export { 
+  initializeAudioPlayers, 
+  destroyAllPlayers,
+} from './audioPlayer.js';
 
 // Map processor
 export {

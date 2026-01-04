@@ -3,8 +3,13 @@
 
 /**
  * Process all interactive tool URLs in HTML
+ * @param {string} html - HTML content to process
+ * @param {object} options - Processing options
+ * @param {string} options.theme - Theme: 'dark' | 'light'
  */
-export function processInteractiveEmbeds(html) {
+export function processInteractiveEmbeds(html, options = {}) {
+  const theme = options.theme || 'dark';
+  
   // Typeform (linkified)
   const typeformLinkRegex = /<a[^>]*href="(https?:\/\/(?:[a-zA-Z0-9-]+\.)?typeform\.com\/to\/([a-zA-Z0-9]+)[^"]*)"[^>]*>[^<]*<\/a>/gi;
   html = html.replace(typeformLinkRegex, (match, url, formId) => {
@@ -44,13 +49,13 @@ export function processInteractiveEmbeds(html) {
   // Cal.com (linkified)
   const calcomLinkRegex = /<a[^>]*href="(https?:\/\/cal\.com\/([a-zA-Z0-9_-]+)(?:\/([a-zA-Z0-9_-]+))?[^"]*)"[^>]*>[^<]*<\/a>/gi;
   html = html.replace(calcomLinkRegex, (match, url, username, eventType) => {
-    return createCalcomEmbed(username, eventType);
+    return createCalcomEmbed(username, eventType, theme);
   });
 
   // Cal.com (raw)
   const calcomRegex = /(?<!["'=])(https?:\/\/cal\.com\/([a-zA-Z0-9_-]+)(?:\/([a-zA-Z0-9_-]+))?)(?!["'])/gi;
   html = html.replace(calcomRegex, (match, url, username, eventType) => {
-    return createCalcomEmbed(username, eventType);
+    return createCalcomEmbed(username, eventType, theme);
   });
 
   // Notion (linkified)
@@ -94,6 +99,7 @@ export function processInteractiveEmbeds(html) {
 
 /**
  * Create Typeform embed
+ * Note: Typeform embed doesn't support theme parameter via URL
  */
 export function createTypeformEmbed(formId) {
   return `
@@ -109,6 +115,7 @@ export function createTypeformEmbed(formId) {
 
 /**
  * Create Calendly embed
+ * Note: Calendly embed doesn't support theme parameter via URL
  */
 export function createCalendlyEmbed(username, eventType = '') {
   const url = eventType 
@@ -127,6 +134,7 @@ export function createCalendlyEmbed(username, eventType = '') {
 
 /**
  * Create Google Calendar Appointments embed
+ * Note: Google Calendar embed doesn't support theme parameter
  */
 export function createGoogleCalendarEmbed(scheduleId) {
   return `
@@ -142,13 +150,16 @@ export function createGoogleCalendarEmbed(scheduleId) {
 
 /**
  * Create Cal.com embed
+ * @param {string} username - Cal.com username
+ * @param {string} eventType - Event type (optional)
+ * @param {string} theme - 'dark' | 'light'
  */
-export function createCalcomEmbed(username, eventType = '') {
+export function createCalcomEmbed(username, eventType = '', theme = 'dark') {
   const path = eventType ? `${username}/${eventType}` : username;
   return `
     <div class="artifactuse-calcom-wrapper">
       <iframe 
-        src="https://cal.com/${path}?embed=true&theme=light" 
+        src="https://cal.com/${path}?embed=true&theme=${theme}" 
         class="artifactuse-calcom-iframe" 
         loading="lazy">
       </iframe>
@@ -158,6 +169,7 @@ export function createCalcomEmbed(username, eventType = '') {
 
 /**
  * Create Notion embed
+ * Note: Notion embed doesn't support theme parameter
  */
 export function createNotionEmbed(pageId) {
   return `
@@ -174,6 +186,7 @@ export function createNotionEmbed(pageId) {
 
 /**
  * Create Airtable embed
+ * Note: Airtable embed doesn't support theme parameter
  */
 export function createAirtableEmbed(baseId, viewId) {
   const url = viewId 
@@ -192,6 +205,7 @@ export function createAirtableEmbed(baseId, viewId) {
 
 /**
  * Create Miro embed
+ * Note: Miro embed doesn't support theme parameter
  */
 export function createMiroEmbed(boardId) {
   return `

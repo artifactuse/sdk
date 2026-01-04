@@ -28,6 +28,22 @@ export function processMaps(html) {
     return placeholder;
   });
 
+  // Google Maps embed URL (linkified)
+  const googleMapsEmbedLinkRegex = /<a[^>]*href="(https?:\/\/(?:www\.)?google\.com\/maps\/embed\?pb=[^"]+)"[^>]*>[^<]*<\/a>/gi;
+  html = html.replace(googleMapsEmbedLinkRegex, (match, url) => {
+    const placeholder = `__PROTECTED_MAP_${protectedContent.length}__`;
+    protectedContent.push(createGoogleMapEmbedDirect(url));
+    return placeholder;
+  });
+
+  // Google Maps embed URL (raw)
+  const googleMapsEmbedRegex = /(?<!["'=])(https?:\/\/(?:www\.)?google\.com\/maps\/embed\?pb=[^\s<>"]+)(?!["'])/gi;
+  html = html.replace(googleMapsEmbedRegex, (match, url) => {
+    const placeholder = `__PROTECTED_MAP_${protectedContent.length}__`;
+    protectedContent.push(createGoogleMapEmbedDirect(url));
+    return placeholder;
+  });
+
   // Google Maps place (linkified)
   const googleMapsPlaceLinkRegex = /<a[^>]*href="(https?:\/\/(?:www\.)?google\.com\/maps\/place\/([^\/\?"]+)[^"]*)"[^>]*>[^<]*<\/a>/gi;
   html = html.replace(googleMapsPlaceLinkRegex, (match, url, place) => {
@@ -113,6 +129,68 @@ export function processMaps(html) {
 }
 
 /**
+ * Create Google Maps embed from direct embed URL
+ * Extracts coordinates from the pb parameter and creates a standard embed
+ */
+export function createGoogleMapEmbedDirect(embedUrl) {
+  // Try to extract coordinates from the pb parameter
+  // Format: !1d{longitude}!2d{latitude} or !2d{longitude}!3d{latitude}
+  const pbMatch = embedUrl.match(/pb=([^&]+)/);
+  
+  if (pbMatch) {
+    const pb = decodeURIComponent(pbMatch[1]);
+    
+    // Look for coordinate patterns in the pb string
+    // Pattern 1: !3d{lat}!2d{lng} (common format)
+    const coordMatch1 = pb.match(/!3d(-?[\d.]+).*?!2d(-?[\d.]+)/);
+    // Pattern 2: !2d{lng}!3d{lat} (alternative format)
+    const coordMatch2 = pb.match(/!2d(-?[\d.]+).*?!3d(-?[\d.]+)/);
+    
+    let lat, lng;
+    
+    if (coordMatch1) {
+      lat = coordMatch1[1];
+      lng = coordMatch1[2];
+    } else if (coordMatch2) {
+      lng = coordMatch2[1];
+      lat = coordMatch2[2];
+    }
+    
+    if (lat && lng) {
+      // Extract zoom from !1d parameter (it's actually the altitude/distance)
+      const zoomMatch = pb.match(/!1d([\d.]+)/);
+      let zoom = 15; // default zoom
+      
+      if (zoomMatch) {
+        // Convert altitude to approximate zoom level
+        const altitude = parseFloat(zoomMatch[1]);
+        if (altitude > 10000) zoom = 10;
+        else if (altitude > 5000) zoom = 12;
+        else if (altitude > 1000) zoom = 14;
+        else if (altitude > 500) zoom = 16;
+        else zoom = 18;
+      }
+      
+      return createGoogleMapEmbedCoords(lat, lng, zoom);
+    }
+  }
+  
+  // Fallback: try to use the URL directly (may not work for all URLs)
+  return `
+    <div class="artifactuse-map-wrapper">
+      <iframe 
+        src="${embedUrl}" 
+        frameborder="0" 
+        allowfullscreen 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade" 
+        class="artifactuse-map-iframe">
+      </iframe>
+    </div>
+  `;
+}
+
+/**
  * Create Google Maps embed from place name/query
  */
 export function createGoogleMapEmbed(query) {
@@ -187,6 +265,7 @@ export function createOSMEmbed(lat, lon, zoom = 15) {
 
 export default {
   processMaps,
+  createGoogleMapEmbedDirect,
   createGoogleMapEmbed,
   createGoogleMapEmbedCoords,
   createOSMEmbed,

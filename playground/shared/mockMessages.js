@@ -1350,6 +1350,39 @@ This canvas highlights how to structure complex AI data using the minimalist, hi
 
 Which of these would you like me to build for you first?
     `
+  },
+  {
+    id: 'audio-music-sample',
+    content: `
+Here's a music sample you can listen to:
+
+**Chill Coding Beats:**
+https://www.example.com/audio/chill-coding-beats.mp3
+
+## 4. If your skit is horror‑themed  
+You can reuse one of these from earlier as a background bed or opening sting for the skit’s first moment:
+
+- **Short horror atmosphere hit** – good for an instant “we’re in a horror scene” cue:  
+  https://cdn.boostgpt.co/file/soundpen/sounds/bb0217b0-e74d-11ee-bb3f-3a769fbccfd7.mp3
+
+- **Super scary horror film background sound** – loop quietly under dialogue for tension:  
+  \`https://cdn.boostgpt.co/file/soundpen/sounds/bae73e9a-e74d-11ee-bb3f-3a769fbccfd7.mp3\`
+`
+  },
+  {
+    id: 'video-sample-clip',
+    content: `
+Here's a sample video clip:
+
+**Amazing Nature Timelapse:**
+http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+
+HBO GO now works with Chromecast:
+http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4
+
+**YouTube Video:**
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+`
   }
 ];
 

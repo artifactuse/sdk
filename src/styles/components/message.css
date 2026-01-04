@@ -68,6 +68,9 @@
   margin: 1em 0;
   padding: 1em;
   background: rgb(var(--artifactuse-surface));
+  color: rgb(var(--artifactuse-text));
+  font-family: var(--artifactuse-font-mono);
+  font-size: 0.9em;
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -123,5 +126,5 @@
 /* Images */
 .artifactuse-message-content img {
   max-width: 100%;
-  border-radius: 8px;
+  /* border-radius: 8px; */
 }

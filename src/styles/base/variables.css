@@ -11,13 +11,13 @@
   /* Colors */
   --artifactuse-primary: 99, 102, 241;
   --artifactuse-primary-hover: 79, 70, 229;
-  --artifactuse-background: 17, 24, 39;
-  --artifactuse-surface: 31, 41, 55;
+  --artifactuse-background: 40, 40, 40;
+  --artifactuse-surface: 40, 40, 40;
   --artifactuse-surface-hover: 55, 65, 81;
   --artifactuse-text: 243, 244, 246;
   --artifactuse-text-secondary: 156, 163, 175;
   --artifactuse-text-muted: 107, 114, 128;
-  --artifactuse-border: 75, 85, 99;
+  --artifactuse-border: 61, 61, 61;
   --artifactuse-border-light: 55, 65, 81;
   --artifactuse-success: 34, 197, 94;
   --artifactuse-warning: 234, 179, 8;
@@ -25,6 +25,8 @@
   --artifactuse-info: 59, 130, 246;
   --artifactuse-gradient: 99, 102, 241;
   --artifactuse-gradient-opacity: 0.38;
+  --artifactuse-shadow-color: 0, 0, 0;
+  --artifactuse-overlay-color: 0, 0, 0;
 }
 
 [data-artifactuse-theme="light"] {
@@ -44,6 +46,8 @@
   --artifactuse-info: 37, 99, 235;
   --artifactuse-gradient: 79, 70, 229;
   --artifactuse-gradient-opacity: 0.25;
+  --artifactuse-shadow-color: 0, 0, 0;
+  --artifactuse-overlay-color: 0, 0, 0;
 }
 
 @media (prefers-color-scheme: light) {
@@ -59,5 +63,7 @@
     --artifactuse-border: 229, 231, 235;
     --artifactuse-border-light: 243, 244, 246;
     --artifactuse-gradient-opacity: 0.25;
+    --artifactuse-shadow-color: 0, 0, 0;
+    --artifactuse-overlay-color: 0, 0, 0;
   }
 }

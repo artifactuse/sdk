@@ -15,12 +15,12 @@
   transition: border-color 0.2s ease;
 }
 
-.artifactuse-social[data-theme="dark"] {
+.artifactuse-social[data-artifactuse-theme="dark"] {
   background: rgb(var(--artifactuse-background));
   border-color: rgb(var(--artifactuse-border));
 }
 
-.artifactuse-social[data-theme="light"] {
+.artifactuse-social[data-artifactuse-theme="light"] {
   background: #ffffff;
   border-color: #e5e7eb;
 }
@@ -33,7 +33,7 @@
   padding: 16px;
 }
 
-.artifactuse-social-twitter[data-theme="dark"] {
+.artifactuse-social-twitter[data-artifactuse-theme="dark"] {
   --social-text-primary: #e7e9ea;
   --social-text-secondary: #71767b;
   --social-text-link: #1d9bf0;
@@ -41,7 +41,7 @@
   --social-border: #2f3336;
 }
 
-.artifactuse-social-twitter[data-theme="light"] {
+.artifactuse-social-twitter[data-artifactuse-theme="light"] {
   --social-text-primary: #0f1419;
   --social-text-secondary: #536471;
   --social-text-link: #1d9bf0;
@@ -343,7 +343,7 @@
   padding: 16px;
 }
 
-.artifactuse-social-linkedin[data-theme="dark"] {
+.artifactuse-social-linkedin[data-artifactuse-theme="dark"] {
   --social-text-primary: #ffffff;
   --social-text-secondary: rgba(255, 255, 255, 0.6);
   --social-text-link: #70b5f9;
@@ -351,7 +351,7 @@
   --social-bg-card: rgba(255, 255, 255, 0.05);
 }
 
-.artifactuse-social-linkedin[data-theme="light"] {
+.artifactuse-social-linkedin[data-artifactuse-theme="light"] {
   --social-text-primary: rgba(0, 0, 0, 0.9);
   --social-text-secondary: rgba(0, 0, 0, 0.6);
   --social-text-link: #0a66c2;
@@ -502,14 +502,14 @@
   padding: 0 0 10px 0;
 }
 
-.artifactuse-social-instagram[data-theme="dark"] {
+.artifactuse-social-instagram[data-artifactuse-theme="dark"] {
   --social-text-primary: #f5f5f5;
   --social-text-secondary: #a8a8a8;
   --social-border: #363636;
   --social-bg: #000000;
 }
 
-.artifactuse-social-instagram[data-theme="light"] {
+.artifactuse-social-instagram[data-artifactuse-theme="light"] {
   --social-text-primary: #262626;
   --social-text-secondary: #8e8e8e;
   --social-border: #dbdbdb;
@@ -614,7 +614,7 @@
   padding: 16px;
 }
 
-.artifactuse-social-facebook[data-theme="dark"] {
+.artifactuse-social-facebook[data-artifactuse-theme="dark"] {
   --social-text-primary: #e4e6eb;
   --social-text-secondary: #b0b3b8;
   --social-text-link: #2d88ff;
@@ -622,7 +622,7 @@
   --social-bg-card: #242526;
 }
 
-.artifactuse-social-facebook[data-theme="light"] {
+.artifactuse-social-facebook[data-artifactuse-theme="light"] {
   --social-text-primary: #050505;
   --social-text-secondary: #65676b;
   --social-text-link: #0064d1;
@@ -759,13 +759,13 @@
   padding: 16px;
 }
 
-.artifactuse-social-threads[data-theme="dark"] {
+.artifactuse-social-threads[data-artifactuse-theme="dark"] {
   --social-text-primary: #f5f5f5;
   --social-text-secondary: #777777;
   --social-border: #363636;
 }
 
-.artifactuse-social-threads[data-theme="light"] {
+.artifactuse-social-threads[data-artifactuse-theme="light"] {
   --social-text-primary: #000000;
   --social-text-secondary: #999999;
   --social-border: #e0e0e0;
@@ -844,13 +844,13 @@
   padding: 0 0 10px 0;
 }
 
-.artifactuse-social-tiktok[data-theme="dark"] {
+.artifactuse-social-tiktok[data-artifactuse-theme="dark"] {
   --social-text-primary: #ffffff;
   --social-text-secondary: rgba(255, 255, 255, 0.75);
   --social-bg: #121212;
 }
 
-.artifactuse-social-tiktok[data-theme="light"] {
+.artifactuse-social-tiktok[data-artifactuse-theme="light"] {
   --social-text-primary: #161823;
   --social-text-secondary: rgba(22, 24, 35, 0.75);
   --social-bg: #ffffff;
@@ -974,13 +974,13 @@
   padding: 0 0 10px 0;
 }
 
-.artifactuse-social-youtube[data-theme="dark"] {
+.artifactuse-social-youtube[data-artifactuse-theme="dark"] {
   --social-text-primary: #f1f1f1;
   --social-text-secondary: #aaaaaa;
   --social-bg: #0f0f0f;
 }
 
-.artifactuse-social-youtube[data-theme="light"] {
+.artifactuse-social-youtube[data-artifactuse-theme="light"] {
   --social-text-primary: #0f0f0f;
   --social-text-secondary: #606060;
   --social-bg: #ffffff;

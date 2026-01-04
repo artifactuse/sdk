@@ -16,9 +16,14 @@ import {
   
   // Video
   processVideos,
+  processVideoGalleries,
+  isVideoUrl,
+  renderVideoHtml,
   
   // Audio
   processAudio,
+  initializeAudioPlayers,
+  destroyAllPlayers,
   
   // Maps
   processMaps,
@@ -90,13 +95,20 @@ function configureMarked() {
     }
   };
   
-  // Custom renderer for links - opens external links in new tab
+  // Custom renderer for links - handles video URLs specially
   const linkRenderer = {
     link(token) {
       // Handle both old API (href, title, text) and new API (token object)
       const href = typeof token === 'string' ? token : token.href;
       const title = typeof token === 'string' ? arguments[1] : token.title;
       const text = typeof token === 'string' ? arguments[2] : token.text;
+      
+      // Check if this is a video URL - render as video embed
+      if (isVideoUrl(href)) {
+        return renderVideoHtml(href);
+      }
+      
+      // Otherwise, render as normal link (opens in new tab)
       const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
       return `<a href="${escapeHtml(href || '')}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text || ''}</a>`;
     }
@@ -133,6 +145,55 @@ function configureMarked() {
 configureMarked();
 
 /**
+ * Default panel mappings
+ * Maps artifact type/language to panel path (relative to cdnUrl)
+ * 
+ * Users can override these or add custom panels in config.panels
+ */
+const DEFAULT_PANELS = {
+  // Structured artifact types
+  form: 'form-panel',
+  
+  // Visual editors
+  video: 'editor-panel/video',
+  videoeditor: 'editor-panel/video',
+  timeline: 'editor-panel/video',
+  canvas: 'editor-panel/canvas',
+  whiteboard: 'editor-panel/canvas',
+  drawing: 'editor-panel/canvas',
+  
+  // Data/config formats
+  json: 'json-panel',
+  
+  // Graphics
+  svg: 'svg-panel',
+  
+  // Diff/patches
+  diff: 'diff-panel',
+  patch: 'diff-panel',
+  
+  // Programming languages
+  javascript: 'code-panel',
+  js: 'code-panel',
+  python: 'code-panel',
+  py: 'code-panel',
+  
+  // Frontend frameworks
+  jsx: 'react-panel',
+  react: 'react-panel',
+  vue: 'vue-panel',
+  
+  // Markup
+  html: 'html-panel',
+  htm: 'html-panel',
+  markdown: 'html-panel',
+  md: 'html-panel',
+  
+  // Diagrams
+  mermaid: 'mermaid-panel',
+};
+
+/**
  * Artifactuse SDK Configuration
  */
 const DEFAULT_CONFIG = {
@@ -150,12 +211,31 @@ const DEFAULT_CONFIG = {
   // Set to false to hide (requires paid license)
   branding: true,
   
+  // Panel configuration
+  // Users can add/override/disable panels here
+  // 
+  // Format:
+  //   'type': 'panel-path'           - Uses default cdnUrl
+  //   'type': 'https://...'          - Full URL (different CDN)
+  //   'type': null                   - Disable this panel type
+  //   'type': { path: '...', cdn: '...' } - Explicit path + cdn
+  //
+  // Example:
+  //   panels: {
+  //     'my-custom': 'custom-panel',                    // Uses cdnUrl
+  //     'video': 'https://my-cdn.com/video-panel',      // Full URL override
+  //     'canvas': null,                                  // Disable canvas panel
+  //     'chart': { path: 'chart-panel', cdn: 'https://charts.example.com' }
+  //   }
+  panels: {},
+  
   // Processor options
   processors: {
     codeBlocks: true,
     images: true,
     imageGalleries: true,
     videos: true,
+    videoGalleries: true,
     audio: true,
     maps: true,
     social: true,
@@ -180,36 +260,168 @@ const DEFAULT_CONFIG = {
 };
 
 /**
- * Panel URL mapping by artifact type/language
+ * Create panel resolver from config
+ * Merges default panels with user-provided panels
+ * 
+ * @param {object} config - SDK configuration
+ * @returns {object} - Panel resolver with lookup method
  */
-const PANEL_URL_MAP = {
-  // By type
-  form: 'form-panel',
+function createPanelResolver(config) {
+  // Start with default panels
+  const panels = { ...DEFAULT_PANELS };
   
-  // By language
-  video: 'editor-panel/video',
-  videoeditor: 'editor-panel/video',
-  timeline: 'editor-panel/video',
-  canvas: 'editor-panel/canvas',
-  whiteboard: 'editor-panel/canvas',
-  drawing: 'editor-panel/canvas',
-  json: 'json-panel',
-  svg: 'svg-panel',
-  diff: 'diff-panel',
-  patch: 'diff-panel',
-  javascript: 'code-panel',
-  js: 'code-panel',
-  python: 'code-panel',
-  py: 'code-panel',
-  jsx: 'react-panel',
-  react: 'react-panel',
-  vue: 'vue-panel',
-  html: 'html-panel',
-  htm: 'html-panel',
-  markdown: 'html-panel',
-  md: 'html-panel',
-  mermaid: 'mermaid-panel',
-};
+  // Merge user panels (supports array keys)
+  if (config.panels) {
+    for (const [key, value] of Object.entries(config.panels)) {
+      // Handle array keys like ['python', 'py']
+      if (Array.isArray(key)) {
+        key.forEach(k => {
+          const normalizedKey = k?.toLowerCase();
+          if (normalizedKey) panels[normalizedKey] = value;
+        });
+      } else {
+        const normalizedKey = key?.toLowerCase();
+        if (normalizedKey) panels[normalizedKey] = value;
+      }
+    }
+  }
+  
+  /**
+   * Resolve panel URL for an artifact type/language
+   * 
+   * @param {string} typeOrLang - Artifact type or language
+   * @param {object} options - Additional options (theme, etc.)
+   * @returns {string|null} - Full panel URL or null if not found/disabled
+   */
+  function resolve(typeOrLang, options = {}) {
+    const key = typeOrLang?.toLowerCase();
+    if (!key) return null;
+    
+    const panelConfig = panels[key];
+    
+    // Panel explicitly disabled
+    if (panelConfig === null) return null;
+    
+    // Panel not found
+    if (panelConfig === undefined) return null;
+    
+    let baseUrl;
+    
+    if (typeof panelConfig === 'string') {
+      // String value - check if it's a full URL or relative path
+      if (panelConfig.startsWith('http://') || panelConfig.startsWith('https://')) {
+        // Full URL provided
+        baseUrl = panelConfig;
+      } else {
+        // Relative path - use default cdnUrl
+        baseUrl = `${config.cdnUrl}/${panelConfig}`;
+      }
+    } else if (typeof panelConfig === 'object' && panelConfig.path) {
+      // Object with explicit path and optional cdn
+      const cdn = panelConfig.cdn || config.cdnUrl;
+      baseUrl = `${cdn}/${panelConfig.path}`;
+    } else {
+      return null;
+    }
+    
+    // Ensure trailing slash for consistency
+    if (!baseUrl.endsWith('/')) {
+      baseUrl += '/';
+    }
+    
+    // Append query parameters
+    const params = new URLSearchParams();
+    
+    if (options.theme) {
+      params.set('theme', options.theme);
+    }
+    
+    if (options.accent) {
+      params.set('accent', options.accent);
+    }
+    
+    // Add any custom params
+    if (options.params) {
+      Object.entries(options.params).forEach(([k, v]) => {
+        params.set(k, v);
+      });
+    }
+    
+    const queryString = params.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  }
+  
+  /**
+   * Check if a panel exists for the given type/language
+   */
+  function has(typeOrLang) {
+    const key = typeOrLang?.toLowerCase();
+    return key && panels[key] !== undefined && panels[key] !== null;
+  }
+  
+  /**
+   * Get all registered panel types
+   */
+  function getTypes() {
+    return Object.keys(panels).filter(k => panels[k] !== null);
+  }
+  
+  /**
+   * Register a new panel (at runtime)
+   * 
+   * @param {string|string[]} typesOrLang - Type/language or array of types/languages
+   * @param {string|object} panelPath - Panel path, full URL, or config object
+   * 
+   * @example
+   * // Single type
+   * register('chart', 'chart-panel');
+   * 
+   * // Multiple types/aliases at once
+   * register(['python', 'py'], 'code-panel');
+   */
+  function register(typesOrLang, panelPath) {
+    const types = Array.isArray(typesOrLang) ? typesOrLang : [typesOrLang];
+    types.forEach(t => {
+      const key = t?.toLowerCase();
+      if (key) {
+        panels[key] = panelPath;
+      }
+    });
+  }
+  
+  /**
+   * Unregister/disable a panel (at runtime)
+   * 
+   * @param {string|string[]} typesOrLang - Type/language or array of types/languages
+   * 
+   * @example
+   * // Single type
+   * unregister('canvas');
+   * 
+   * // Multiple types at once
+   * unregister(['canvas', 'whiteboard', 'drawing']);
+   */
+  function unregister(typesOrLang) {
+    const types = Array.isArray(typesOrLang) ? typesOrLang : [typesOrLang];
+    types.forEach(t => {
+      const key = t?.toLowerCase();
+      if (key) {
+        panels[key] = null;
+      }
+    });
+  }
+  
+  return {
+    resolve,
+    has,
+    getTypes,
+    register,
+    unregister,
+    
+    // Expose raw panels for debugging
+    get panels() { return { ...panels }; },
+  };
+}
 
 /**
  * Create Artifactuse instance
@@ -222,6 +434,9 @@ export function createArtifactuse(userConfig = {}) {
   // Create theme - only pass colors if user provided them
   const theme = createTheme(config.theme, config.colors || {});
   
+  // Create panel resolver
+  const panelResolver = createPanelResolver(config);
+  
   /**
    * Process AI agent message content
    * Returns processed HTML with artifact placeholders
@@ -231,6 +446,9 @@ export function createArtifactuse(userConfig = {}) {
     let html = marked.parse(content);
     
     const artifacts = [];
+    
+    // Get current resolved theme for processors that need it
+    const processorOptions = { theme: theme.resolved };
     
     // Extract all code block artifacts (code, form, social)
     if (config.processors.codeBlocks) {
@@ -252,9 +470,14 @@ export function createArtifactuse(userConfig = {}) {
     if (config.processors.videos) {
       html = processVideos(html);
     }
+
+    // Group consecutive videos into galleries (after video processing)
+    if (config.processors.videoGalleries) {
+      html = processVideoGalleries(html);
+    }
     
     if (config.processors.audio) {
-      html = processAudio(html);
+      html = processAudio(html, processorOptions);
     }
     
     if (config.processors.maps) {
@@ -262,7 +485,7 @@ export function createArtifactuse(userConfig = {}) {
     }
     
     if (config.processors.social) {
-      html = processSocialEmbeds(html);
+      html = processSocialEmbeds(html, processorOptions);
     }
     
     if (config.processors.documents) {
@@ -272,7 +495,7 @@ export function createArtifactuse(userConfig = {}) {
     }
     
     if (config.processors.codeEmbeds) {
-      html = processCodeEmbeds(html);
+      html = processCodeEmbeds(html, processorOptions);
     }
     
     if (config.processors.dataViz) {
@@ -280,11 +503,11 @@ export function createArtifactuse(userConfig = {}) {
     }
     
     if (config.processors.design) {
-      html = process3DEmbeds(html);
+      html = process3DEmbeds(html, processorOptions);
     }
     
     if (config.processors.interactive) {
-      html = processInteractiveEmbeds(html);
+      html = processInteractiveEmbeds(html, processorOptions);
     }
     
     if (config.processors.tables) {
@@ -313,21 +536,28 @@ export function createArtifactuse(userConfig = {}) {
   /**
    * Initialize dynamic content (call after DOM is ready)
    * This renders math equations, mermaid diagrams, sets up table interactivity,
-   * and applies syntax highlighting
-   */
+   * audio players, and applies syntax highlighting
+  */
   async function initializeContent(container = document) {
     const promises = [];
+    
+    // Get current resolved theme for initializers that need it
+    const initOptions = { theme: theme.resolved };
     
     if (config.processors.math) {
       promises.push(initializeMath());
     }
     
     if (config.processors.mermaid) {
-      promises.push(initializeMermaid());
+      promises.push(initializeMermaid(initOptions));
     }
     
     if (config.processors.tables) {
       initializeTables();
+    }
+
+    if (config.processors.audio) {
+      initializeAudioPlayers(container); 
     }
     
     // Apply syntax highlighting if enabled
@@ -369,6 +599,7 @@ export function createArtifactuse(userConfig = {}) {
    */
   function togglePanel() {
     const isOpen = !state.getState().isPanelOpen;
+    state.clearActiveArtifact();
     state.setPanelOpen(isOpen);
     
     if (!isOpen) {
@@ -400,31 +631,88 @@ export function createArtifactuse(userConfig = {}) {
   /**
    * Get panel iframe URL for artifact
    * Handles all artifact types: code, form, etc.
+   * 
+   * Uses the configurable panel resolver
    */
   function getPanelUrl(artifact, options = {}) {
     if (!artifact) return null;
     
     const { type, language } = artifact;
-    const lang = language?.toLowerCase();
     
-    // Find panel type from map
-    let panelType = PANEL_URL_MAP[type] || PANEL_URL_MAP[lang];
-    
-    if (!panelType) return null;
-    
-    // Build URL with theme params
-    const baseUrl = `${config.cdnUrl}/${panelType}/`;
-    const params = new URLSearchParams();
-    
-    params.set('theme', options.theme || theme.resolved);
+    // Build options for panel URL
+    const resolveOptions = {
+      theme: options.theme || theme.resolved,
+    };
     
     // Get primary color from current theme
     const colors = theme.colors;
     if (colors?.primary) {
-      params.set('accent', colors.primary);
+      resolveOptions.accent = colors.primary;
     }
     
-    return `${baseUrl}?${params.toString()}`;
+    // Try to resolve by type first, then by language
+    let url = panelResolver.resolve(type, resolveOptions);
+    
+    if (!url && language) {
+      url = panelResolver.resolve(language, resolveOptions);
+    }
+    
+    return url;
+  }
+  
+  /**
+   * Check if artifact has a panel available
+   */
+  function hasPanel(artifact) {
+    if (!artifact) return false;
+    return panelResolver.has(artifact.type) || panelResolver.has(artifact.language);
+  }
+  
+  /**
+   * Register a custom panel at runtime
+   * 
+   * @param {string|string[]} typesOrLang - Type/language or array of types/languages
+   * @param {string|object} panel - Panel path, full URL, or config object
+   * 
+   * @example
+   * // Single type - relative path (uses cdnUrl)
+   * sdk.registerPanel('chart', 'chart-panel');
+   * 
+   * // Single type - full URL
+   * sdk.registerPanel('chart', 'https://charts.example.com/panel');
+   * 
+   * // Single type - with custom CDN
+   * sdk.registerPanel('chart', { path: 'chart-panel', cdn: 'https://charts.example.com' });
+   * 
+   * // Multiple types/aliases at once
+   * sdk.registerPanel(['python', 'py'], 'code-panel');
+   * sdk.registerPanel(['javascript', 'js'], 'code-panel');
+   */
+  function registerPanel(typesOrLang, panel) {
+    panelResolver.register(typesOrLang, panel);
+  }
+  
+  /**
+   * Unregister/disable a panel at runtime
+   * 
+   * @param {string|string[]} typesOrLang - Type/language or array of types/languages
+   * 
+   * @example
+   * // Single type
+   * sdk.unregisterPanel('canvas');
+   * 
+   * // Multiple types at once
+   * sdk.unregisterPanel(['canvas', 'whiteboard', 'drawing']);
+   */
+  function unregisterPanel(typesOrLang) {
+    panelResolver.unregister(typesOrLang);
+  }
+  
+  /**
+   * Get all available panel types
+   */
+  function getPanelTypes() {
+    return panelResolver.getTypes();
   }
   
   /**
@@ -501,6 +789,7 @@ export function createArtifactuse(userConfig = {}) {
     bridge.destroy();
     listeners.clear();
     state.clear();
+    destroyAllPlayers();
   }
   
   // Public API
@@ -525,6 +814,13 @@ export function createArtifactuse(userConfig = {}) {
     setViewMode,
     getPanelUrl,
     sendToPanel,
+    
+    // Panel management (new)
+    hasPanel,
+    registerPanel,
+    unregisterPanel,
+    getPanelTypes,
+    panelResolver, // Expose for advanced use
     
     // Theme
     theme,
@@ -570,6 +866,9 @@ export { createState } from './state.js';
 export { createBridge } from './bridge.js';
 export { createTheme } from './theme.js';
 export * from './highlight.js';
+
+// Export panel utilities
+export { DEFAULT_PANELS };
 
 // Default export
 export default createArtifactuse;

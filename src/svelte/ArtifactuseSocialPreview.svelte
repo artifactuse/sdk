@@ -89,7 +89,7 @@
   }
 </script>
 
-<div class="artifactuse-social artifactuse-social-{platform}" data-theme={theme}>
+<div class="artifactuse-social artifactuse-social-{platform}" data-artifactuse-theme={theme}>
   {#if platform === 'twitter'}
     <!-- Twitter -->
     <div class="artifactuse-social-header">

@@ -2,12 +2,14 @@
   <!-- Main panel (flex child when not fullscreen) -->
   <Transition name="artifactuse-panel">
     <div 
-      v-if="state.isPanelOpen && activeArtifact"
+      v-if="state.isPanelOpen"
       class="artifactuse-panel"
       :class="{ 
-        'artifactuse-panel--fullscreen': state.isFullscreen
+        'artifactuse-panel--fullscreen': state.isFullscreen,
+        'artifactuse-panel--list': !activeArtifact && hasArtifacts,
+        'artifactuse-panel--empty': !hasArtifacts
       }"
-      :style="!state.isFullscreen ? { width: `${panelWidth}%` } : undefined"
+      :style="!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined"
     >
       <!-- Resize handle (left edge) -->
       <div 
@@ -18,36 +20,210 @@
         <div class="artifactuse-panel__resize-handle-line"></div>
       </div>
 
-      <!-- Panel header -->
-      <header class="artifactuse-panel__header">
-        <div class="artifactuse-panel__title">
-          <span 
-            class="artifactuse-panel__icon"
-            v-html="languageIcon"
-          ></span>
-          <div class="artifactuse-panel__title-content">
-            <span class="artifactuse-panel__name">{{ activeArtifact.title || 'Untitled' }}</span>
-            <span class="artifactuse-panel__meta">
-              {{ languageDisplay }}
-              <template v-if="activeArtifact.lineCount">
-                • {{ activeArtifact.lineCount }} lines
-              </template>
+      <!-- ============================================ -->
+      <!-- EMPTY STATE: No artifacts -->
+      <!-- ============================================ -->
+      <template v-if="!hasArtifacts">
+        <header class="artifactuse-panel__header artifactuse-panel__header--simple">
+          <div class="artifactuse-panel__title">
+            <span class="artifactuse-panel__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
             </span>
+            <div class="artifactuse-panel__title-content">
+              <span class="artifactuse-panel__name">Artifacts</span>
+            </div>
+          </div>
+          <div class="artifactuse-panel__actions">
+            <button 
+              class="artifactuse-panel__action artifactuse-panel__action--close"
+              title="Close panel"
+              @click="closePanel"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+        
+        <div class="artifactuse-panel__empty">
+          <div class="artifactuse-panel__empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+          </div>
+          <h3 class="artifactuse-panel__empty-title">No artifacts yet</h3>
+          <p class="artifactuse-panel__empty-text">
+            Code blocks, forms, and other interactive content will appear here as the AI generates them.
+          </p>
+        </div>
+        
+        <footer class="artifactuse-panel__footer artifactuse-panel__footer--simple">
+          <a 
+            v-if="showBranding"
+            href="https://artifactuse.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="artifactuse-panel__branding"
+          >
+            <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+              <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+            </svg>
+            <span>Artifactuse</span>
+          </a>
+        </footer>
+      </template>
+
+      <!-- ============================================ -->
+      <!-- LIST VIEW: Has artifacts but none selected -->
+      <!-- ============================================ -->
+      <template v-else-if="!activeArtifact">
+        <header class="artifactuse-panel__header artifactuse-panel__header--simple">
+          <div class="artifactuse-panel__title">
+            <span class="artifactuse-panel__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            <div class="artifactuse-panel__title-content">
+              <span class="artifactuse-panel__name">Artifacts</span>
+              <span class="artifactuse-panel__meta">{{ nonInlineArtifacts.length }} available</span>
+            </div>
+          </div>
+          <div class="artifactuse-panel__actions">
+            <!-- Download All button -->
+            <button 
+              class="artifactuse-panel__action"
+              :class="{ 'artifactuse-panel__action--loading': isDownloadingAll }"
+              :disabled="isDownloadingAll"
+              title="Download all as ZIP"
+              @click="handleDownloadAll"
+            >
+              <svg v-if="!isDownloadingAll" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <svg v-else class="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"></circle>
+              </svg>
+            </button>
+            
+            <button 
+              class="artifactuse-panel__action artifactuse-panel__action--close"
+              title="Close panel"
+              @click="closePanel"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+        
+        <div class="artifactuse-panel__list">
+          <div class="artifactuse-panel__list-items">
+            <button
+              v-for="(artifact, index) in nonInlineArtifacts"
+              :key="artifact.id"
+              class="artifactuse-panel__list-item"
+              @click="selectArtifact(artifact)"
+            >
+              <span 
+                class="artifactuse-panel__list-item-icon"
+                v-html="getArtifactIcon(artifact.language)"
+              ></span>
+              <div class="artifactuse-panel__list-item-content">
+                <span class="artifactuse-panel__list-item-title">
+                  {{ artifact.title || 'Untitled' }}
+                </span>
+                <span class="artifactuse-panel__list-item-meta">
+                  {{ getLanguageDisplayName(artifact.language) }}
+                  <template v-if="artifact.lineCount">
+                    • {{ artifact.lineCount }} lines
+                  </template>
+                </span>
+              </div>
+              <span class="artifactuse-panel__list-item-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </span>
+            </button>
           </div>
         </div>
         
-        <!-- View mode tabs (icon only) -->
-        <div class="artifactuse-panel__tabs">
-          <button 
-            class="artifactuse-panel__tab"
-            :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
-            :disabled="!activeArtifact.isPreviewable"
-            title="Preview"
-            @click="setViewMode('preview')"
+        <footer class="artifactuse-panel__footer artifactuse-panel__footer--simple">
+          <a 
+            v-if="showBranding"
+            href="https://artifactuse.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="artifactuse-panel__branding"
           >
-            <!-- Eye icon -->
+            <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+              <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+            </svg>
+            <span>Artifactuse</span>
+          </a>
+        </footer>
+      </template>
+
+      <!-- ============================================ -->
+      <!-- DETAIL VIEW: Active artifact selected -->
+      <!-- ============================================ -->
+      <template v-else>
+        <!-- Panel header -->
+        <header class="artifactuse-panel__header">
+          <!-- Back button (only when navigated from list view) -->
+          <button 
+            v-if="cameFromList"
+            class="artifactuse-panel__back"
+            title="Back to list"
+            @click="goBackToList"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          
+          <div class="artifactuse-panel__title">
+            <span 
+              class="artifactuse-panel__icon"
+              v-html="languageIcon"
+            ></span>
+            <div class="artifactuse-panel__title-content">
+              <span class="artifactuse-panel__name">{{ activeArtifact.title || 'Untitled' }}</span>
+              <span class="artifactuse-panel__meta">
+                {{ languageDisplay }}
+                <template v-if="activeArtifact.lineCount">
+                  • {{ activeArtifact.lineCount }} lines
+                </template>
+              </span>
+            </div>
+          </div>
+          
+          <!-- View mode tabs (icon only) -->
+          <div class="artifactuse-panel__tabs">
+            <button 
+              class="artifactuse-panel__tab"
+              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
+              :disabled="!activeArtifact.isPreviewable"
+              title="Preview"
+              @click="setViewMode('preview')"
+            >
+              <!-- Eye icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
@@ -317,7 +493,7 @@
                           {{ artifact.title || 'Untitled' }}
                         </span>
                         <span class="artifactuse-panel__artifact-item-meta">
-                          {{ artifact.type }}
+                          {{ getLanguageDisplayName(artifact.language) }}
                           <template v-if="artifact.lineCount">
                             • {{ artifact.lineCount }} lines
                           </template>
@@ -333,19 +509,20 @@
             </div>
           </div>
         </footer>
-      </div>
+      </template>
+    </div>
+  </Transition>
+  
+  <!-- Backdrop (fullscreen only - teleported to body) -->
+  <Teleport to="body">
+    <Transition name="artifactuse-backdrop">
+      <div 
+        v-if="state.isPanelOpen && state.isFullscreen"
+        class="artifactuse-panel__backdrop"
+        @click="closePanel"
+      ></div>
     </Transition>
-    
-    <!-- Backdrop (fullscreen only - teleported to body) -->
-    <Teleport to="body">
-      <Transition name="artifactuse-backdrop">
-        <div 
-          v-if="state.isPanelOpen && state.isFullscreen"
-          class="artifactuse-panel__backdrop"
-          @click="closePanel"
-        ></div>
-      </Transition>
-    </Teleport>
+  </Teleport>
 </template>
 
 <script setup>
@@ -353,6 +530,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useArtifactuse } from './index.js';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+import JSZip from 'jszip';
 
 // Emits
 const emit = defineEmits(['close', 'ai-request', 'save', 'export', 'resize']);
@@ -362,6 +540,7 @@ const {
   state, 
   activeArtifact, 
   artifactCount,
+  hasArtifacts,
   closePanel, 
   toggleFullscreen, 
   setViewMode,
@@ -379,6 +558,8 @@ const codeScrollRef = ref(null);
 const copied = ref(false);
 const showArtifactList = ref(false);
 const iframeLoading = ref(true);
+const cameFromList = ref(false); // Track if user navigated from list view
+const isDownloadingAll = ref(false); // Track download all progress
 
 // Streaming state
 let updateTimer = null;
@@ -431,6 +612,28 @@ const showBranding = computed(() => {
   // Check if branding is enabled in config (defaults to true)
   return instance.config?.branding !== false;
 });
+
+// Effective panel width - smaller for list/empty views
+const effectivePanelWidth = computed(() => {
+  if (!activeArtifact.value) {
+    // List or empty view - use smaller width (30% or min 320px equivalent)
+    return Math.min(panelWidth.value, 30);
+  }
+  return panelWidth.value;
+});
+
+// Helper function to get artifact icon
+function getArtifactIcon(language) {
+  const iconPath = getLanguageIcon(language);
+  if (!iconPath) return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
+}
+
+// Go back to list view
+function goBackToList() {
+  cameFromList.value = false;
+  instance.state.clearActiveArtifact();
+}
 
 // Line numbers generation
 function generateLineNumbers() {
@@ -501,18 +704,15 @@ function startIframeLoadTimeout() {
   }, 10000);
 }
 
-function handleCodeScroll() {
-  // Line numbers and code scroll together in the same container
-  // No sync needed
-}
-
 async function handleCopy() {
   if (!activeArtifact.value) return;
   
   try {
     await navigator.clipboard.writeText(activeArtifact.value.code);
     copied.value = true;
-    setTimeout(() => { copied.value = false; }, 2000);
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
   } catch (error) {
     console.error('Failed to copy:', error);
   }
@@ -523,11 +723,10 @@ function handleDownload() {
   
   const { code, language, title } = activeArtifact.value;
   const extension = getFileExtension(language);
-  const filename = `${(title || 'artifact').toLowerCase().replace(/\s+/g, '-')}.${extension}`;
+  const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.${extension}`;
   
   const blob = new Blob([code], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
-  
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
@@ -537,34 +736,76 @@ function handleDownload() {
   URL.revokeObjectURL(url);
 }
 
+async function handleDownloadAll() {
+  if (isDownloadingAll.value || nonInlineArtifacts.value.length === 0) return;
+  
+  isDownloadingAll.value = true;
+  
+  try {
+    const zip = new JSZip();
+    const usedFilenames = new Map(); // Track used filenames to handle duplicates
+    
+    for (const artifact of nonInlineArtifacts.value) {
+      if (!artifact.code) continue; // Skip empty artifacts
+      
+      const extension = getFileExtension(artifact.language);
+      let baseFilename = (artifact.title || 'untitled')
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-_]/g, ''); // Remove special characters
+      
+      // Handle duplicate filenames
+      let filename = `${baseFilename}.${extension}`;
+      const count = usedFilenames.get(filename) || 0;
+      if (count > 0) {
+        filename = `${baseFilename}-${count}.${extension}`;
+      }
+      usedFilenames.set(`${baseFilename}.${extension}`, count + 1);
+      
+      zip.file(filename, artifact.code);
+    }
+    
+    // Generate zip and trigger download
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const zipFilename = `artifacts-${timestamp}.zip`;
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = zipFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to create ZIP:', error);
+  } finally {
+    isDownloadingAll.value = false;
+  }
+}
+
 function handleOpenInNewTab() {
   if (panelUrl.value) {
     window.open(panelUrl.value, '_blank');
   }
 }
 
-function navigateArtifact(direction) {
-  const newIndex = currentArtifactIndex.value + direction;
-  if (newIndex >= 0 && newIndex < state.artifacts.length) {
-    const artifact = state.artifacts[newIndex];
-    openArtifact(artifact);
+function handleCodeScroll() {
+  // Sync line numbers scroll position with code scroll
+  if (lineNumbersRef.value && codeScrollRef.value) {
+    lineNumbersRef.value.style.transform = `translateY(-${codeScrollRef.value.scrollTop}px)`;
   }
 }
 
-// Artifact list popup methods
 function toggleArtifactList() {
   showArtifactList.value = !showArtifactList.value;
 }
 
 function selectArtifact(artifact) {
+  cameFromList.value = true;
   openArtifact(artifact);
   showArtifactList.value = false;
-}
-
-function getArtifactIcon(language) {
-  const iconPath = getLanguageIcon(language);
-  if (!iconPath) return '';
-  return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
 }
 
 function navigateToPrevNonInline() {

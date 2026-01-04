@@ -1,4 +1,4 @@
-// artifactuse/react/index.js
+// artifactuse/react/index.jsx
 // React integration for Artifactuse SDK
 
 import React, { 
@@ -10,13 +10,41 @@ import React, {
   useMemo,
   useRef 
 } from 'react';
-import createArtifactuse from '../core/index.js';
+import createArtifactuse, { DEFAULT_PANELS } from '../core/index.js';
 
 // Context
 const ArtifactuseContext = createContext(null);
 
 /**
  * Artifactuse Provider Component
+ * 
+ * @param {object} props
+ * @param {React.ReactNode} props.children - Child components
+ * @param {object} props.config - Configuration options
+ * @param {string} props.config.cdnUrl - Base CDN URL for panels
+ * @param {object} props.config.panels - Panel configuration (add/override/disable)
+ * @param {string} props.config.theme - Theme: 'dark' | 'light' | 'auto'
+ * @param {object} props.config.colors - Custom theme colors
+ * @param {object} props.config.processors - Enable/disable processors
+ * @param {boolean} props.config.branding - Show branding
+ * 
+ * @example
+ * // Basic usage
+ * <ArtifactuseProvider>
+ *   <App />
+ * </ArtifactuseProvider>
+ * 
+ * @example
+ * // With custom panels
+ * <ArtifactuseProvider config={{
+ *   panels: {
+ *     'chart': 'chart-panel',
+ *     'video': 'https://my-cdn.com/video-panel',
+ *     'canvas': null, // disable
+ *   }
+ * }}>
+ *   <App />
+ * </ArtifactuseProvider>
  */
 export function ArtifactuseProvider({ children, config = {} }) {
   const instanceRef = useRef(null);
@@ -36,6 +64,9 @@ export function ArtifactuseProvider({ children, config = {} }) {
     viewMode: 'preview',
     isFullscreen: false,
   });
+  
+  // Panel types state (for reactivity when registering/unregistering)
+  const [panelTypes, setPanelTypes] = useState(() => instance.getPanelTypes());
   
   // Subscribe to state changes
   useEffect(() => {
@@ -67,10 +98,27 @@ export function ArtifactuseProvider({ children, config = {} }) {
   const artifactCount = state.artifacts.length;
   const hasArtifacts = artifactCount > 0;
   
+  // Panel URL for active artifact
+  const activePanelUrl = useMemo(() => {
+    if (!activeArtifact) return null;
+    return instance.getPanelUrl(activeArtifact);
+  }, [activeArtifact, instance]);
+  
   // Wrap setTheme to also apply
   const setTheme = useCallback((theme) => {
     instance.setTheme(theme);
     instance.applyTheme();
+  }, [instance]);
+  
+  // Wrap panel registration to update panelTypes state
+  const registerPanel = useCallback((type, panel) => {
+    instance.registerPanel(type, panel);
+    setPanelTypes(instance.getPanelTypes());
+  }, [instance]);
+  
+  const unregisterPanel = useCallback((type) => {
+    instance.unregisterPanel(type);
+    setPanelTypes(instance.getPanelTypes());
   }, [instance]);
   
   // Context value
@@ -81,8 +129,13 @@ export function ArtifactuseProvider({ children, config = {} }) {
     artifactCount,
     hasArtifacts,
     
+    // Panel computed
+    panelTypes,
+    activePanelUrl,
+    
     // Methods
     processMessage: instance.processMessage,
+    initializeContent: instance.initializeContent,
     openArtifact: instance.openArtifact,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
@@ -90,6 +143,12 @@ export function ArtifactuseProvider({ children, config = {} }) {
     setViewMode: instance.setViewMode,
     getPanelUrl: instance.getPanelUrl,
     sendToPanel: instance.sendToPanel,
+    
+    // Panel management
+    hasPanel: instance.hasPanel,
+    registerPanel,
+    unregisterPanel,
+    getPanelTypes: instance.getPanelTypes,
     
     // Events
     on: instance.on,
@@ -99,7 +158,18 @@ export function ArtifactuseProvider({ children, config = {} }) {
     applyTheme: instance.applyTheme,
     setTheme,
     getTheme: instance.getTheme,
-  }), [instance, state, activeArtifact, artifactCount, hasArtifacts, setTheme]);
+  }), [
+    instance, 
+    state, 
+    activeArtifact, 
+    artifactCount, 
+    hasArtifacts, 
+    panelTypes,
+    activePanelUrl,
+    setTheme,
+    registerPanel,
+    unregisterPanel,
+  ]);
   
   return (
     <ArtifactuseContext.Provider value={value}>
@@ -139,6 +209,45 @@ export function useArtifactuseEvent(event, callback) {
   }, [event, callback, on, off]);
 }
 
+/**
+ * Custom hook for panel management
+ * 
+ * @example
+ * const { register, unregister, isRegistered, types } = usePanelRegistry();
+ * 
+ * // Register a custom panel
+ * register('chart', 'https://charts.example.com/panel');
+ */
+export function usePanelRegistry() {
+  const { 
+    registerPanel, 
+    unregisterPanel, 
+    hasPanel, 
+    panelTypes,
+    instance 
+  } = useArtifactuse();
+  
+  const isRegistered = useCallback((type) => {
+    return hasPanel({ type });
+  }, [hasPanel]);
+  
+  const getPanelUrl = useCallback((type, options = {}) => {
+    return instance.panelResolver?.resolve(type, options) || null;
+  }, [instance]);
+  
+  return {
+    register: registerPanel,
+    unregister: unregisterPanel,
+    isRegistered,
+    getPanelUrl,
+    types: panelTypes,
+    defaults: DEFAULT_PANELS,
+  };
+}
+
+// Export DEFAULT_PANELS for reference
+export { DEFAULT_PANELS };
+
 // Export components
 export { default as ArtifactuseAgentMessage } from './ArtifactuseAgentMessage.jsx';
 export { default as ArtifactusePanel } from './ArtifactusePanel.jsx';
@@ -153,4 +262,6 @@ export default {
   ArtifactuseProvider,
   useArtifactuse,
   useArtifactuseEvent,
+  usePanelRegistry,
+  DEFAULT_PANELS,
 };

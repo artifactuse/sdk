@@ -3,18 +3,23 @@
 
 /**
  * Process all 3D and design URLs in HTML
+ * @param {string} html - HTML content to process
+ * @param {object} options - Processing options
+ * @param {string} options.theme - Theme: 'dark' | 'light'
  */
-export function process3DEmbeds(html) {
+export function process3DEmbeds(html, options = {}) {
+  const theme = options.theme || 'dark';
+  
   // Sketchfab (linkified)
   const sketchfabLinkRegex = /<a[^>]*href="(https?:\/\/sketchfab\.com\/(?:3d-)?models\/([a-zA-Z0-9-]+)[^"]*)"[^>]*>[^<]*<\/a>/gi;
   html = html.replace(sketchfabLinkRegex, (match, url, modelId) => {
-    return createSketchfabEmbed(modelId);
+    return createSketchfabEmbed(modelId, theme);
   });
 
   // Sketchfab (raw)
   const sketchfabRegex = /(?<!["'=])(https?:\/\/sketchfab\.com\/(?:3d-)?models\/([a-zA-Z0-9-]+))(?!["'])/gi;
   html = html.replace(sketchfabRegex, (match, url, modelId) => {
-    return createSketchfabEmbed(modelId);
+    return createSketchfabEmbed(modelId, theme);
   });
 
   // Figma file (linkified)
@@ -82,12 +87,14 @@ export function process3DEmbeds(html) {
 
 /**
  * Create Sketchfab 3D model embed
+ * @param {string} modelId - Sketchfab model ID
+ * @param {string} theme - 'dark' | 'light'
  */
-export function createSketchfabEmbed(modelId) {
+export function createSketchfabEmbed(modelId, theme = 'dark') {
   return `
     <div class="artifactuse-sketchfab-wrapper">
       <iframe 
-        src="https://sketchfab.com/models/${modelId}/embed?autostart=1&ui_theme=dark" 
+        src="https://sketchfab.com/models/${modelId}/embed?autostart=1&ui_theme=${theme}" 
         frameborder="0" 
         allow="autoplay; fullscreen; xr-spatial-tracking" 
         mozallowfullscreen="true" 
@@ -101,6 +108,7 @@ export function createSketchfabEmbed(modelId) {
 
 /**
  * Create Figma file embed
+ * Note: Figma embed doesn't support theme parameter
  */
 export function createFigmaEmbed(fileKey, nodeId) {
   const nodeParam = nodeId ? `&node-id=${nodeId}` : '';
@@ -118,6 +126,7 @@ export function createFigmaEmbed(fileKey, nodeId) {
 
 /**
  * Create Figma prototype embed
+ * Note: Figma embed doesn't support theme parameter
  */
 export function createFigmaPrototypeEmbed(fileKey, originalUrl) {
   const encodedUrl = encodeURIComponent(originalUrl);
@@ -135,6 +144,7 @@ export function createFigmaPrototypeEmbed(fileKey, originalUrl) {
 
 /**
  * Create Canva embed (placeholder with link - Canva doesn't support direct embeds)
+ * Note: Canva doesn't support direct embedding with theme parameter
  */
 export function createCanvaEmbed(designId, originalUrl) {
   return `
@@ -156,6 +166,7 @@ export function createCanvaEmbed(designId, originalUrl) {
 
 /**
  * Create Dribbble shot embed
+ * Note: Dribbble embed doesn't support theme parameter
  */
 export function createDribbbleEmbed(shotId) {
   return `
@@ -172,6 +183,7 @@ export function createDribbbleEmbed(shotId) {
 
 /**
  * Create Behance project embed
+ * Note: Behance embed doesn't support theme parameter
  */
 export function createBehanceEmbed(projectId, originalUrl) {
   return `

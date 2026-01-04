@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useArtifactuse } from './index.jsx';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+import JSZip from 'jszip';
 
 /**
  * ArtifactusePanel Component
@@ -22,6 +23,7 @@ export default function ArtifactusePanel({
     state, 
     activeArtifact, 
     artifactCount,
+    hasArtifacts,
     closePanel, 
     toggleFullscreen, 
     setViewMode,
@@ -42,6 +44,8 @@ export default function ArtifactusePanel({
   const [showArtifactList, setShowArtifactList] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [cameFromList, setCameFromList] = useState(false);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   
   // Panel/split resize state
   const [panelWidth, setPanelWidth] = useState(50);
@@ -77,13 +81,38 @@ export default function ArtifactusePanel({
     return normalizeLang(activeArtifact.language);
   }, [activeArtifact]);
   
-  const currentArtifactIndex = useMemo(() => {
-    if (!activeArtifact || !state.artifacts.length) return -1;
-    return state.artifacts.findIndex(a => a.id === activeArtifact.id);
-  }, [activeArtifact, state.artifacts]);
+  const nonInlineArtifacts = useMemo(() => {
+    return state.artifacts.filter(a => !a.isInline);
+  }, [state.artifacts]);
+  
+  const currentNonInlineIndex = useMemo(() => {
+    if (!activeArtifact) return -1;
+    return nonInlineArtifacts.findIndex(a => a.id === activeArtifact.id);
+  }, [activeArtifact, nonInlineArtifacts]);
   
   const showBranding = useMemo(() => {
     return instance?.config?.branding !== false;
+  }, [instance]);
+  
+  // Effective panel width - smaller for list/empty views
+  const effectivePanelWidth = useMemo(() => {
+    if (!activeArtifact) {
+      return Math.min(panelWidth, 30);
+    }
+    return panelWidth;
+  }, [activeArtifact, panelWidth]);
+  
+  // Helper function to get artifact icon HTML
+  const getArtifactIconHtml = useCallback((language) => {
+    const iconPath = getLanguageIcon(language);
+    if (!iconPath) return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>';
+    return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
+  }, []);
+  
+  // Go back to list view
+  const goBackToList = useCallback(() => {
+    setCameFromList(false);
+    instance.state.clearActiveArtifact();
   }, [instance]);
   
   // Generate line numbers
@@ -186,18 +215,73 @@ export default function ArtifactusePanel({
     URL.revokeObjectURL(url);
   }, [activeArtifact]);
   
+  // Handle download all as ZIP
+  const handleDownloadAll = useCallback(async () => {
+    if (isDownloadingAll || nonInlineArtifacts.length === 0) return;
+    
+    setIsDownloadingAll(true);
+    
+    try {
+      const zip = new JSZip();
+      const usedFilenames = new Map();
+      
+      for (const artifact of nonInlineArtifacts) {
+        if (!artifact.code) continue;
+        
+        const extension = getFileExtension(artifact.language);
+        let baseFilename = (artifact.title || 'untitled')
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-_]/g, '');
+        
+        let filename = `${baseFilename}.${extension}`;
+        const count = usedFilenames.get(filename) || 0;
+        if (count > 0) {
+          filename = `${baseFilename}-${count}.${extension}`;
+        }
+        usedFilenames.set(`${baseFilename}.${extension}`, count + 1);
+        
+        zip.file(filename, artifact.code);
+      }
+      
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const zipFilename = `artifacts-${timestamp}.zip`;
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = zipFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to create ZIP:', error);
+    } finally {
+      setIsDownloadingAll(false);
+    }
+  }, [isDownloadingAll, nonInlineArtifacts]);
+  
   // Navigate artifacts
   const navigatePrev = useCallback(() => {
-    if (currentArtifactIndex > 0) {
-      openArtifact(state.artifacts[currentArtifactIndex - 1].id);
+    if (currentNonInlineIndex > 0) {
+      openArtifact(nonInlineArtifacts[currentNonInlineIndex - 1]);
     }
-  }, [currentArtifactIndex, openArtifact, state.artifacts]);
+  }, [currentNonInlineIndex, openArtifact, nonInlineArtifacts]);
   
   const navigateNext = useCallback(() => {
-    if (currentArtifactIndex < state.artifacts.length - 1) {
-      openArtifact(state.artifacts[currentArtifactIndex + 1].id);
+    if (currentNonInlineIndex < nonInlineArtifacts.length - 1) {
+      openArtifact(nonInlineArtifacts[currentNonInlineIndex + 1]);
     }
-  }, [currentArtifactIndex, openArtifact, state.artifacts]);
+  }, [currentNonInlineIndex, openArtifact, nonInlineArtifacts]);
+  
+  // Select artifact from list
+  const selectArtifact = useCallback((artifact) => {
+    setCameFromList(true);
+    openArtifact(artifact);
+    setShowArtifactList(false);
+  }, [openArtifact]);
   
   // Panel resize handlers
   const startPanelResize = useCallback((e) => {
@@ -211,9 +295,9 @@ export default function ArtifactusePanel({
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
     
-    // Disable iframe mouse events during resize
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
+    document.querySelectorAll('iframe').forEach(iframe => {
+      iframe.style.pointerEvents = 'none';
+    });
   }, [panelWidth]);
   
   const handlePanelResize = useCallback((e) => {
@@ -235,8 +319,9 @@ export default function ArtifactusePanel({
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => iframe.style.pointerEvents = '');
+    document.querySelectorAll('iframe').forEach(iframe => {
+      iframe.style.pointerEvents = '';
+    });
   }, [handlePanelResize]);
   
   // Split resize handlers
@@ -246,8 +331,9 @@ export default function ArtifactusePanel({
     const rect = contentRef.current.getBoundingClientRect();
     splitResizeStateRef.current = {
       startX: e.clientX,
-      containerLeft: rect.left,
-      containerWidth: rect.width,
+      startPosition: splitPosition,
+      contentLeft: rect.left,
+      contentWidth: rect.width,
     };
     
     document.addEventListener('mousemove', handleSplitResize);
@@ -255,16 +341,16 @@ export default function ArtifactusePanel({
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
-  }, []);
+    document.querySelectorAll('iframe').forEach(iframe => {
+      iframe.style.pointerEvents = 'none';
+    });
+  }, [splitPosition]);
   
   const handleSplitResize = useCallback((e) => {
     if (!splitResizeStateRef.current) return;
     
-    const { containerLeft, containerWidth } = splitResizeStateRef.current;
-    const relativeX = e.clientX - containerLeft;
-    const newPosition = (relativeX / containerWidth) * 100;
+    const relativeX = e.clientX - splitResizeStateRef.current.contentLeft;
+    const newPosition = (relativeX / splitResizeStateRef.current.contentWidth) * 100;
     
     setSplitPosition(Math.min(Math.max(newPosition, 20), 80));
   }, []);
@@ -277,104 +363,59 @@ export default function ArtifactusePanel({
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => iframe.style.pointerEvents = '');
+    document.querySelectorAll('iframe').forEach(iframe => {
+      iframe.style.pointerEvents = '';
+    });
   }, [handleSplitResize]);
   
-  // Handle click outside artifact list
-  const handleClickOutside = useCallback((e) => {
-    if (showArtifactList && !e.target.closest('.artifactuse-panel__nav')) {
-      setShowArtifactList(false);
-    }
-  }, [showArtifactList]);
-  
-  // Watch for artifact changes
+  // Effect: Watch for artifact changes
   useEffect(() => {
     if (activeArtifact) {
       setIframeLoading(true);
       startIframeLoadTimeout();
-      
-      // Mark as streaming
-      setIsStreaming(true);
-      
-      // Debounce updates during streaming
-      clearTimeout(updateTimerRef.current);
-      updateTimerRef.current = setTimeout(() => {
-        generateLineNumbers();
-      }, 100);
-      
-      // Debounce end-of-streaming detection
-      clearTimeout(streamEndTimerRef.current);
-      streamEndTimerRef.current = setTimeout(() => {
-        setIsStreaming(false);
-        highlightCode();
-        
-        if (iframeRef.current && activeArtifact.isPreviewable) {
-          setIframeLoading(true);
-          startIframeLoadTimeout();
-          instance.bridge.loadArtifact(activeArtifact);
-        }
-      }, 500);
+      updateCodeView();
     }
-  }, [activeArtifact?.id, activeArtifact?.code]);
+  }, [activeArtifact?.id]);
   
-  // Update code view when viewMode changes
+  // Effect: Update code view when viewMode changes
   useEffect(() => {
     if (state.viewMode === 'code' || state.viewMode === 'split') {
       updateCodeView();
     }
   }, [state.viewMode, updateCodeView]);
   
-  // Update code view when panel opens
+  // Effect: Event subscriptions
   useEffect(() => {
-    if (state.isPanelOpen && (state.viewMode === 'code' || state.viewMode === 'split')) {
-      updateCodeView();
-    }
-  }, [state.isPanelOpen]);
-  
-  // Listen for events from iframe
-  useEffect(() => {
-    const unsubscribeAI = instance.on('ai:request', (data) => {
-      if (onAIRequest) onAIRequest(data);
-    });
-    
-    const unsubscribeSave = instance.on('save:request', (data) => {
-      if (onSave) onSave(data);
-    });
-    
-    const unsubscribeExport = instance.on('export:complete', (data) => {
-      if (onExport) onExport(data);
-    });
-    
-    document.addEventListener('click', handleClickOutside);
+    if (onAIRequest) instance.on('ai:request', onAIRequest);
+    if (onSave) instance.on('save:request', onSave);
+    if (onExport) instance.on('export:complete', onExport);
     
     return () => {
-      unsubscribeAI();
-      unsubscribeSave();
-      unsubscribeExport();
-      document.removeEventListener('click', handleClickOutside);
-      clearTimeout(updateTimerRef.current);
-      clearTimeout(streamEndTimerRef.current);
-      clearTimeout(iframeLoadTimerRef.current);
+      if (onAIRequest) instance.off('ai:request', onAIRequest);
+      if (onSave) instance.off('save:request', onSave);
+      if (onExport) instance.off('export:complete', onExport);
     };
-  }, [instance, onAIRequest, onSave, onExport, handleClickOutside]);
+  }, [instance, onAIRequest, onSave, onExport]);
   
-  // Cleanup resize on unmount
+  // Effect: Cleanup
   useEffect(() => {
     return () => {
       stopPanelResize();
       stopSplitResize();
+      clearTimeout(updateTimerRef.current);
+      clearTimeout(streamEndTimerRef.current);
+      clearTimeout(iframeLoadTimerRef.current);
     };
-  }, []);
+  }, [stopPanelResize, stopSplitResize]);
   
-  // Don't render if not open or no artifact
-  if (!state.isPanelOpen || !activeArtifact) {
-    return null;
-  }
+  // Don't render if panel is closed
+  if (!state.isPanelOpen) return null;
   
   const panelClasses = [
     'artifactuse-panel',
     state.isFullscreen && 'artifactuse-panel--fullscreen',
+    !activeArtifact && hasArtifacts && 'artifactuse-panel--list',
+    !hasArtifacts && 'artifactuse-panel--empty',
     className,
   ].filter(Boolean).join(' ');
   
@@ -383,6 +424,188 @@ export default function ArtifactusePanel({
     `artifactuse-panel__content--${state.viewMode}`,
   ].join(' ');
   
+  // ============================================
+  // EMPTY STATE: No artifacts
+  // ============================================
+  if (!hasArtifacts) {
+    return (
+      <div className={panelClasses} style={!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined}>
+        {!state.isFullscreen && (
+          <div className="artifactuse-panel__resize-handle" onMouseDown={startPanelResize}>
+            <div className="artifactuse-panel__resize-handle-line" />
+          </div>
+        )}
+        
+        <header className="artifactuse-panel__header artifactuse-panel__header--simple">
+          <div className="artifactuse-panel__title">
+            <span className="artifactuse-panel__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </span>
+            <div className="artifactuse-panel__title-content">
+              <span className="artifactuse-panel__name">Artifacts</span>
+            </div>
+          </div>
+          <div className="artifactuse-panel__actions">
+            <button 
+              className="artifactuse-panel__action artifactuse-panel__action--close"
+              title="Close panel"
+              onClick={closePanel}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </header>
+        
+        <div className="artifactuse-panel__empty">
+          <div className="artifactuse-panel__empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          </div>
+          <h3 className="artifactuse-panel__empty-title">No artifacts yet</h3>
+          <p className="artifactuse-panel__empty-text">
+            Code blocks, forms, and other interactive content will appear here as the AI generates them.
+          </p>
+        </div>
+        
+        <footer className="artifactuse-panel__footer artifactuse-panel__footer--simple">
+          {showBranding && (
+            <a 
+              href="https://artifactuse.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="artifactuse-panel__branding"
+            >
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7" />
+              </svg>
+              <span>Artifactuse</span>
+            </a>
+          )}
+        </footer>
+      </div>
+    );
+  }
+  
+  // ============================================
+  // LIST VIEW: Has artifacts but none selected
+  // ============================================
+  if (!activeArtifact) {
+    return (
+      <div className={panelClasses} style={!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined}>
+        {!state.isFullscreen && (
+          <div className="artifactuse-panel__resize-handle" onMouseDown={startPanelResize}>
+            <div className="artifactuse-panel__resize-handle-line" />
+          </div>
+        )}
+        
+        <header className="artifactuse-panel__header artifactuse-panel__header--simple">
+          <div className="artifactuse-panel__title">
+            <span className="artifactuse-panel__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </span>
+            <div className="artifactuse-panel__title-content">
+              <span className="artifactuse-panel__name">Artifacts</span>
+              <span className="artifactuse-panel__meta">{nonInlineArtifacts.length} available</span>
+            </div>
+          </div>
+          <div className="artifactuse-panel__actions">
+            {/* Download All button */}
+            <button 
+              className={`artifactuse-panel__action ${isDownloadingAll ? 'artifactuse-panel__action--loading' : ''}`}
+              disabled={isDownloadingAll}
+              title="Download all as ZIP"
+              onClick={handleDownloadAll}
+            >
+              {!isDownloadingAll ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              ) : (
+                <svg className="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="32" />
+                </svg>
+              )}
+            </button>
+            
+            <button 
+              className="artifactuse-panel__action artifactuse-panel__action--close"
+              title="Close panel"
+              onClick={closePanel}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </header>
+        
+        <div className="artifactuse-panel__list">
+          <div className="artifactuse-panel__list-items">
+            {nonInlineArtifacts.map((artifact, index) => (
+              <button
+                key={artifact.id}
+                className="artifactuse-panel__list-item"
+                onClick={() => selectArtifact(artifact)}
+              >
+                <span 
+                  className="artifactuse-panel__list-item-icon"
+                  dangerouslySetInnerHTML={{ __html: getArtifactIconHtml(artifact.language) }}
+                />
+                <div className="artifactuse-panel__list-item-content">
+                  <span className="artifactuse-panel__list-item-title">
+                    {artifact.title || 'Untitled'}
+                  </span>
+                  <span className="artifactuse-panel__list-item-meta">
+                    {getLanguageDisplayName(artifact.language)}
+                    {artifact.lineCount && ` • ${artifact.lineCount} lines`}
+                  </span>
+                </div>
+                <span className="artifactuse-panel__list-item-arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <footer className="artifactuse-panel__footer artifactuse-panel__footer--simple">
+          {showBranding && (
+            <a 
+              href="https://artifactuse.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="artifactuse-panel__branding"
+            >
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7" />
+              </svg>
+              <span>Artifactuse</span>
+            </a>
+          )}
+        </footer>
+      </div>
+    );
+  }
+  
+  // ============================================
+  // DETAIL VIEW: Active artifact selected
+  // ============================================
   return (
     <>
       <div 
@@ -401,12 +624,23 @@ export default function ArtifactusePanel({
         
         {/* Header */}
         <header className="artifactuse-panel__header">
+          {/* Back button (only when navigated from list view) */}
+          {cameFromList && (
+            <button 
+              className="artifactuse-panel__back"
+              title="Back to list"
+              onClick={goBackToList}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
+          
           <div className="artifactuse-panel__title">
             <span 
               className="artifactuse-panel__icon"
-              dangerouslySetInnerHTML={{ 
-                __html: languageIcon ? `<svg viewBox="0 0 24 24" fill="currentColor">${languageIcon}</svg>` : '' 
-              }}
+              dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="currentColor">${languageIcon}</svg>` }}
             />
             <div className="artifactuse-panel__title-content">
               <span className="artifactuse-panel__name">{activeArtifact.title || 'Untitled'}</span>
@@ -417,7 +651,7 @@ export default function ArtifactusePanel({
             </div>
           </div>
           
-          {/* View mode tabs */}
+          {/* Tabs */}
           <div className="artifactuse-panel__tabs">
             <button 
               className={`artifactuse-panel__tab ${state.viewMode === 'preview' ? 'artifactuse-panel__tab--active' : ''}`}
@@ -617,11 +851,11 @@ export default function ArtifactusePanel({
             </button>
             
             {/* Navigation */}
-            {artifactCount > 1 && (
+            {nonInlineArtifacts.length > 1 && (
               <div className="artifactuse-panel__nav">
                 <button 
                   className="artifactuse-panel__nav-btn"
-                  disabled={currentArtifactIndex <= 0}
+                  disabled={currentNonInlineIndex <= 0}
                   title="Previous artifact"
                   onClick={navigatePrev}
                 >
@@ -634,7 +868,7 @@ export default function ArtifactusePanel({
                   className="artifactuse-panel__nav-trigger"
                   onClick={() => setShowArtifactList(!showArtifactList)}
                 >
-                  <span>{currentArtifactIndex + 1} / {artifactCount}</span>
+                  <span>{currentNonInlineIndex + 1} / {nonInlineArtifacts.length}</span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
@@ -642,7 +876,7 @@ export default function ArtifactusePanel({
                 
                 <button 
                   className="artifactuse-panel__nav-btn"
-                  disabled={currentArtifactIndex >= state.artifacts.length - 1}
+                  disabled={currentNonInlineIndex >= nonInlineArtifacts.length - 1}
                   title="Next artifact"
                   onClick={navigateNext}
                 >
@@ -655,7 +889,7 @@ export default function ArtifactusePanel({
                 {showArtifactList && (
                   <div className="artifactuse-panel__artifact-list">
                     <div className="artifactuse-panel__artifact-list-header">
-                      <span>All Artifacts ({artifactCount})</span>
+                      <span>All Artifacts ({nonInlineArtifacts.length})</span>
                       <button 
                         className="artifactuse-panel__artifact-list-close"
                         onClick={() => setShowArtifactList(false)}
@@ -667,20 +901,15 @@ export default function ArtifactusePanel({
                       </button>
                     </div>
                     <div className="artifactuse-panel__artifact-list-items">
-                      {state.artifacts.map((artifact, index) => (
+                      {nonInlineArtifacts.map((artifact, index) => (
                         <button 
                           key={artifact.id}
                           className={`artifactuse-panel__artifact-item ${artifact.id === activeArtifact.id ? 'artifactuse-panel__artifact-item--active' : ''}`}
-                          onClick={() => {
-                            openArtifact(artifact.id);
-                            setShowArtifactList(false);
-                          }}
+                          onClick={() => selectArtifact(artifact)}
                         >
                           <span 
                             className="artifactuse-panel__artifact-item-icon"
-                            dangerouslySetInnerHTML={{ 
-                              __html: `<svg viewBox="0 0 24 24" fill="currentColor">${getLanguageIcon(artifact.language) || ''}</svg>` 
-                            }}
+                            dangerouslySetInnerHTML={{ __html: getArtifactIconHtml(artifact.language) }}
                           />
                           <div className="artifactuse-panel__artifact-item-content">
                             <span className="artifactuse-panel__artifact-item-title">

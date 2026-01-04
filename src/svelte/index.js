@@ -3,13 +3,35 @@
 
 import { writable, derived } from 'svelte/store';
 import { setContext, getContext, onMount, onDestroy } from 'svelte';
-import createArtifactuse from '../core/index.js';
+import createArtifactuse, { DEFAULT_PANELS } from '../core/index.js';
 
 // Context key
 const ARTIFACTUSE_KEY = 'artifactuse';
 
 /**
  * Create Artifactuse stores and instance
+ * 
+ * @param {object} config - Configuration options
+ * @param {string} config.cdnUrl - Base CDN URL for panels
+ * @param {object} config.panels - Panel configuration (add/override/disable)
+ * @param {string} config.theme - Theme: 'dark' | 'light' | 'auto'
+ * @param {object} config.colors - Custom theme colors
+ * @param {object} config.processors - Enable/disable processors
+ * @param {boolean} config.branding - Show branding
+ * 
+ * @example
+ * // Basic usage
+ * const stores = createArtifactuseStores();
+ * 
+ * @example
+ * // With custom panels
+ * const stores = createArtifactuseStores({
+ *   panels: {
+ *     'chart': 'chart-panel',
+ *     'video': 'https://my-cdn.com/video-panel',
+ *     'canvas': null, // disable
+ *   }
+ * });
  */
 export function createArtifactuseStores(config = {}) {
   const instance = createArtifactuse(config);
@@ -20,6 +42,9 @@ export function createArtifactuseStores(config = {}) {
   const isPanelOpen = writable(false);
   const viewMode = writable('preview');
   const isFullscreen = writable(false);
+  
+  // Panel types store (for reactivity when registering/unregistering)
+  const panelTypes = writable(instance.getPanelTypes());
   
   // Subscribe to core state changes
   const unsubscribe = instance.state.subscribe((state) => {
@@ -43,6 +68,12 @@ export function createArtifactuseStores(config = {}) {
   
   const hasArtifacts = derived(artifacts, ($artifacts) => $artifacts.length > 0);
   
+  // Panel URL for active artifact
+  const activePanelUrl = derived(activeArtifact, ($activeArtifact) => {
+    if (!$activeArtifact) return null;
+    return instance.getPanelUrl($activeArtifact);
+  });
+  
   // Cleanup function
   const destroy = () => {
     unsubscribe();
@@ -53,6 +84,17 @@ export function createArtifactuseStores(config = {}) {
   const setTheme = (theme) => {
     instance.setTheme(theme);
     instance.applyTheme();
+  };
+  
+  // Wrap panel registration to update panelTypes store
+  const registerPanel = (type, panel) => {
+    instance.registerPanel(type, panel);
+    panelTypes.set(instance.getPanelTypes());
+  };
+  
+  const unregisterPanel = (type) => {
+    instance.unregisterPanel(type);
+    panelTypes.set(instance.getPanelTypes());
   };
   
   return {
@@ -69,8 +111,13 @@ export function createArtifactuseStores(config = {}) {
     artifactCount,
     hasArtifacts,
     
+    // Panel stores
+    panelTypes,
+    activePanelUrl,
+    
     // Methods
     processMessage: instance.processMessage,
+    initializeContent: instance.initializeContent,
     openArtifact: instance.openArtifact,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
@@ -78,6 +125,12 @@ export function createArtifactuseStores(config = {}) {
     setViewMode: instance.setViewMode,
     getPanelUrl: instance.getPanelUrl,
     sendToPanel: instance.sendToPanel,
+    
+    // Panel management
+    hasPanel: instance.hasPanel,
+    registerPanel,
+    unregisterPanel,
+    getPanelTypes: instance.getPanelTypes,
     
     // Events
     on: instance.on,
@@ -95,6 +148,17 @@ export function createArtifactuseStores(config = {}) {
 
 /**
  * Set Artifactuse context (call in parent component)
+ * 
+ * @example
+ * <script>
+ *   import { setArtifactuseContext } from 'artifactuse/svelte';
+ *   
+ *   const stores = setArtifactuseContext({
+ *     panels: {
+ *       'chart': 'chart-panel'
+ *     }
+ *   });
+ * </script>
  */
 export function setArtifactuseContext(config = {}) {
   const stores = createArtifactuseStores(config);
@@ -153,6 +217,9 @@ export function useArtifactuse(config = {}) {
   return stores;
 }
 
+// Export DEFAULT_PANELS for reference
+export { DEFAULT_PANELS };
+
 // Export components
 export { default as ArtifactuseAgentMessage } from './ArtifactuseAgentMessage.svelte';
 export { default as ArtifactusePanel } from './ArtifactusePanel.svelte';
@@ -168,4 +235,5 @@ export default {
   setArtifactuseContext,
   getArtifactuseContext,
   useArtifactuse,
+  DEFAULT_PANELS,
 };

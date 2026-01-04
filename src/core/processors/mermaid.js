@@ -75,6 +75,8 @@ function unescapeFromAttribute(text) {
 
 /**
  * Initialize Mermaid rendering (call after DOM is ready)
+ * @param {object} config - Mermaid configuration options
+ * @param {string} config.theme - Theme: 'dark' | 'light'
  */
 export function initializeMermaid(config = {}) {
   // Check if Mermaid is available
@@ -108,13 +110,24 @@ export function initializeMermaid(config = {}) {
 
 /**
  * Initialize Mermaid configuration
+ * @param {object} config - Configuration options
+ * @param {string} config.theme - Theme: 'dark' | 'light'
  */
 function initMermaidConfig(config = {}) {
   if (typeof mermaid === 'undefined') return;
   
+  // Map our theme to Mermaid theme
+  // Mermaid themes: 'default', 'dark', 'forest', 'neutral', 'base'
+  const themeMapping = {
+    dark: 'dark',
+    light: 'default'
+  };
+  
+  const mermaidTheme = themeMapping[config.theme] || 'default';
+  
   const defaultConfig = {
     startOnLoad: false,
-    theme: 'default',
+    theme: mermaidTheme,
     securityLevel: 'loose',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     flowchart: {
@@ -130,7 +143,9 @@ function initMermaidConfig(config = {}) {
     gantt: {
       useMaxWidth: true,
     },
+    // Allow config overrides but ensure theme is applied
     ...config,
+    theme: mermaidTheme, // Ensure theme is not overridden by spread
   };
   
   mermaid.initialize(defaultConfig);
@@ -282,6 +297,9 @@ export function hasMermaidLoadFailed() {
 
 /**
  * Process and render mermaid in a specific element
+ * @param {HTMLElement} element - Element to process
+ * @param {object} config - Mermaid configuration options
+ * @param {string} config.theme - Theme: 'dark' | 'light'
  */
 export function processMermaidInElement(element, config = {}) {
   if (!element) return Promise.resolve();
@@ -330,6 +348,27 @@ export async function updateMermaidDiagram(containerId, newDiagram) {
   await renderAllMermaid();
 }
 
+/**
+ * Re-initialize Mermaid with new theme
+ * Call this when theme changes to re-render diagrams
+ * @param {object} config - Configuration options
+ * @param {string} config.theme - Theme: 'dark' | 'light'
+ */
+export async function reinitializeMermaid(config = {}) {
+  // Reset initialization state
+  mermaidInitialized = false;
+  
+  // Reset all containers
+  document.querySelectorAll('.artifactuse-mermaid-container').forEach(container => {
+    container.dataset.rendered = 'false';
+    container.innerHTML = '<div class="artifactuse-mermaid-loading">Loading diagram...</div>';
+    container.classList.remove('artifactuse-mermaid-rendered', 'artifactuse-mermaid-error-container');
+  });
+  
+  // Re-initialize with new config
+  return initializeMermaid(config);
+}
+
 export default {
   processMermaid,
   createMermaidBlock,
@@ -341,4 +380,5 @@ export default {
   processMermaidInElement,
   rerenderMermaid,
   updateMermaidDiagram,
+  reinitializeMermaid,
 };

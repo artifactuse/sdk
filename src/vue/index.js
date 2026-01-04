@@ -2,13 +2,35 @@
 // Vue 3 integration for Artifactuse SDK
 
 import { ref, reactive, computed, onMounted, onUnmounted, provide, inject } from 'vue';
-import createArtifactuse from '../core/index.js';
+import createArtifactuse, { DEFAULT_PANELS } from '../core/index.js';
 
 // Injection key
 const ARTIFACTUSE_KEY = Symbol('artifactuse');
 
 /**
  * Create and provide Artifactuse instance
+ * 
+ * @param {object} config - Configuration options
+ * @param {string} config.cdnUrl - Base CDN URL for panels
+ * @param {object} config.panels - Panel configuration (add/override/disable)
+ * @param {string} config.theme - Theme: 'dark' | 'light' | 'auto'
+ * @param {object} config.colors - Custom theme colors
+ * @param {object} config.processors - Enable/disable processors
+ * @param {boolean} config.branding - Show branding
+ * 
+ * @example
+ * // Basic usage
+ * const { state, processMessage } = provideArtifactuse();
+ * 
+ * @example
+ * // With custom panels
+ * const { state } = provideArtifactuse({
+ *   panels: {
+ *     'chart': 'chart-panel',
+ *     'video': 'https://my-cdn.com/video-panel',
+ *     'canvas': null, // disable
+ *   }
+ * });
  */
 export function provideArtifactuse(config = {}) {
   const instance = createArtifactuse(config);
@@ -41,6 +63,14 @@ export function provideArtifactuse(config = {}) {
   
   const hasArtifacts = computed(() => state.artifacts.length > 0);
   
+  // Panel-related computed
+  const panelTypes = computed(() => instance.getPanelTypes());
+  
+  const activePanelUrl = computed(() => {
+    if (!activeArtifact.value) return null;
+    return instance.getPanelUrl(activeArtifact.value);
+  });
+  
   // Apply theme immediately on initialization
   instance.applyTheme();
   
@@ -62,8 +92,13 @@ export function provideArtifactuse(config = {}) {
     artifactCount,
     hasArtifacts,
     
+    // Panel computed
+    panelTypes,
+    activePanelUrl,
+    
     // Methods
     processMessage: instance.processMessage,
+    initializeContent: instance.initializeContent,
     openArtifact: instance.openArtifact,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
@@ -71,6 +106,12 @@ export function provideArtifactuse(config = {}) {
     setViewMode: instance.setViewMode,
     getPanelUrl: instance.getPanelUrl,
     sendToPanel: instance.sendToPanel,
+    
+    // Panel management
+    hasPanel: instance.hasPanel,
+    registerPanel: instance.registerPanel,
+    unregisterPanel: instance.unregisterPanel,
+    getPanelTypes: instance.getPanelTypes,
     
     // Events
     on: instance.on,
@@ -150,6 +191,14 @@ export function createArtifactuseComposable(config = {}) {
   
   const hasArtifacts = computed(() => state.artifacts.length > 0);
   
+  // Panel-related computed
+  const panelTypes = computed(() => instance.getPanelTypes());
+  
+  const activePanelUrl = computed(() => {
+    if (!activeArtifact.value) return null;
+    return instance.getPanelUrl(activeArtifact.value);
+  });
+  
   return {
     instance,
     state,
@@ -157,8 +206,13 @@ export function createArtifactuseComposable(config = {}) {
     artifactCount,
     hasArtifacts,
     
+    // Panel computed
+    panelTypes,
+    activePanelUrl,
+    
     // Methods
     processMessage: instance.processMessage,
+    initializeContent: instance.initializeContent,
     openArtifact: instance.openArtifact,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
@@ -166,6 +220,12 @@ export function createArtifactuseComposable(config = {}) {
     setViewMode: instance.setViewMode,
     getPanelUrl: instance.getPanelUrl,
     sendToPanel: instance.sendToPanel,
+    
+    // Panel management
+    hasPanel: instance.hasPanel,
+    registerPanel: instance.registerPanel,
+    unregisterPanel: instance.unregisterPanel,
+    getPanelTypes: instance.getPanelTypes,
     
     // Events
     on: instance.on,
@@ -181,6 +241,9 @@ export function createArtifactuseComposable(config = {}) {
   };
 }
 
+// Export DEFAULT_PANELS for reference
+export { DEFAULT_PANELS };
+
 // Export components
 export { default as ArtifactuseAgentMessage } from './ArtifactuseAgentMessage.vue';
 export { default as ArtifactusePanel } from './ArtifactusePanel.vue';
@@ -195,4 +258,5 @@ export default {
   provideArtifactuse,
   useArtifactuse,
   createArtifactuseComposable,
+  DEFAULT_PANELS,
 };

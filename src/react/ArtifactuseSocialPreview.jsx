@@ -391,7 +391,7 @@ export function ArtifactuseSocialPreview({ artifact, theme = 'dark', onCopy }) {
   };
   
   return (
-    <div className={`artifactuse-social artifactuse-social-${platform}`} data-theme={theme}>
+    <div className={`artifactuse-social artifactuse-social-${platform}`} data-artifactuse-theme={theme}>
       {renderPlatform()}
       
       {/* Actions Bar */}

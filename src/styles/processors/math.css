@@ -12,6 +12,7 @@
   overflow-x: auto;
   padding: 1rem 0;
   text-align: center;
+  background:rgba(var(--artifactuse-background));
 }
 
 .artifactuse-math-inline {

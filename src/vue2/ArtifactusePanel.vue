@@ -1,11 +1,11 @@
 <template>
-  <div v-if="state.isPanelOpen && activeArtifact">
+  <div v-if="state.isPanelOpen">
     <!-- Panel -->
     <transition name="artifactuse-panel">
       <div 
         class="artifactuse-panel"
-        :class="{ 'artifactuse-panel--fullscreen': state.isFullscreen }"
-        :style="!state.isFullscreen ? { width: panelWidth + '%' } : null"
+        :class="panelClasses"
+        :style="!state.isFullscreen ? { width: effectivePanelWidth + '%' } : null"
       >
         <!-- Resize handle -->
         <div 
@@ -16,280 +16,446 @@
           <div class="artifactuse-panel__resize-handle-line"></div>
         </div>
         
-        <!-- Header -->
-        <header class="artifactuse-panel__header">
-          <div class="artifactuse-panel__title">
-            <span class="artifactuse-panel__icon" v-html="languageIconHtml"></span>
-            <div class="artifactuse-panel__title-content">
-              <span class="artifactuse-panel__name">{{ activeArtifact.title || 'Untitled' }}</span>
-              <span class="artifactuse-panel__meta">
-                {{ languageDisplay }}
-                <template v-if="activeArtifact.lineCount"> • {{ activeArtifact.lineCount }} lines</template>
+        <!-- ============================================ -->
+        <!-- EMPTY STATE: No artifacts -->
+        <!-- ============================================ -->
+        <template v-if="!hasArtifacts">
+          <header class="artifactuse-panel__header artifactuse-panel__header--simple">
+            <div class="artifactuse-panel__title">
+              <span class="artifactuse-panel__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
               </span>
+              <div class="artifactuse-panel__title-content">
+                <span class="artifactuse-panel__name">Artifacts</span>
+              </div>
             </div>
-          </div>
-          
-          <!-- View mode tabs -->
-          <div class="artifactuse-panel__tabs">
-            <button 
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
-              :disabled="!activeArtifact.isPreviewable"
-              title="Preview"
-              @click="setViewMode('preview')"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-            <button 
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
-              title="Code"
-              @click="setViewMode('code')"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-              </svg>
-            </button>
-            <button 
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
-              :disabled="!activeArtifact.isPreviewable"
-              title="Split view"
-              @click="setViewMode('split')"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                <line x1="12" y1="3" x2="12" y2="21"></line>
-              </svg>
-            </button>
-          </div>
-          
-          <!-- Actions -->
-          <div class="artifactuse-panel__actions">
-            <button 
-              class="artifactuse-panel__action"
-              :title="state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
-              @click="toggleFullscreen"
-            >
-              <svg v-if="!state.isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <polyline points="9 21 3 21 3 15"></polyline>
-                <line x1="21" y1="3" x2="14" y2="10"></line>
-                <line x1="3" y1="21" x2="10" y2="14"></line>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="4 14 10 14 10 20"></polyline>
-                <polyline points="20 10 14 10 14 4"></polyline>
-                <line x1="14" y1="10" x2="21" y2="3"></line>
-                <line x1="3" y1="21" x2="10" y2="14"></line>
-              </svg>
-            </button>
-            <button 
-              class="artifactuse-panel__action artifactuse-panel__action--close"
-              title="Close"
-              @click="closePanel"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </header>
-        
-        <!-- Content -->
-        <div 
-          ref="contentRef"
-          class="artifactuse-panel__content"
-          :class="`artifactuse-panel__content--${state.viewMode}`"
-        >
-          <!-- Preview pane -->
-          <div 
-            v-if="state.viewMode === 'preview' || state.viewMode === 'split'"
-            class="artifactuse-panel__preview"
-            :style="state.viewMode === 'split' ? { width: splitPosition + '%' } : null"
-          >
-            <!-- Loading spinner -->
-            <div v-if="iframeLoading && panelUrl" class="artifactuse-panel__loading">
-              <div class="artifactuse-panel__spinner"></div>
+            <div class="artifactuse-panel__actions">
+              <button 
+                class="artifactuse-panel__action artifactuse-panel__action--close"
+                title="Close panel"
+                @click="closePanel"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
             </div>
-            
-            <iframe
-              v-if="panelUrl"
-              ref="iframeRef"
-              :src="panelUrl"
-              class="artifactuse-panel__iframe"
-              :class="{ 'artifactuse-panel__iframe--loading': iframeLoading }"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-              @load="handleIframeLoad"
-              @error="handleIframeError"
-            ></iframe>
-            <div v-else class="artifactuse-panel__no-preview">
+          </header>
+          
+          <div class="artifactuse-panel__empty">
+            <div class="artifactuse-panel__empty-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
-                <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
-              <p>Preview not available for {{ languageDisplay }}</p>
             </div>
+            <h3 class="artifactuse-panel__empty-title">No artifacts yet</h3>
+            <p class="artifactuse-panel__empty-text">
+              Code blocks, forms, and other interactive content will appear here as the AI generates them.
+            </p>
           </div>
           
-          <!-- Code pane -->
-          <div 
-            v-if="state.viewMode === 'code' || state.viewMode === 'split'"
-            class="artifactuse-panel__code"
-            :style="state.viewMode === 'split' ? { width: (100 - splitPosition) + '%' } : null"
-          >
-            <!-- Split resize handle -->
-            <div 
-              v-if="state.viewMode === 'split'"
-              class="artifactuse-panel__split-handle"
-              @mousedown.prevent="startSplitResize"
-            >
-              <div class="artifactuse-panel__split-handle-line"></div>
-            </div>
-            
-            <div ref="codeScrollRef" class="artifactuse-panel__code-scroll">
-              <div ref="lineNumbersRef" class="artifactuse-panel__line-numbers"></div>
-              <pre class="artifactuse-panel__code-block"><code 
-                ref="codeRef"
-                :class="`language-${normalizedLanguage}`"
-              >{{ activeArtifact.code }}</code></pre>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Footer -->
-        <footer class="artifactuse-panel__footer">
-          <div class="artifactuse-panel__footer-left">
-            <!-- Branding -->
+          <footer class="artifactuse-panel__footer artifactuse-panel__footer--simple">
             <a 
               v-if="showBranding"
               href="https://artifactuse.com"
               target="_blank"
               rel="noopener noreferrer"
               class="artifactuse-panel__branding"
-              title="Powered by Artifactuse"
             >
               <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
                 <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7"></path>
               </svg>
               <span>Artifactuse</span>
             </a>
-            
-            <!-- Size badge -->
-            <span v-if="activeArtifact.code" class="artifactuse-panel__badge artifactuse-panel__badge--secondary">
-              {{ formatBytes(new Blob([activeArtifact.code]).size) }}
-            </span>
-          </div>
+          </footer>
+        </template>
+        
+        <!-- ============================================ -->
+        <!-- LIST VIEW: Has artifacts but none selected -->
+        <!-- ============================================ -->
+        <template v-else-if="!activeArtifact">
+          <header class="artifactuse-panel__header artifactuse-panel__header--simple">
+            <div class="artifactuse-panel__title">
+              <span class="artifactuse-panel__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </span>
+              <div class="artifactuse-panel__title-content">
+                <span class="artifactuse-panel__name">Artifacts</span>
+                <span class="artifactuse-panel__meta">{{ nonInlineArtifacts.length }} available</span>
+              </div>
+            </div>
+            <div class="artifactuse-panel__actions">
+              <!-- Download All button -->
+              <button 
+                class="artifactuse-panel__action"
+                :class="{ 'artifactuse-panel__action--loading': isDownloadingAll }"
+                :disabled="isDownloadingAll"
+                title="Download all as ZIP"
+                @click="handleDownloadAll"
+              >
+                <svg v-if="!isDownloadingAll" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <svg v-else class="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"></circle>
+                </svg>
+              </button>
+              
+              <button 
+                class="artifactuse-panel__action artifactuse-panel__action--close"
+                title="Close panel"
+                @click="closePanel"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </header>
           
-          <div class="artifactuse-panel__footer-right">
-            <!-- Copy button -->
-            <button 
-              class="artifactuse-panel__footer-action"
-              :class="{ 'artifactuse-panel__footer-action--success': copied }"
-              :title="copied ? 'Copied!' : 'Copy code'"
-              @click="handleCopy"
-            >
-              <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </button>
-            
-            <!-- Download button -->
-            <button 
-              class="artifactuse-panel__footer-action"
-              title="Download"
-              @click="handleDownload"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-            </button>
-            
-            <!-- Navigation -->
-            <div v-if="artifactCount > 1" class="artifactuse-panel__nav">
-              <button 
-                class="artifactuse-panel__nav-btn"
-                :disabled="currentArtifactIndex <= 0"
-                title="Previous artifact"
-                @click="navigatePrev"
+          <div class="artifactuse-panel__list">
+            <div class="artifactuse-panel__list-items">
+              <button
+                v-for="(artifact, index) in nonInlineArtifacts"
+                :key="artifact.id"
+                class="artifactuse-panel__list-item"
+                @click="selectArtifactFromList(artifact)"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              
-              <button 
-                class="artifactuse-panel__nav-trigger"
-                @click="showArtifactList = !showArtifactList"
-              >
-                <span>{{ currentArtifactIndex + 1 }} / {{ artifactCount }}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              
-              <button 
-                class="artifactuse-panel__nav-btn"
-                :disabled="currentArtifactIndex >= state.artifacts.length - 1"
-                title="Next artifact"
-                @click="navigateNext"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-              
-              <!-- Artifact list popup -->
-              <transition name="artifactuse-popup">
-                <div v-if="showArtifactList" class="artifactuse-panel__artifact-list">
-                  <div class="artifactuse-panel__artifact-list-header">
-                    <span>All Artifacts ({{ artifactCount }})</span>
-                    <button 
-                      class="artifactuse-panel__artifact-list-close"
-                      @click="showArtifactList = false"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="artifactuse-panel__artifact-list-items">
-                    <button 
-                      v-for="(artifact, index) in nonInlineArtifacts"
-                      :key="artifact.id"
-                      class="artifactuse-panel__artifact-item"
-                      :class="{ 'artifactuse-panel__artifact-item--active': artifact.id === activeArtifact.id }"
-                      @click="selectArtifact(artifact.id)"
-                    >
-                      <span class="artifactuse-panel__artifact-item-icon" v-html="getArtifactIconHtml(artifact)"></span>
-                      <div class="artifactuse-panel__artifact-item-content">
-                        <span class="artifactuse-panel__artifact-item-title">{{ artifact.title || 'Untitled' }}</span>
-                        <span class="artifactuse-panel__artifact-item-meta">
-                          {{ getLanguageDisplayName(artifact.language) }}
-                          <template v-if="artifact.lineCount"> • {{ artifact.lineCount }} lines</template>
-                        </span>
-                      </div>
-                      <span class="artifactuse-panel__artifact-item-index">{{ index + 1 }}</span>
-                    </button>
-                  </div>
+                <span class="artifactuse-panel__list-item-icon" v-html="getArtifactIconHtml(artifact)"></span>
+                <div class="artifactuse-panel__list-item-content">
+                  <span class="artifactuse-panel__list-item-title">{{ artifact.title || 'Untitled' }}</span>
+                  <span class="artifactuse-panel__list-item-meta">
+                    {{ getLanguageDisplayName(artifact.language) }}
+                    <template v-if="artifact.lineCount"> • {{ artifact.lineCount }} lines</template>
+                  </span>
                 </div>
-              </transition>
+                <span class="artifactuse-panel__list-item-arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </span>
+              </button>
             </div>
           </div>
-        </footer>
+          
+          <footer class="artifactuse-panel__footer artifactuse-panel__footer--simple">
+            <a 
+              v-if="showBranding"
+              href="https://artifactuse.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="artifactuse-panel__branding"
+            >
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7"></path>
+              </svg>
+              <span>Artifactuse</span>
+            </a>
+          </footer>
+        </template>
+        
+        <!-- ============================================ -->
+        <!-- DETAIL VIEW: Active artifact selected -->
+        <!-- ============================================ -->
+        <template v-else>
+          <!-- Header -->
+          <header class="artifactuse-panel__header">
+            <!-- Back button (only when navigated from list view) -->
+            <button 
+              v-if="cameFromList"
+              class="artifactuse-panel__back"
+              title="Back to list"
+              @click="goBackToList"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            
+            <div class="artifactuse-panel__title">
+              <span class="artifactuse-panel__icon" v-html="languageIconHtml"></span>
+              <div class="artifactuse-panel__title-content">
+                <span class="artifactuse-panel__name">{{ activeArtifact.title || 'Untitled' }}</span>
+                <span class="artifactuse-panel__meta">
+                  {{ languageDisplay }}
+                  <template v-if="activeArtifact.lineCount"> • {{ activeArtifact.lineCount }} lines</template>
+                </span>
+              </div>
+            </div>
+            
+            <!-- View mode tabs -->
+            <div class="artifactuse-panel__tabs">
+              <button 
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
+                :disabled="!activeArtifact.isPreviewable"
+                title="Preview"
+                @click="setViewMode('preview')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button 
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
+                title="Code"
+                @click="setViewMode('code')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </button>
+              <button 
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
+                :disabled="!activeArtifact.isPreviewable"
+                title="Split view"
+                @click="setViewMode('split')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <line x1="12" y1="3" x2="12" y2="21"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Actions -->
+            <div class="artifactuse-panel__actions">
+              <button 
+                class="artifactuse-panel__action"
+                :title="state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+                @click="toggleFullscreen"
+              >
+                <svg v-if="!state.isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="4 14 10 14 10 20"></polyline>
+                  <polyline points="20 10 14 10 14 4"></polyline>
+                  <line x1="14" y1="10" x2="21" y2="3"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button 
+                class="artifactuse-panel__action artifactuse-panel__action--close"
+                title="Close"
+                @click="closePanel"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </header>
+          
+          <!-- Content -->
+          <div 
+            ref="contentRef"
+            class="artifactuse-panel__content"
+            :class="`artifactuse-panel__content--${state.viewMode}`"
+          >
+            <!-- Preview pane -->
+            <div 
+              v-if="state.viewMode === 'preview' || state.viewMode === 'split'"
+              class="artifactuse-panel__preview"
+              :style="state.viewMode === 'split' ? { width: splitPosition + '%' } : null"
+            >
+              <!-- Loading spinner -->
+              <div v-if="iframeLoading && panelUrl" class="artifactuse-panel__loading">
+                <div class="artifactuse-panel__spinner"></div>
+              </div>
+              
+              <iframe
+                v-if="panelUrl"
+                ref="iframeRef"
+                :src="panelUrl"
+                class="artifactuse-panel__iframe"
+                :class="{ 'artifactuse-panel__iframe--loading': iframeLoading }"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                @load="handleIframeLoad"
+                @error="handleIframeError"
+              ></iframe>
+              <div v-else class="artifactuse-panel__no-preview">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
+                  <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                <p>Preview not available for {{ languageDisplay }}</p>
+              </div>
+            </div>
+            
+            <!-- Code pane -->
+            <div 
+              v-if="state.viewMode === 'code' || state.viewMode === 'split'"
+              class="artifactuse-panel__code"
+              :style="state.viewMode === 'split' ? { width: (100 - splitPosition) + '%' } : null"
+            >
+              <!-- Split resize handle -->
+              <div 
+                v-if="state.viewMode === 'split'"
+                class="artifactuse-panel__split-handle"
+                @mousedown.prevent="startSplitResize"
+              >
+                <div class="artifactuse-panel__split-handle-line"></div>
+              </div>
+              
+              <div ref="codeScrollRef" class="artifactuse-panel__code-scroll">
+                <div ref="lineNumbersRef" class="artifactuse-panel__line-numbers"></div>
+                <pre class="artifactuse-panel__code-block"><code 
+                  ref="codeRef"
+                  :class="`language-${normalizedLanguage}`"
+                >{{ activeArtifact.code }}</code></pre>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <footer class="artifactuse-panel__footer">
+            <div class="artifactuse-panel__footer-left">
+              <!-- Branding -->
+              <a 
+                v-if="showBranding"
+                href="https://artifactuse.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="artifactuse-panel__branding"
+                title="Powered by Artifactuse"
+              >
+                <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+                  <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7"></path>
+                </svg>
+                <span>Artifactuse</span>
+              </a>
+              
+              <!-- Size badge -->
+              <span v-if="activeArtifact.code" class="artifactuse-panel__badge artifactuse-panel__badge--secondary">
+                {{ formatBytes(new Blob([activeArtifact.code]).size) }}
+              </span>
+            </div>
+            
+            <div class="artifactuse-panel__footer-right">
+              <!-- Copy button -->
+              <button 
+                class="artifactuse-panel__footer-action"
+                :class="{ 'artifactuse-panel__footer-action--success': copied }"
+                :title="copied ? 'Copied!' : 'Copy code'"
+                @click="handleCopy"
+              >
+                <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              
+              <!-- Download button -->
+              <button 
+                class="artifactuse-panel__footer-action"
+                title="Download"
+                @click="handleDownload"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              </button>
+              
+              <!-- Navigation -->
+              <div v-if="nonInlineArtifacts.length > 1" class="artifactuse-panel__nav">
+                <button 
+                  class="artifactuse-panel__nav-btn"
+                  :disabled="currentNonInlineIndex <= 0"
+                  title="Previous artifact"
+                  @click="navigatePrev"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+                
+                <button 
+                  class="artifactuse-panel__nav-trigger"
+                  @click="showArtifactList = !showArtifactList"
+                >
+                  <span>{{ currentNonInlineIndex + 1 }} / {{ nonInlineArtifacts.length }}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                
+                <button 
+                  class="artifactuse-panel__nav-btn"
+                  :disabled="currentNonInlineIndex >= nonInlineArtifacts.length - 1"
+                  title="Next artifact"
+                  @click="navigateNext"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+                
+                <!-- Artifact list popup -->
+                <transition name="artifactuse-popup">
+                  <div v-if="showArtifactList" class="artifactuse-panel__artifact-list">
+                    <div class="artifactuse-panel__artifact-list-header">
+                      <span>All Artifacts ({{ nonInlineArtifacts.length }})</span>
+                      <button 
+                        class="artifactuse-panel__artifact-list-close"
+                        @click="showArtifactList = false"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="artifactuse-panel__artifact-list-items">
+                      <button 
+                        v-for="(artifact, index) in nonInlineArtifacts"
+                        :key="artifact.id"
+                        class="artifactuse-panel__artifact-item"
+                        :class="{ 'artifactuse-panel__artifact-item--active': artifact.id === activeArtifact.id }"
+                        @click="selectArtifact(artifact)"
+                      >
+                        <span class="artifactuse-panel__artifact-item-icon" v-html="getArtifactIconHtml(artifact)"></span>
+                        <div class="artifactuse-panel__artifact-item-content">
+                          <span class="artifactuse-panel__artifact-item-title">{{ artifact.title || 'Untitled' }}</span>
+                          <span class="artifactuse-panel__artifact-item-meta">
+                            {{ getLanguageDisplayName(artifact.language) }}
+                            <template v-if="artifact.lineCount"> • {{ artifact.lineCount }} lines</template>
+                          </span>
+                        </div>
+                        <span class="artifactuse-panel__artifact-item-index">{{ index + 1 }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </transition>
+              </div>
+            </div>
+          </footer>
+        </template>
       </div>
     </transition>
     
@@ -297,7 +463,7 @@
     <portal to="artifactuse-portal" :disabled="!usePortal">
       <transition name="artifactuse-backdrop">
         <div 
-          v-if="state.isFullscreen"
+          v-if="state.isFullscreen && activeArtifact"
           class="artifactuse-panel__backdrop"
           @click="closePanel"
         ></div>
@@ -311,6 +477,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick, defineComponent
 import { useArtifactuse } from './composables.js';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+import JSZip from 'jszip';
 
 export default defineComponent({
   name: 'ArtifactusePanel',
@@ -328,6 +495,7 @@ export default defineComponent({
       state, 
       activeArtifact,
       artifactCount,
+      hasArtifacts,
       closePanel, 
       toggleFullscreen, 
       setViewMode,
@@ -348,6 +516,8 @@ export default defineComponent({
     const showArtifactList = ref(false);
     const iframeLoading = ref(true);
     const isStreaming = ref(false);
+    const cameFromList = ref(false);
+    const isDownloadingAll = ref(false);
     
     // Panel/split resize state
     const panelWidth = ref(50);
@@ -386,17 +556,33 @@ export default defineComponent({
       return normalizeLang(activeArtifact.value.language);
     });
     
-    const currentArtifactIndex = computed(() => {
-      if (!activeArtifact.value || !state.artifacts.length) return -1;
-      return state.artifacts.findIndex(a => a.id === activeArtifact.value.id);
+    const nonInlineArtifacts = computed(() => {
+      return state.artifacts.filter(a => !a.isInline);
     });
     
-    const nonInlineArtifacts = computed(() => {
-      return state.artifacts.filter(a => !a.inline);
+    const currentNonInlineIndex = computed(() => {
+      if (!activeArtifact.value || !nonInlineArtifacts.value.length) return -1;
+      return nonInlineArtifacts.value.findIndex(a => a.id === activeArtifact.value.id);
     });
     
     const showBranding = computed(() => {
       return instance.config?.branding !== false;
+    });
+    
+    // Effective panel width - smaller for list/empty views
+    const effectivePanelWidth = computed(() => {
+      if (!activeArtifact.value) {
+        return Math.min(panelWidth.value, 30);
+      }
+      return panelWidth.value;
+    });
+    
+    const panelClasses = computed(() => {
+      return {
+        'artifactuse-panel--fullscreen': state.isFullscreen,
+        'artifactuse-panel--list': !activeArtifact.value && hasArtifacts.value,
+        'artifactuse-panel--empty': !hasArtifacts.value,
+      };
     });
     
     // Methods
@@ -492,25 +678,83 @@ export default defineComponent({
       URL.revokeObjectURL(url);
     }
     
+    async function handleDownloadAll() {
+      if (isDownloadingAll.value || nonInlineArtifacts.value.length === 0) return;
+      
+      isDownloadingAll.value = true;
+      
+      try {
+        const zip = new JSZip();
+        const usedFilenames = new Map();
+        
+        for (const artifact of nonInlineArtifacts.value) {
+          if (!artifact.code) continue;
+          
+          const extension = getFileExtension(artifact.language);
+          let baseFilename = (artifact.title || 'untitled')
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-_]/g, '');
+          
+          let filename = `${baseFilename}.${extension}`;
+          const count = usedFilenames.get(filename) || 0;
+          if (count > 0) {
+            filename = `${baseFilename}-${count}.${extension}`;
+          }
+          usedFilenames.set(`${baseFilename}.${extension}`, count + 1);
+          
+          zip.file(filename, artifact.code);
+        }
+        
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const timestamp = new Date().toISOString().slice(0, 10);
+        const zipFilename = `artifacts-${timestamp}.zip`;
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = zipFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Failed to create ZIP:', error);
+      } finally {
+        isDownloadingAll.value = false;
+      }
+    }
+    
+    function goBackToList() {
+      cameFromList.value = false;
+      instance.state.clearActiveArtifact();
+    }
+    
     function navigatePrev() {
-      if (currentArtifactIndex.value > 0) {
-        openArtifact(state.artifacts[currentArtifactIndex.value - 1].id);
+      if (currentNonInlineIndex.value > 0) {
+        openArtifact(nonInlineArtifacts.value[currentNonInlineIndex.value - 1]);
       }
     }
     
     function navigateNext() {
-      if (currentArtifactIndex.value < state.artifacts.length - 1) {
-        openArtifact(state.artifacts[currentArtifactIndex.value + 1].id);
+      if (currentNonInlineIndex.value < nonInlineArtifacts.value.length - 1) {
+        openArtifact(nonInlineArtifacts.value[currentNonInlineIndex.value + 1]);
       }
     }
     
-    function selectArtifact(id) {
-      openArtifact(id);
+    function selectArtifactFromList(artifact) {
+      cameFromList.value = true;
+      openArtifact(artifact);
+    }
+    
+    function selectArtifact(artifact) {
+      openArtifact(artifact);
       showArtifactList.value = false;
     }
     
     function getArtifactIconHtml(artifact) {
       const icon = getLanguageIcon(artifact.language) || '';
+      if (!icon) return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>';
       return `<svg viewBox="0 0 24 24" fill="currentColor">${icon}</svg>`;
     }
     
@@ -677,6 +921,7 @@ export default defineComponent({
       state,
       activeArtifact,
       artifactCount,
+      hasArtifacts,
       closePanel,
       toggleFullscreen,
       setViewMode,
@@ -693,6 +938,8 @@ export default defineComponent({
       copied,
       showArtifactList,
       iframeLoading,
+      cameFromList,
+      isDownloadingAll,
       panelWidth,
       splitPosition,
       
@@ -701,17 +948,22 @@ export default defineComponent({
       languageIconHtml,
       panelUrl,
       normalizedLanguage,
-      currentArtifactIndex,
       nonInlineArtifacts,
+      currentNonInlineIndex,
       showBranding,
+      effectivePanelWidth,
+      panelClasses,
       
       // Methods
       handleIframeLoad,
       handleIframeError,
       handleCopy,
       handleDownload,
+      handleDownloadAll,
+      goBackToList,
       navigatePrev,
       navigateNext,
+      selectArtifactFromList,
       selectArtifact,
       getArtifactIconHtml,
       startPanelResize,

@@ -97,13 +97,13 @@ export const DEFAULT_COLORS = {
   dark: {
     primary: '99, 102, 241',         // #6366f1 Indigo-500
     primaryHover: '79, 70, 229',     // #4f46e5 Indigo-600
-    background: '17, 24, 39',        // #111827 Gray-900
-    surface: '31, 41, 55',           // #1f2937 Gray-800
+    background: '40, 40, 40',        // #111827 Gray-900
+    surface: '40, 40, 40',           // #1f2937 Gray-800
     surfaceHover: '55, 65, 81',      // #374151 Gray-700
     text: '243, 244, 246',           // #f3f4f6 Gray-100
     textSecondary: '156, 163, 175',  // #9ca3af Gray-400
     textMuted: '107, 114, 128',      // #6b7280 Gray-500
-    border: '75, 85, 99',            // #4b5563 Gray-600
+    border: '61, 61, 61',            // #4b5563 Gray-600
     borderLight: '55, 65, 81',       // #374151 Gray-700
     success: '34, 197, 94',          // #22c55e Green-500
     warning: '234, 179, 8',          // #eab308 Yellow-500

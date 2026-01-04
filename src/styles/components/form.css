@@ -5,7 +5,7 @@
 
 /* Base Form Container */
 .artifactuse-inline-form {
-  background: rgba(var(--artifactuse-surface), 0.5);
+  background: rgba(var(--artifactuse-surface), 1);
   border: 1px solid rgba(var(--artifactuse-border), 0.5);
   border-radius: 16px;
   padding: 16px;
@@ -18,7 +18,7 @@
 /* Buttons-only variant - more compact */
 .artifactuse-inline-form.artifactuse-form-buttons {
   padding: 12px;
-  background: transparent;
+  /* background: transparent; */
   border: none;
   max-width: none;
 }
@@ -376,6 +376,30 @@
   border-top: none;
 }
 
+
+/* Form Mobile */
+@media (max-width: 480px) {
+  .artifactuse-inline-form {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: none;
+  }
+  
+  .artifactuse-form-buttons {
+    flex-direction: column;
+  }
+  
+  .artifactuse-form-btn {
+    width: 100%;
+  }
+  
+  .artifactuse-inline-form.artifactuse-form-horizontal .artifactuse-form-fields {
+    flex-direction: column;
+  }
+}
+
+
+
 /* ============================================================
    LIGHT THEME OVERRIDES
    ============================================================ */
@@ -401,3 +425,4 @@
 [data-artifactuse-theme="light"] .artifactuse-form-btn-ghost {
   border-color: rgba(var(--artifactuse-border), 0.3);
 }
+

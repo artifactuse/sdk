@@ -3,7 +3,7 @@
     ref="containerRef"
     class="artifactuse-social"
     :class="[`artifactuse-social-${platform}`]"
-    :data-theme="theme"
+    :data-artifactuse-theme="theme"
   >
     <!-- Twitter/X -->
     <template v-if="platform === 'twitter'">

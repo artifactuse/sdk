@@ -3,18 +3,23 @@
 
 /**
  * Process all social media URLs in HTML
+ * @param {string} html - HTML content to process
+ * @param {object} options - Processing options
+ * @param {string} options.theme - Theme: 'dark' | 'light'
  */
-export function processSocialEmbeds(html) {
+export function processSocialEmbeds(html, options = {}) {
+  const theme = options.theme || 'dark';
+  
   // Twitter/X (linkified)
   const twitterLinkRegex = /<a[^>]*href="(https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)\/status\/(\d+)[^"]*)"[^>]*>[^<]*<\/a>/gi;
   html = html.replace(twitterLinkRegex, (match, url, username, tweetId) => {
-    return createTwitterEmbed(username, tweetId);
+    return createTwitterEmbed(username, tweetId, theme);
   });
 
   // Twitter/X (raw)
   const twitterRegex = /(?<!["'=])(https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)\/status\/(\d+))(?!["'])/gi;
   html = html.replace(twitterRegex, (match, url, username, tweetId) => {
-    return createTwitterEmbed(username, tweetId);
+    return createTwitterEmbed(username, tweetId, theme);
   });
 
   // Instagram Posts (linkified)
@@ -106,11 +111,14 @@ export function processSocialEmbeds(html) {
 
 /**
  * Create Twitter/X embed
+ * @param {string} username - Twitter username
+ * @param {string} tweetId - Tweet ID
+ * @param {string} theme - 'dark' | 'light'
  */
-export function createTwitterEmbed(username, tweetId) {
+export function createTwitterEmbed(username, tweetId, theme = 'dark') {
   return `
     <div class="artifactuse-twitter-wrapper">
-      <blockquote class="twitter-tweet" data-dnt="true" data-theme="light">
+      <blockquote class="twitter-tweet" data-dnt="true" data-theme="${theme}">
         <a href="https://twitter.com/${username}/status/${tweetId}">Loading tweet...</a>
       </blockquote>
       <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
@@ -120,6 +128,7 @@ export function createTwitterEmbed(username, tweetId) {
 
 /**
  * Create Instagram post embed
+ * Note: Instagram embed doesn't support theme parameter
  */
 export function createInstagramEmbed(postId) {
   return `
@@ -138,6 +147,7 @@ export function createInstagramEmbed(postId) {
 
 /**
  * Create Instagram reel embed
+ * Note: Instagram embed doesn't support theme parameter
  */
 export function createInstagramReelEmbed(reelId) {
   return `
@@ -156,6 +166,7 @@ export function createInstagramReelEmbed(reelId) {
 
 /**
  * Create TikTok embed
+ * Note: TikTok embed doesn't support theme parameter
  */
 export function createTikTokEmbed(videoId) {
   return `
@@ -173,6 +184,7 @@ export function createTikTokEmbed(videoId) {
 
 /**
  * Create LinkedIn embed
+ * Note: LinkedIn embed doesn't support theme parameter
  */
 export function createLinkedInEmbed(postId, originalUrl) {
   return `
@@ -193,6 +205,7 @@ export function createLinkedInEmbed(postId, originalUrl) {
 
 /**
  * Create Reddit embed
+ * Note: Reddit embed doesn't support theme parameter
  */
 export function createRedditEmbed(subreddit, postId, originalUrl) {
   return `
@@ -212,6 +225,7 @@ export function createRedditEmbed(subreddit, postId, originalUrl) {
 
 /**
  * Create Facebook embed
+ * Note: Facebook embed doesn't support theme parameter
  */
 export function createFacebookEmbed(url) {
   const encodedUrl = encodeURIComponent(url);
@@ -235,6 +249,7 @@ export function createFacebookEmbed(url) {
 
 /**
  * Create Pinterest embed
+ * Note: Pinterest embed doesn't support theme parameter
  */
 export function createPinterestEmbed(pinId) {
   return `

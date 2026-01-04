@@ -1,50 +1,452 @@
 /* ============================================================
-   AUDIO STYLES
+   CUSTOM AUDIO PLAYER STYLES
+   Theme-aware waveform player
    ============================================================ */
 
-.artifactuse-audio-wrapper {
-  margin: 1em 0;
-  padding: 12px;
-  background: rgb(var(--artifactuse-surface));
-  border-radius: 8px;
-}
-
-.artifactuse-audio {
-  width: 100%;
-}
-
-.artifactuse-audio-info {
-  margin-top: 8px;
-  font-size: 12px;
-  color: rgb(var(--artifactuse-text-secondary));
-}
-
+/* Player Container */
 .artifactuse-audio-player {
-  background-color: rgb(var(--artifactuse-surface));
-  border-radius: 0.5rem;
+  --player-bg: rgb(var(--artifactuse-surface));
+  --player-bg-hover: rgb(var(--artifactuse-surface-hover));
+  --player-text: rgb(var(--artifactuse-text));
+  --player-text-secondary: rgb(var(--artifactuse-text-secondary));
+  --player-text-muted: rgb(var(--artifactuse-text-muted));
+  --player-accent: rgb(var(--artifactuse-primary));
+  --player-accent-hover: rgb(var(--artifactuse-primary-hover));
+  --player-border: rgb(var(--artifactuse-border));
+  --player-progress: rgb(var(--artifactuse-primary));
+  --player-progress-bg: rgba(var(--artifactuse-text-muted), 0.2);
+  
+  position: relative;
+  margin: 1.5rem 0;
   padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: var(--player-bg);
+  border: 1px solid var(--player-border);
+  border-radius: 12px;
+  font-family: var(--artifactuse-font-family);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.artifactuse-audio-player:hover {
+  border-color: rgba(var(--artifactuse-primary), 0.3);
+  box-shadow: 0 4px 12px -2px rgba(var(--artifactuse-shadow-color), 0.15);
+}
+
+.artifactuse-audio-player:focus {
+  outline: 2px solid var(--player-accent);
+  outline-offset: 2px;
+}
+
+.artifactuse-audio-player.is-playing {
+  border-color: rgba(var(--artifactuse-primary), 0.5);
+}
+
+/* Hidden native audio element */
+.artifactuse-audio-element {
+  display: none;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.artifactuse-audio-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.artifactuse-audio-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(var(--artifactuse-primary), 0.15), rgba(var(--artifactuse-primary), 0.05));
+  border-radius: 8px;
+  color: var(--player-accent);
+}
+
+.artifactuse-audio-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.artifactuse-audio-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
 }
 
 .artifactuse-audio-filename {
+  font-size: 0.9375rem;
   font-weight: 500;
-  color: rgb(var(--artifactuse-text));
+  color: var(--player-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Spotify */
+.artifactuse-audio-format {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--player-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.artifactuse-audio-duration {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--player-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   WAVEFORM
+   ============================================================ */
+
+.artifactuse-audio-waveform-container {
+  margin-bottom: 1rem;
+}
+
+.artifactuse-audio-waveform {
+  position: relative;
+  height: 48px;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.artifactuse-audio-waveform-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Progress overlay */
+.artifactuse-audio-waveform-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--artifactuse-primary), 0.25) 0%,
+    rgba(var(--artifactuse-primary), 0.15) 100%
+  );
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+.artifactuse-audio-waveform-progress::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--player-accent);
+  box-shadow: 0 0 8px rgba(var(--artifactuse-primary), 0.5);
+}
+
+/* Hover preview */
+.artifactuse-audio-waveform-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: rgba(var(--artifactuse-text), 0.05);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.artifactuse-audio-waveform:hover .artifactuse-audio-waveform-hover {
+  opacity: 1;
+}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+
+.artifactuse-audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.artifactuse-audio-controls-left,
+.artifactuse-audio-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+.artifactuse-audio-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--player-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+  border-radius: 6px;
+}
+
+.artifactuse-audio-btn:hover {
+  color: var(--player-text);
+}
+
+.artifactuse-audio-btn:active {
+  transform: scale(0.95);
+}
+
+.artifactuse-audio-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Play button - larger and prominent */
+.artifactuse-audio-play-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--player-accent);
+  color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(var(--artifactuse-primary), 0.3);
+}
+
+.artifactuse-audio-play-btn:hover {
+  background: var(--player-accent-hover);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(var(--artifactuse-primary), 0.4);
+}
+
+.artifactuse-audio-play-btn:active {
+  transform: scale(0.98);
+}
+
+.artifactuse-audio-play-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Slight offset for play icon to look centered */
+.artifactuse-audio-icon-play {
+  margin-left: 2px;
+}
+
+/* Time display */
+.artifactuse-audio-time {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--player-text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 3rem;
+}
+
+/* Speed button */
+.artifactuse-audio-speed-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--player-progress-bg);
+  color: var(--player-text-secondary);
+  border-radius: 4px;
+}
+
+.artifactuse-audio-speed-btn:hover {
+  background: rgba(var(--artifactuse-primary), 0.15);
+  color: var(--player-accent);
+}
+
+/* Volume controls */
+.artifactuse-audio-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.artifactuse-audio-mute-btn {
+  width: 2rem;
+  height: 2rem;
+}
+
+.artifactuse-audio-volume-slider-container {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+.artifactuse-audio-volume:hover .artifactuse-audio-volume-slider-container {
+  width: 64px;
+}
+
+.artifactuse-audio-volume-slider {
+  width: 64px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--player-progress-bg);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.artifactuse-audio-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--player-accent);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.artifactuse-audio-volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.artifactuse-audio-volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--player-accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Download button */
+.artifactuse-audio-download-btn {
+  width: 2rem;
+  height: 2rem;
+  text-decoration: none;
+}
+
+.artifactuse-audio-download-btn:hover {
+  color: var(--player-accent);
+}
+
+/* ============================================================
+   LOADING STATE
+   ============================================================ */
+
+.artifactuse-audio-player[data-loading="true"] .artifactuse-audio-play-btn {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .artifactuse-audio-player {
+    padding: 0.875rem;
+  }
+  
+  .artifactuse-audio-header {
+    margin-bottom: 0.75rem;
+  }
+  
+  .artifactuse-audio-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .artifactuse-audio-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .artifactuse-audio-filename {
+    font-size: 0.875rem;
+  }
+  
+  .artifactuse-audio-waveform {
+    height: 40px;
+  }
+  
+  .artifactuse-audio-play-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .artifactuse-audio-speed-btn {
+    display: none;
+  }
+  
+  .artifactuse-audio-volume-slider-container {
+    display: none;
+  }
+}
+
+/* ============================================================
+   SPOTIFY / SOUNDCLOUD / APPLE MUSIC EMBEDS
+   ============================================================ */
+
+.artifactuse-spotify-wrapper,
+.artifactuse-soundcloud-wrapper,
+.artifactuse-apple-music-wrapper {
+  margin: 1.5rem 0;
+}
+
 .artifactuse-spotify-embed {
   width: 100%;
   border-radius: 12px;
 }
 
-/* Apple Music */
 .artifactuse-apple-music-embed {
   width: 100%;
-  border-radius: 0.75rem;
+  height: 175px;
+  border-radius: 12px;
 }
 
-/* SoundCloud */
 .artifactuse-soundcloud-embed {
   width: 100%;
+  height: 166px;
   border-radius: 8px;
+}
+
+/* ============================================================
+   DARK/LIGHT THEME ADJUSTMENTS
+   ============================================================ */
+
+/* Light theme specific adjustments */
+[data-artifactuse-theme="light"] .artifactuse-audio-player {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-artifactuse-theme="light"] .artifactuse-audio-player:hover {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
+}
+
+[data-artifactuse-theme="light"] .artifactuse-audio-waveform-progress {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--artifactuse-primary), 0.2) 0%,
+    rgba(var(--artifactuse-primary), 0.1) 100%
+  );
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: light) {
+  :root:not([data-artifactuse-theme]) .artifactuse-audio-player {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  
+  :root:not([data-artifactuse-theme]) .artifactuse-audio-player:hover {
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
+  }
 }
