@@ -1,6 +1,6 @@
 {
   "name": "artifactuse",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "The Artifact SDK for AI Agents - Turn AI outputs into interactive experiences",
   "author": "Artifactuse",
@@ -8,10 +8,10 @@
   "homepage": "https://artifactuse.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/artifactuse/artifactuse.git"
+    "url": "https://github.com/artifactuse/sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/artifactuse/artifactuse/issues"
+    "url": "https://github.com/artifactuse/sdk/issues"
   },
   "keywords": [
     "ai",

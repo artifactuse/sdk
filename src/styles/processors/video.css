@@ -77,7 +77,6 @@
 
 .artifactuse-video-item-container:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(var(--artifactuse-shadow-color), 0.2);
 }
 
 /* Video caption styling */
