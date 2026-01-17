@@ -348,7 +348,7 @@
               
               <!-- Size badge -->
               <span v-if="activeArtifact.code" class="artifactuse-panel__badge artifactuse-panel__badge--secondary">
-                {{ formatBytes(new Blob([activeArtifact.code]).size) }}
+                {{ formatBytes(activeArtifact.size) }}
               </span>
             </div>
             

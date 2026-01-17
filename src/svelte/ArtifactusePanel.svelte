@@ -820,7 +820,7 @@
           <!-- Size badge -->
           {#if artifact.code}
             <span class="artifactuse-panel__badge artifactuse-panel__badge--secondary">
-              {formatBytes(new Blob([artifact.code]).size)}
+              {formatBytes(artifact.size)}
             </span>
           {/if}
         </div>

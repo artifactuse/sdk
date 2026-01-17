@@ -813,7 +813,7 @@ export default function ArtifactusePanel({
             {/* Size badge */}
             {activeArtifact.code && (
               <span className="artifactuse-panel__badge artifactuse-panel__badge--secondary">
-                {formatBytes(new Blob([activeArtifact.code]).size)}
+                {formatBytes(activeArtifact.size)}
               </span>
             )}
           </div>
