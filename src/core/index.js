@@ -841,20 +841,52 @@ export function createArtifactuse(userConfig = {}) {
   };
 }
 
+
 /**
  * Deep merge configuration
+ * Handles circular references and special objects
  */
-function mergeConfig(defaults, overrides) {
+function mergeConfig(defaults, overrides, seen = new WeakSet()) {
+  // Handle null/undefined
+  if (!overrides) return defaults;
+  if (!defaults) return overrides;
+  
+  // Prevent circular references
+  if (typeof overrides === 'object' && overrides !== null) {
+    if (seen.has(overrides)) {
+      return overrides; // Return as-is to prevent infinite loop
+    }
+    seen.add(overrides);
+  }
+  
   const result = { ...defaults };
   
   for (const key in overrides) {
-    if (overrides[key] !== undefined && overrides[key] !== null) {
-      if (typeof overrides[key] === 'object' && !Array.isArray(overrides[key])) {
-        result[key] = mergeConfig(defaults[key] || {}, overrides[key]);
-      } else {
-        result[key] = overrides[key];
-      }
+    const value = overrides[key];
+    
+    // Skip undefined
+    if (value === undefined) continue;
+    
+    // Handle null - explicit null means "unset"
+    if (value === null) {
+      result[key] = null;
+      continue;
     }
+    
+    // Handle arrays - replace, don't merge
+    if (Array.isArray(value)) {
+      result[key] = [...value];
+      continue;
+    }
+    
+    // Handle plain objects - recurse
+    if (typeof value === 'object' && value.constructor === Object) {
+      result[key] = mergeConfig(defaults[key] || {}, value, seen);
+      continue;
+    }
+    
+    // Handle primitives and special objects (Date, RegExp, Vue refs, etc.)
+    result[key] = value;
   }
   
   return result;
