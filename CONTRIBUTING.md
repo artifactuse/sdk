@@ -32,8 +32,23 @@ Thank you for your interest in contributing to Artifactuse! This document provid
 ### Install Dependencies
 
 ```bash
+# Install SDK dependencies
 npm install
+
+# Install playground dependencies (each playground has its own package.json)
+cd playground/vue3 && npm install && cd ../..
+cd playground/vue2 && npm install && cd ../..
+cd playground/react && npm install && cd ../..
+cd playground/svelte && npm install && cd ../..
 ```
+
+Or use this one-liner:
+
+```bash
+npm install && for dir in playground/*/; do (cd "$dir" && npm install); done
+```
+
+> **Note:** Each playground is isolated with its own `node_modules` to avoid version conflicts between frameworks (e.g., Vue 2 vs Vue 3 compiler conflicts).
 
 ### Run Development Server
 
@@ -147,11 +162,34 @@ artifactuse/
 │
 ├── playground/                 # Development playgrounds
 │   ├── vue3/
+│   │   ├── package.json        # Vue 3 + Vite dependencies
+│   │   ├── vite.config.js
+│   │   ├── index.html
+│   │   ├── main.js
+│   │   └── App.vue
 │   ├── vue2/
+│   │   ├── package.json        # Vue 2 + Vite dependencies
+│   │   ├── vite.config.js
+│   │   ├── index.html
+│   │   ├── main.js
+│   │   └── App.vue
 │   ├── react/
-│   └── svelte/
+│   │   ├── package.json        # React + Vite dependencies
+│   │   ├── vite.config.js
+│   │   ├── index.html
+│   │   ├── main.jsx
+│   │   └── App.jsx
+│   ├── svelte/
+│   │   ├── package.json        # Svelte + Vite dependencies
+│   │   ├── vite.config.js
+│   │   ├── index.html
+│   │   ├── main.js
+│   │   └── App.svelte
+│   └── shared/                 # Shared mock data
+│       └── mockMessages.js
 │
 ├── scripts/                    # Build scripts
+│   └── build-vue2.js           # Vue 2 build script
 │
 ├── dist/                       # Built output
 ├── vite.config.js              # Vite configuration
@@ -304,36 +342,24 @@ export function processContent(html, options = {}) {
 }
 ```
 
-### Processor Best Practices
-
-1. **Protect existing content** - Always protect `<pre>`, `<code>`, and already-processed elements
-2. **Use specific selectors** - Avoid overly broad regex patterns
-3. **Handle edge cases** - Empty content, malformed input, nested elements
-4. **Add CSS classes** - Use `artifactuse-` prefix for styling
-5. **Support theming** - Use CSS variables for colors
-6. **Be idempotent** - Running twice should produce same result
-
 ## Adding New Artifact Types
 
 ### 1. Define the Artifact Structure
 
 ```js
 // Example: Chart artifact
-const chartArtifact = {
-  id: 'artifact-chart-123',
+{
   type: 'chart',
-  title: 'Sales Data',
+  title: 'Sales Chart',
+  code: '...chart config...',
   language: 'json',
-  code: JSON.stringify({ /* chart config */ }),
-  isInline: false,
-  messageId: 'msg-456',
-  timestamp: Date.now(),
-};
+  messageId: 'msg-123',
+}
 ```
 
-### 2. Update the Detector
+### 2. Add Detection Logic
 
-In `src/core/detector.js`, add detection logic:
+In `src/core/detector.js`:
 
 ```js
 export function detectArtifacts(html, messageId) {

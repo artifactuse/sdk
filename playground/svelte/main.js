@@ -1,5 +1,5 @@
 import App from './App.svelte'
-import 'artifactuse/styles'
+import '../../src/styles/artifactuse.css';
 
 new App({
   target: document.getElementById('app'),

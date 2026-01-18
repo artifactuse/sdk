@@ -24,7 +24,7 @@ export function createBridge(cdnUrl) {
     if (type !== 'artifactuse') return;
     
     // Handle ready signal
-    if (action === 'ready') {
+    if (action === 'ready' || action === 'panel:ready') {
       isReady = true;
       // Send any pending messages
       pendingMessages.forEach(msg => sendRaw(msg));

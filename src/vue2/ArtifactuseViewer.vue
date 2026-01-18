@@ -1,5 +1,5 @@
 <template>
-  <portal to="artifactuse-portal" :disabled="!usePortal">
+  <portal to="artifactuse" :disabled="!usePortal">
     <transition name="artifactuse-viewer">
       <div 
         v-if="isOpen"

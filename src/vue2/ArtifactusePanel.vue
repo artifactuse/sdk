@@ -1,5 +1,7 @@
 <template>
-  <div v-if="state.isPanelOpen">
+  <div v-if="state.isPanelOpen"
+    class="artifactuse-panel-wrapper"
+  >
     <!-- Panel -->
     <transition name="artifactuse-panel">
       <div 
@@ -67,8 +69,9 @@
               rel="noopener noreferrer"
               class="artifactuse-panel__branding"
             >
-              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
-                <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7"></path>
+              <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
               </svg>
               <span>Artifactuse</span>
             </a>
@@ -157,8 +160,9 @@
               rel="noopener noreferrer"
               class="artifactuse-panel__branding"
             >
-              <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
-                <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7"></path>
+              <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
               </svg>
               <span>Artifactuse</span>
             </a>
@@ -340,8 +344,9 @@
                 class="artifactuse-panel__branding"
                 title="Powered by Artifactuse"
               >
-                <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
-                  <path d="M16 2L2 9l14 7 14-7-14-7zM2 23l14 7 14-7M2 16l14 7 14-7"></path>
+                <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                  <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
                 </svg>
                 <span>Artifactuse</span>
               </a>
@@ -460,7 +465,7 @@
     </transition>
     
     <!-- Backdrop (fullscreen/mobile only - uses portal) -->
-    <portal to="artifactuse-portal" :disabled="!usePortal">
+    <portal to="artifactuse" :disabled="!usePortal">
       <transition name="artifactuse-backdrop">
         <div 
           v-if="state.isFullscreen && activeArtifact"
@@ -522,8 +527,10 @@ export default defineComponent({
     // Panel/split resize state
     const panelWidth = ref(50);
     const splitPosition = ref(50);
-    let panelResizeState = null;
-    let splitResizeState = null;
+    // let panelResizeState = null;
+    // let splitResizeState = null;
+    const panelResizeState = ref(null);
+    const splitResizeState = ref(null);
     
     // Timers
     let updateTimer = null;
@@ -759,34 +766,32 @@ export default defineComponent({
     }
     
     // Panel resize handlers
-    function startPanelResize(e) {
-      panelResizeState = {
-        startX: e.clientX,
-        startWidth: panelWidth.value,
-      };
-      
-      document.addEventListener('mousemove', handlePanelResize);
-      document.addEventListener('mouseup', stopPanelResize);
-      document.body.style.cursor = 'ew-resize';
-      document.body.style.userSelect = 'none';
-      
-      const iframes = document.querySelectorAll('iframe');
-      iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
-    }
+   function startPanelResize(e) {
+    panelResizeState.value = {
+      startX: e.clientX,
+      startWidth: panelWidth.value,
+    };
+    document.addEventListener('mousemove', handlePanelResize);
+    document.addEventListener('mouseup', stopPanelResize);
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
     
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
+  }
+
     function handlePanelResize(e) {
-      if (!panelResizeState) return;
+      if (!panelResizeState.value) return;
       
       const windowWidth = window.innerWidth;
-      const deltaX = panelResizeState.startX - e.clientX;
+      const deltaX = panelResizeState.value.startX - e.clientX;
       const deltaPercent = (deltaX / windowWidth) * 100;
-      const newWidth = panelResizeState.startWidth + deltaPercent;
+      const newWidth = panelResizeState.value.startWidth + deltaPercent;
       
       panelWidth.value = Math.min(Math.max(newWidth, 25), 75);
     }
-    
     function stopPanelResize() {
-      panelResizeState = null;
+      panelResizeState.value = null;
       
       document.removeEventListener('mousemove', handlePanelResize);
       document.removeEventListener('mouseup', stopPanelResize);
@@ -796,13 +801,13 @@ export default defineComponent({
       const iframes = document.querySelectorAll('iframe');
       iframes.forEach(iframe => iframe.style.pointerEvents = '');
     }
-    
-    // Split resize handlers
+
+    // Same for split resize
     function startSplitResize(e) {
       if (!contentRef.value) return;
       
       const rect = contentRef.value.getBoundingClientRect();
-      splitResizeState = {
+      splitResizeState.value = {
         startX: e.clientX,
         containerLeft: rect.left,
         containerWidth: rect.width,
@@ -816,19 +821,19 @@ export default defineComponent({
       const iframes = document.querySelectorAll('iframe');
       iframes.forEach(iframe => iframe.style.pointerEvents = 'none');
     }
-    
+
     function handleSplitResize(e) {
-      if (!splitResizeState) return;
+      if (!splitResizeState.value) return;
       
-      const { containerLeft, containerWidth } = splitResizeState;
+      const { containerLeft, containerWidth } = splitResizeState.value;
       const relativeX = e.clientX - containerLeft;
       const newPosition = (relativeX / containerWidth) * 100;
       
       splitPosition.value = Math.min(Math.max(newPosition, 20), 80);
     }
-    
+
     function stopSplitResize() {
-      splitResizeState = null;
+      splitResizeState.value = null;
       
       document.removeEventListener('mousemove', handleSplitResize);
       document.removeEventListener('mouseup', stopSplitResize);
