@@ -2,25 +2,74 @@
 // postMessage bridge for iframe communication
 
 /**
- * Create bridge for panel iframe communication
+ * Extract hostname from URL safely
  */
-export function createBridge(cdnUrl) {
+function getHostname(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Create bridge for panel iframe communication
+ * 
+ * @param {string|string[]} initialOrigins - Initial allowed origin(s) for message verification
+ */
+export function createBridge(initialOrigins = []) {
+  // Normalize initialOrigins to array
+  const originsArray = Array.isArray(initialOrigins) 
+    ? initialOrigins 
+    : [initialOrigins].filter(Boolean);
+  
+  // Set of allowed origins (full URLs or hostnames)
+  const allowedOrigins = new Set(originsArray);
+  
   const listeners = new Map();
   let panelIframe = null;
   let isReady = false;
   const pendingMessages = [];
   
   /**
+   * Check if an event origin is allowed
+   */
+  function isOriginAllowed(eventOrigin) {
+    if (allowedOrigins.size === 0) {
+      // No origins configured - allow all (backwards compatibility, but warn)
+      console.warn('Artifactuse bridge: No allowed origins configured, accepting all messages');
+      return true;
+    }
+    
+    const eventHostname = getHostname(eventOrigin);
+    if (!eventHostname) return false;
+    
+    // Check if any allowed origin matches
+    for (const allowed of allowedOrigins) {
+      const allowedHostname = getHostname(allowed);
+      if (allowedHostname && allowedHostname === eventHostname) {
+        return true;
+      }
+      // Also check if the allowed origin is just a hostname string
+      if (allowed === eventHostname) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
    * Handle messages from iframe
    */
   function handleMessage(event) {
-    // Verify origin
-    if (!event.origin.includes(new URL(cdnUrl).hostname)) {
+    // Verify origin against allowed origins
+    if (!isOriginAllowed(event.origin)) {
       return;
     }
     
     const { type, action, data, requestId } = event.data || {};
-    
+
     if (type !== 'artifactuse') return;
     
     // Handle ready signal
@@ -57,6 +106,38 @@ export function createBridge(cdnUrl) {
   window.addEventListener('message', handleMessage);
   
   /**
+   * Add an allowed origin for message verification
+   * Call this when registering panels with custom CDNs
+   * 
+   * @param {string} origin - Origin URL to allow (e.g., 'https://charts.example.com')
+   */
+  function addAllowedOrigin(origin) {
+    if (origin && typeof origin === 'string') {
+      allowedOrigins.add(origin);
+    }
+  }
+  
+  /**
+   * Remove an allowed origin
+   * 
+   * @param {string} origin - Origin URL to remove
+   */
+  function removeAllowedOrigin(origin) {
+    if (origin && typeof origin === 'string') {
+      allowedOrigins.delete(origin);
+    }
+  }
+  
+  /**
+   * Get all currently allowed origins
+   * 
+   * @returns {string[]} - Array of allowed origins
+   */
+  function getAllowedOrigins() {
+    return [...allowedOrigins];
+  }
+  
+  /**
    * Set panel iframe reference
    */
   function setIframe(iframe) {
@@ -66,15 +147,18 @@ export function createBridge(cdnUrl) {
   
   /**
    * Send raw message to iframe
+   * 
+   * @param {object} message - Message to send
+   * @param {string} targetOrigin - Optional specific origin to send to (defaults to '*')
    */
-  function sendRaw(message) {
+  function sendRaw(message, targetOrigin = '*') {
     if (!panelIframe?.contentWindow) {
       console.warn('Artifactuse: No panel iframe available');
       return false;
     }
     
     try {
-      panelIframe.contentWindow.postMessage(message, cdnUrl);
+      panelIframe.contentWindow.postMessage(message, targetOrigin);
       return true;
     } catch (error) {
       console.error('Artifactuse bridge send error:', error);
@@ -84,8 +168,13 @@ export function createBridge(cdnUrl) {
   
   /**
    * Send message to iframe
+   * 
+   * @param {string} action - Action name
+   * @param {*} data - Data to send
+   * @param {string} requestId - Optional request ID
+   * @param {string} targetOrigin - Optional specific origin to send to
    */
-  function send(action, data, requestId = null) {
+  function send(action, data, requestId = null, targetOrigin = '*') {
     const message = {
       type: 'artifactuse',
       action,
@@ -99,7 +188,7 @@ export function createBridge(cdnUrl) {
       return message.requestId;
     }
     
-    sendRaw(message);
+    sendRaw(message, targetOrigin);
     return message.requestId;
   }
   
@@ -195,6 +284,7 @@ export function createBridge(cdnUrl) {
   function destroy() {
     window.removeEventListener('message', handleMessage);
     listeners.clear();
+    allowedOrigins.clear();
     panelIframe = null;
     isReady = false;
     pendingMessages.length = 0;
@@ -213,6 +303,11 @@ export function createBridge(cdnUrl) {
     requestExport,
     sendAIResponse,
     destroy,
+    
+    // Origin management
+    addAllowedOrigin,
+    removeAllowedOrigin,
+    getAllowedOrigins,
     
     // State
     get isReady() { return isReady; },

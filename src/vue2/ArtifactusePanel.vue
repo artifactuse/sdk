@@ -326,6 +326,7 @@
                 <div ref="lineNumbersRef" class="artifactuse-panel__line-numbers"></div>
                 <pre class="artifactuse-panel__code-block"><code 
                   ref="codeRef"
+                  :key="activeArtifact.id"
                   :class="`language-${normalizedLanguage}`"
                 >{{ activeArtifact.code }}</code></pre>
               </div>
@@ -650,7 +651,7 @@ export default defineComponent({
       clearTimeout(iframeLoadTimer);
       iframeLoadTimer = setTimeout(() => {
         iframeLoading.value = false;
-      }, 10000);
+      }, 1000);
     }
     
     async function handleCopy() {
@@ -876,16 +877,16 @@ export default defineComponent({
               highlightCode();
               
               if (iframeRef.value && newArtifact.isPreviewable) {
-                iframeLoading.value = true;
-                startIframeLoadTimeout();
+                //iframeLoading.value = true;
+                //startIframeLoadTimeout();
                 instance.bridge.loadArtifact(newArtifact);
               }
             });
           }, 500);
         } else {
           if (iframeRef.value && newArtifact.isPreviewable) {
-            iframeLoading.value = true;
-            startIframeLoadTimeout();
+            //iframeLoading.value = true;
+            //startIframeLoadTimeout();
             nextTick(() => {
               instance.bridge.loadArtifact(newArtifact);
             });

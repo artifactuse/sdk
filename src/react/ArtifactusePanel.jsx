@@ -178,7 +178,7 @@ export default function ArtifactusePanel({
     clearTimeout(iframeLoadTimerRef.current);
     iframeLoadTimerRef.current = setTimeout(() => {
       setIframeLoading(false);
-    }, 10000);
+    }, 1000);
   }, []);
   
   // Handle copy

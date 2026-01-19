@@ -1316,22 +1316,17 @@ This canvas highlights how to structure complex AI data using the minimalist, hi
   "backgroundColor": "#0a0a0f",
   "shapes": [
     { "type": "text", "x": 600, "y": 50, "text": "ARTIFACTUSE: DASHBOARD & UI INSPIRATION", "fontSize": 32, "bold": true, "color": "#ffffff", "align": "center" },
-    
     { "type": "frame", "name": "SaaS Dashboard", "x": 50, "y": 120, "width": 500, "height": 300, "children": [
         { "type": "image", "x": 50, "y": 120, "width": 500, "height": 300, "src": "https://cdn.dribbble.com/userupload/18350565/file/original-9e4dbb6e38b8ac5eac4089ecf1e2f1c5.png" }
     ]},
     { "type": "text", "x": 300, "y": 440, "text": "Concept: SaaS Component Management", "fontSize": 16, "color": "#6c5ce7", "align": "center" },
-
     { "type": "frame", "name": "AI Chat Kit", "x": 650, "y": 120, "width": 500, "height": 300, "children": [
         { "type": "image", "x": 650, "y": 120, "width": 500, "height": 300, "src": "https://images.ui8.net/uploads/preview-03_1760331192815.jpg" }
     ]},
     { "type": "text", "x": 900, "y": 440, "text": "Concept: Interactive Chat Artifacts", "fontSize": 16, "color": "#6c5ce7", "align": "center" },
-
     { "type": "rect", "x": 50, "y": 500, "width": 1100, "height": 300, "fillColor": "#1a1a2e", "cornerRadius": 15 },
     { "type": "text", "x": 600, "y": 540, "text": "UI DESIGN STRATEGY", "fontSize": 24, "bold": true, "color": "#ffffff", "align": "center" },
-    
     { "type": "text", "x": 100, "y": 600, "text": "• HUD Backgrounds: Use glowing hexagonal patterns at 5-10% opacity for depth.\n• Card Layouts: Use the Charcoal (#2d3436) for containers to make purple text pop.\n• Data Viz: Use the Vibrant Purple (#6c5ce7) for active states and 'Action' buttons.\n• Connectivity: Use dashed lines to show relationships between AI nodes.", "fontSize": 18, "color": "#a0a0a0" },
-
     { "type": "path", "segments": [{ "point": [1050, 650] }, { "point": [1100, 680] }, { "point": [1100, 740] }, { "point": [1050, 770] }, { "point": [1000, 740] }, { "point": [1000, 680] }], "closed": true, "fillColor": "#6c5ce7", "opacity": 40 }
   ]
 }

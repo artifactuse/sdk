@@ -123,8 +123,8 @@
           highlightCode();
           
           if (iframeRef && newArtifact.isPreviewable) {
-            iframeLoading = true;
-            startIframeLoadTimeout();
+            //iframeLoading = true;
+            //startIframeLoadTimeout();
             instance.bridge.loadArtifact(newArtifact);
           }
         });
@@ -210,7 +210,7 @@
     clearTimeout(iframeLoadTimer);
     iframeLoadTimer = setTimeout(() => {
       iframeLoading = false;
-    }, 10000);
+    }, 1000);
   }
   
   // Handle copy

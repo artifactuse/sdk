@@ -260,13 +260,76 @@ const DEFAULT_CONFIG = {
 };
 
 /**
+ * Extract origin URL from a panel configuration
+ * 
+ * @param {string|object|null} panelConfig - Panel configuration
+ * @param {string} defaultCdn - Default CDN URL
+ * @returns {string|null} - Origin URL or null
+ */
+function extractOriginFromPanelConfig(panelConfig, defaultCdn) {
+  if (panelConfig === null || panelConfig === undefined) {
+    return null;
+  }
+  
+  try {
+    if (typeof panelConfig === 'string') {
+      // Full URL - extract origin
+      if (panelConfig.startsWith('http://') || panelConfig.startsWith('https://')) {
+        return new URL(panelConfig).origin;
+      }
+      // Relative path - use default CDN
+      return new URL(defaultCdn).origin;
+    }
+    
+    if (typeof panelConfig === 'object' && panelConfig.path) {
+      // Object with explicit cdn
+      const cdn = panelConfig.cdn || defaultCdn;
+      return new URL(cdn).origin;
+    }
+  } catch (error) {
+    console.warn('Artifactuse: Failed to extract origin from panel config:', error);
+  }
+  
+  return null;
+}
+
+/**
+ * Collect all unique origins from panel configurations
+ * 
+ * @param {object} panels - Panel configuration object
+ * @param {string} defaultCdn - Default CDN URL
+ * @returns {string[]} - Array of unique origin URLs
+ */
+function collectOriginsFromPanels(panels, defaultCdn) {
+  const origins = new Set();
+  
+  // Always include default CDN
+  try {
+    origins.add(new URL(defaultCdn).origin);
+  } catch (error) {
+    console.warn('Artifactuse: Invalid default CDN URL:', defaultCdn);
+  }
+  
+  // Collect origins from all panel configs
+  for (const panelConfig of Object.values(panels)) {
+    const origin = extractOriginFromPanelConfig(panelConfig, defaultCdn);
+    if (origin) {
+      origins.add(origin);
+    }
+  }
+  
+  return [...origins];
+}
+
+/**
  * Create panel resolver from config
  * Merges default panels with user-provided panels
  * 
  * @param {object} config - SDK configuration
+ * @param {object} bridge - Bridge instance for origin registration
  * @returns {object} - Panel resolver with lookup method
  */
-function createPanelResolver(config) {
+function createPanelResolver(config, bridge) {
   // Start with default panels
   const panels = { ...DEFAULT_PANELS };
   
@@ -326,7 +389,7 @@ function createPanelResolver(config) {
     
     // Ensure trailing slash for consistency
     if (!baseUrl.endsWith('/')) {
-      baseUrl += '/';
+      baseUrl += '';
     }
     
     // Append query parameters
@@ -368,9 +431,10 @@ function createPanelResolver(config) {
   
   /**
    * Register a new panel (at runtime)
+   * Also registers the panel's origin with the bridge for message verification
    * 
    * @param {string|string[]} typesOrLang - Type/language or array of types/languages
-   * @param {string|object} panelPath - Panel path, full URL, or config object
+   * @param {string|object} panelConfig - Panel path, full URL, or config object
    * 
    * @example
    * // Single type
@@ -378,19 +442,34 @@ function createPanelResolver(config) {
    * 
    * // Multiple types/aliases at once
    * register(['python', 'py'], 'code-panel');
+   * 
+   * // Full URL (different CDN)
+   * register('video', 'https://video-cdn.com/editor-panel/video');
+   * 
+   * // Explicit CDN configuration
+   * register('chart', { path: 'chart-panel', cdn: 'https://charts.example.com' });
    */
-  function register(typesOrLang, panelPath) {
+  function register(typesOrLang, panelConfig) {
     const types = Array.isArray(typesOrLang) ? typesOrLang : [typesOrLang];
+    
+    // Register the panel for each type
     types.forEach(t => {
       const key = t?.toLowerCase();
       if (key) {
-        panels[key] = panelPath;
+        panels[key] = panelConfig;
       }
     });
+    
+    // Extract and register the origin with the bridge
+    const origin = extractOriginFromPanelConfig(panelConfig, config.cdnUrl);
+    if (origin && bridge) {
+      bridge.addAllowedOrigin(origin);
+    }
   }
   
   /**
    * Unregister/disable a panel (at runtime)
+   * Note: Does not remove the origin from the bridge (other panels may use it)
    * 
    * @param {string|string[]} typesOrLang - Type/language or array of types/languages
    * 
@@ -429,13 +508,19 @@ function createPanelResolver(config) {
 export function createArtifactuse(userConfig = {}) {
   const config = mergeConfig(DEFAULT_CONFIG, userConfig);
   const state = createState();
-  const bridge = createBridge(config.cdnUrl);
+  
+  // Collect all origins from initial panel configuration
+  const allPanels = { ...DEFAULT_PANELS, ...config.panels };
+  const initialOrigins = collectOriginsFromPanels(allPanels, config.cdnUrl);
+  
+  // Create bridge with all known origins
+  const bridge = createBridge(initialOrigins);
   
   // Create theme - only pass colors if user provided them
   const theme = createTheme(config.theme, config.colors || {});
   
-  // Create panel resolver
-  const panelResolver = createPanelResolver(config);
+  // Create panel resolver (pass bridge for runtime origin registration)
+  const panelResolver = createPanelResolver(config, bridge);
   
   /**
    * Process AI agent message content
@@ -670,6 +755,7 @@ export function createArtifactuse(userConfig = {}) {
   
   /**
    * Register a custom panel at runtime
+   * Also registers the panel's origin with the bridge for message verification
    * 
    * @param {string|string[]} typesOrLang - Type/language or array of types/languages
    * @param {string|object} panel - Panel path, full URL, or config object

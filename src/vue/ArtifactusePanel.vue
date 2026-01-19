@@ -344,6 +344,7 @@
               <div class="artifactuse-panel__line-numbers" ref="lineNumbersRef"></div>
               <pre class="artifactuse-panel__code-block"><code 
                 ref="codeRef" 
+                :key="activeArtifact.id"
                 :class="`language-${normalizedLanguage}`"
                 v-text="activeArtifact.code"
               ></code></pre>
@@ -701,7 +702,7 @@ function startIframeLoadTimeout() {
   iframeLoadTimer = setTimeout(() => {
     // Hide loader after 10 seconds even if load event doesn't fire
     iframeLoading.value = false;
-  }, 10000);
+  }, 1000);
 }
 
 async function handleCopy() {
@@ -964,8 +965,8 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
           
           // Reload preview iframe after streaming ends
           if (iframeRef.value && newArtifact.isPreviewable) {
-            iframeLoading.value = true;
-            startIframeLoadTimeout();
+            //iframeLoading.value = true;
+            //startIframeLoadTimeout();
             instance.bridge.loadArtifact(newArtifact);
           }
         });
@@ -974,8 +975,8 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
       // Artifact changed but code didn't (e.g., different artifact selected)
       // Reload immediately
       if (iframeRef.value && newArtifact.isPreviewable) {
-        iframeLoading.value = true;
-        startIframeLoadTimeout();
+        //iframeLoading.value = true;
+        //startIframeLoadTimeout();
         nextTick(() => {
           instance.bridge.loadArtifact(newArtifact);
         });
