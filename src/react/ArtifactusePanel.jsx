@@ -745,7 +745,7 @@ export default function ArtifactusePanel({
                   ref={iframeRef}
                   src={panelUrl}
                   className={`artifactuse-panel__iframe ${iframeLoading ? 'artifactuse-panel__iframe--loading' : ''}`}
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
                   onLoad={handleIframeLoad}
                   onError={handleIframeError}
                 />
