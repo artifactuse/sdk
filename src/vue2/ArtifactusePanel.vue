@@ -466,7 +466,7 @@
     </transition>
     
     <!-- Backdrop (fullscreen/mobile only - uses portal) -->
-    <portal to="artifactuse" :disabled="!usePortal">
+    <!-- <portal to="artifactuse" :disabled="!usePortal">
       <transition name="artifactuse-backdrop">
         <div 
           v-if="state.isFullscreen && activeArtifact"
@@ -474,7 +474,7 @@
           @click="closePanel"
         ></div>
       </transition>
-    </portal>
+    </portal> -->
   </div>
 </template>
 

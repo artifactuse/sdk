@@ -948,7 +948,7 @@
     </div>
     
     <!-- Backdrop (fullscreen only) -->
-    {#if isFullscreen}
+    <!-- {#if isFullscreen}
       <div 
         class="artifactuse-panel__backdrop"
         on:click={closePanel}
@@ -957,6 +957,6 @@
         tabindex="-1"
         aria-label="Close panel"
       ></div>
-    {/if}
+    {/if} -->
   {/if}
 {/if}
