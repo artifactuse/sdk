@@ -1,5 +1,5 @@
 <template>
-  <portal to="artifactuse" :disabled="!usePortal">
+  <MountingPortal mountTo="body" append :disabled="!usePortal">
     <transition name="artifactuse-viewer">
       <div 
         v-if="isOpen"
@@ -79,15 +79,20 @@
         </div>
       </div>
     </transition>
-  </portal>
+  </MountingPortal>
 </template>
 
 <script>
 import { ref, watch, onMounted, onUnmounted, nextTick, defineComponent } from 'vue';
+import { MountingPortal } from 'portal-vue';
 
 export default defineComponent({
   name: 'ArtifactuseViewer',
-  
+
+  components: {
+    MountingPortal,
+  },
+
   props: {
     isOpen: {
       type: Boolean,
