@@ -75,6 +75,7 @@ export function createBridge(initialOrigins = []) {
     // Handle ready signal
     if (action === 'ready' || action === 'panel:ready') {
       isReady = true;
+      
       // Send any pending messages
       pendingMessages.forEach(msg => sendRaw(msg));
       pendingMessages.length = 0;

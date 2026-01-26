@@ -530,7 +530,6 @@ export function parseArtifacts(html, messageId) {
         continue;
       }
     }
-    
     artifacts.push(createArtifact(code, langLower, messageId, blockIndex));
     blockIndex++;
   }
@@ -561,11 +560,11 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
 
     // Detect SVG in XML/HTML
     if (['xml', 'markup', 'html', 'htm'].includes(langLower) || !langLower) {
-      if (code.trim().startsWith('<svg') || code.includes('<svg ') || code.includes('<svg>')) {
+      if (code.trim().startsWith('<svg')) {
         langLower = 'svg';
       }
     }
-    
+
     // Artifact extraction logic
     const isPreviewableLang = isPreviewable(langLower);
     

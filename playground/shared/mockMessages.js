@@ -36,6 +36,590 @@ Here's a contact form:
 \`\`\`
 `
   },
+  {
+    id: "html-content-23",
+    content: `
+      this is suppose to be html
+\`\`\`html 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adora - AI Journey Mapping</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scribble-underline {
+            position: relative;
+            display: inline-block;
+        }
+        .scribble-underline::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            width: 100%;
+            height: 8px;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='10' viewBox='0 0 100 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5C20 8 40 2 98 5' stroke='%23818cf8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            z-index: -1;
+        }
+        .blob-bg {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23F3F4F6' d='M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.1,-19.2,95.8,-5.3C93.5,8.6,82.2,21.5,70.6,32.2C59,42.9,47.1,51.4,34.8,58.3C22.5,65.2,9.8,70.5,-1.9,73.8C-13.6,77.1,-24.3,78.4,-34.8,73.8C-45.3,69.2,-55.6,58.7,-64.7,47.1C-73.8,35.5,-81.7,22.8,-83.3,9.3C-84.9,-4.2,-80.2,-18.5,-71.8,-30.3C-63.4,-42.1,-51.3,-51.4,-38.9,-59.3C-26.5,-67.2,-13.8,-73.7,0.7,-74.9C15.2,-76.1,30.5,-72,44.7,-76.4Z' transform='translate(100 100)' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-indigo-900">Adora</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
+                    <a href="#" class="hover:text-indigo-600 flex items-center gap-1">Product <i data-lucide="chevron-down" class="w-3 h-3"></i></a>
+                    <a href="#" class="hover:text-indigo-600 flex items-center gap-1">Getting started <i data-lucide="chevron-down" class="w-3 h-3"></i></a>
+                    <a href="#" class="hover:text-indigo-600 flex items-center gap-1">Company <i data-lucide="chevron-down" class="w-3 h-3"></i></a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a href="#" class="text-sm font-medium text-gray-600 hover:text-indigo-600">Login</a>
+                    <a href="#" class="bg-indigo-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Join Waitlist</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            
+            <!-- Decorative Elements -->
+            <div class="absolute top-32 left-10 opacity-20 hidden lg:block">
+                <i data-lucide="cloud" class="w-24 h-24 text-blue-400"></i>
+            </div>
+            <div class="absolute top-40 right-10 opacity-20 hidden lg:block">
+                <i data-lucide="cloud" class="w-32 h-32 text-blue-400"></i>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">
+                AI journey <span class="scribble-underline text-indigo-600">mapping</span><br>
+                with user insights
+            </h1>
+            
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
+                Every journey, every screen, every interaction. Your entire product mapped for you, overlaid with analytics, replays and made searchable.
+            </p>
+
+            <div class="flex justify-center items-center gap-4 mb-16">
+                <button class="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200">
+                    Join Waitlist
+                </button>
+                <button class="flex items-center gap-2 text-gray-700 font-medium px-6 py-3 rounded-full hover:bg-gray-50 transition-colors border border-gray-200">
+                    <i data-lucide="play" class="w-4 h-4 fill-current"></i> Watch video
+                </button>
+            </div>
+
+            <!-- Dashboard Image -->
+            <div class="relative mx-auto max-w-6xl">
+                <div class="bg-gray-900 rounded-2xl p-2 shadow-2xl border border-gray-200">
+                    <img src="https://placehold.co/1200x700/f3f4f6/d1d5db?text=Interactive+Journey+Map+Dashboard" alt="Dashboard" class="rounded-xl w-full h-auto">
+                </div>
+                <!-- Floating Elements simulating the design -->
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+            </div>
+        </div>
+    </section>
+    <!-- Social Proof -->
+    <section class="py-12 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-2xl font-bold text-gray-900 mb-8">
+                Your product team's new <span class="text-pink-500 relative">source-of-truth <i data-lucide="sparkle" class="w-4 h-4 absolute -top-2 -right-4 text-pink-400"></i></span>
+            </p>
+            <p class="text-sm text-gray-500 mb-8 uppercase tracking-wider">Loved by product-obsessed teams</p>
+            <div class="flex flex-wrap justify-center items-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                <!-- Using text for logos as placeholders -->
+                <span class="text-xl font-bold font-serif">Canva</span>
+                <span class="text-xl font-bold font-mono">Notion</span>
+                <span class="text-xl font-bold">Linktree*</span>
+                <span class="text-xl font-bold flex items-center gap-1"><i data-lucide="hexagon" class="w-5 h-5"></i> Relevance AI</span>
+                <span class="text-xl font-bold">CoinTracker</span>
+            </div>
+        </div>
+    </section>
+    <!-- Feature 1: Visualize -->
+    <section class="py-24 bg-gray-50/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div class="max-w-xl">
+                    <span class="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold tracking-wide mb-4 border border-indigo-200">REAL-TIME</span>
+                    <h2 class="text-4xl font-bold text-gray-900 mb-4">Visualise your product experience</h2>
+                </div>
+                <p class="text-gray-600 max-w-md text-sm leading-relaxed">
+                    Adora maps your entire product as users navigate it, making every screen and behavior instantly searchable. Want to see your pricing page activity? Just ask Adora.
+                </p>
+            </div>
+            <!-- Horizontal Scroll Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-semibold text-gray-500">Profile Creation</span>
+                        <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full">LIVE</span>
+                    </div>
+                    <img src="https://placehold.co/300x200/eef2ff/6366f1?text=Profile+Flow" class="w-full rounded-lg mb-4 border border-gray-100">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Split testing</span>
+                            <span class="text-gray-900">In progress</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Last synced</span>
+                            <span class="text-gray-900">30 sec ago</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-semibold text-gray-500">User Details</span>
+                        <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full">LIVE</span>
+                    </div>
+                    <img src="https://placehold.co/300x200/fff7ed/f97316?text=Onboarding" class="w-full rounded-lg mb-4 border border-gray-100">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Screen last synced</span>
+                            <span class="text-gray-900">30 sec ago</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>V1.2 released</span>
+                            <span class="text-gray-900">23d ago</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-semibold text-gray-500">Collections</span>
+                        <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full">LIVE</span>
+                    </div>
+                    <img src="https://placehold.co/300x200/f0fdf4/22c55e?text=Collections" class="w-full rounded-lg mb-4 border border-gray-100">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Screen last synced</span>
+                            <span class="text-gray-900">16d ago</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>V2.38 released</span>
+                            <span class="text-gray-900">16d ago</span>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Card 4 -->
+                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-semibold text-gray-500">Homepage</span>
+                        <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full">LIVE</span>
+                    </div>
+                    <img src="https://placehold.co/300x200/fdf4ff/d946ef?text=Home" class="w-full rounded-lg mb-4 border border-gray-100">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Screen last synced</span>
+                            <span class="text-gray-900">49 sec ago</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>V4.2 released</span>
+                            <span class="text-gray-900">29d ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Testimonial Green -->
+    <section class="py-12 px-4">
+        <div class="max-w-5xl mx-auto bg-[#d9f99d] rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-10 relative overflow-hidden">
+            <!-- Decorative shapes -->
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <svg width="100%" height="100%">
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="black" stroke-width="1"/>
+                    </pattern>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                </svg>
+            </div>
+            <div class="relative w-full md:w-1/2">
+                <img src="https://placehold.co/500x400/166534/ffffff?text=Alex+Photo" class="rounded-2xl shadow-lg rotate-2 transform hover:rotate-0 transition-transform duration-300">
+                <!-- Sticker decorations -->
+                <div class="absolute -bottom-4 -left-4 bg-purple-600 text-white p-2 rounded-lg font-mono text-xs font-bold shadow-lg">XO</div>
+                <div class="absolute -bottom-4 left-8 bg-black text-white p-2 rounded-lg font-mono text-xs font-bold shadow-lg">L1</div>
+            </div>
+            <div class="w-full md:w-1/2 z-10">
+                <i data-lucide="quote" class="w-10 h-10 text-green-800 mb-6 fill-current opacity-50"></i>
+                <h3 class="text-2xl md:text-3xl font-bold text-green-900 mb-6 leading-snug">
+                    "Adora is a product team's cheat-code to building cohesive end-to-end journeys."
+                </h3>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center text-white font-bold">AZ</div>
+                    <div>
+                        <p class="font-bold text-green-900">Alex Zaccaria</p>
+                        <p class="text-green-800 text-sm">Co-founder and CEO of Linktree</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Feature 2: Variations -->
+    <section class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-[#f3f4f6] rounded-3xl p-8 md:p-16 relative overflow-hidden">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-4xl font-bold text-gray-900 mb-6 relative inline-block">
+                            All your product's variations
+                            <svg class="absolute -top-6 -right-8 w-8 h-8 text-pink-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10L12 0Z"/></svg>
+                            <svg class="absolute -bottom-4 right-0 w-24 h-12 text-purple-400" viewBox="0 0 100 50" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 20 Q 50 50 100 10" /></svg>
+                        </h2>
+                        <p class="text-gray-600 mb-8">
+                            Build with all your product states in mind—from the high-fives to the head-scratchers! See every variation in one place.
+                        </p>
+                        <div class="bg-white p-6 rounded-2xl shadow-lg max-w-sm">
+                            <h4 class="font-bold mb-2">Sign into your account</h4>
+                            <p class="text-xs text-gray-500 mb-4">or create a new account in minutes</p>
+                            <div class="flex items-center gap-2 bg-gray-50 p-2 rounded mb-2 border border-gray-200">
+                                <div class="w-6 h-6 rounded-full bg-yellow-400"></div>
+                                <span class="text-sm text-gray-600">priya@gmail.com</span>
+                            </div>
+                            <button class="w-full bg-blue-600 text-white py-2 rounded text-sm font-medium mb-2">Create new account</button>
+                            <p class="text-center text-[10px] text-gray-400">Use phone number instead</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <img src="https://placehold.co/600x500/e0e7ff/4f46e5?text=Variations+UI" class="rounded-xl shadow-2xl transform md:rotate-3 hover:rotate-0 transition-all duration-500">
+                        <!-- Floating language selector mockup -->
+                        <div class="absolute top-10 -left-10 bg-white p-4 rounded-xl shadow-xl border border-gray-100 w-48 hidden md:block">
+                            <div class="flex items-center gap-2 mb-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                <span class="text-lg">🇬🇧</span> <span class="text-sm font-medium">English</span> <i data-lucide="check" class="w-3 h-3 ml-auto text-blue-600"></i>
+                            </div>
+                            <div class="flex items-center gap-2 mb-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                <span class="text-lg">🇫🇷</span> <span class="text-sm font-medium">French</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                <span class="text-lg">🇯🇵</span> <span class="text-sm font-medium">Japanese</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Superpowers Grid -->
+    <section class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-16">
+                <span class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-bold tracking-wide mb-4 border border-blue-200">PLATFORM</span>
+                <h2 class="text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight">
+                    Your new product<br>
+                    <span class="relative">
+                        Superpowers
+                        <svg class="absolute -bottom-2 left-0 w-full h-4 text-blue-300" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="3" fill="none"/></svg>
+                    </span>
+                </h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-gray-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
+                    <div class="h-48 bg-white rounded-xl mb-6 overflow-hidden border border-gray-200 relative">
+                        <img src="https://placehold.co/400x300/f3f4f6/9ca3af?text=Journey+Maps" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Automated Journey Maps</h3>
+                    <p class="text-gray-600 text-sm mb-6">AI captured user journeys across every language, device and cohort.</p>
+                    <button class="text-sm font-medium text-gray-900 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">Learn more</button>
+                </div>
+                <!-- Feature 2 -->
+                <div class="bg-gray-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
+                    <div class="h-48 bg-white rounded-xl mb-6 overflow-hidden border border-gray-200">
+                        <img src="https://placehold.co/400x300/fff7ed/fdba74?text=Session+Replays" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Session Replays</h3>
+                    <p class="text-gray-600 text-sm mb-6">Session replays integrated into your journeys so you can see exactly how users experience your product.</p>
+                    <button class="text-sm font-medium text-gray-900 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">Learn more</button>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-gray-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
+                    <div class="h-48 bg-white rounded-xl mb-6 overflow-hidden border border-gray-200">
+                        <img src="https://placehold.co/400x300/f0fdf4/86efac?text=Visual+Analytics" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Visual Analytics</h3>
+                    <p class="text-gray-600 text-sm mb-6">Analytics tied to every screen and journey to understand conversions, sources and cohort insights.</p>
+                    <button class="text-sm font-medium text-gray-900 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">Learn more</button>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-gray-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
+                    <div class="h-48 bg-white rounded-xl mb-6 overflow-hidden border border-gray-200">
+                        <img src="https://placehold.co/400x300/eff6ff/93c5fd?text=Frustrations" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Frustrations</h3>
+                    <p class="text-gray-600 text-sm mb-6">Auto-captured user friction triaged and surfaced to you in curated and actionable playlists.</p>
+                    <button class="text-sm font-medium text-gray-900 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">Learn more</button>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="bg-gray-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
+                    <div class="h-48 bg-white rounded-xl mb-6 overflow-hidden border border-gray-200">
+                        <img src="https://placehold.co/400x300/faf5ff/d8b4fe?text=Wayback+Machine" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Wayback machine</h3>
+                    <p class="text-gray-600 text-sm mb-6">See how your product has evolved over time and get to the bottom of issues.</p>
+                    <button class="text-sm font-medium text-gray-900 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">Learn more</button>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="bg-gray-50 rounded-3xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
+                    <div class="h-48 bg-white rounded-xl mb-6 overflow-hidden border border-gray-200 flex items-center justify-center bg-gradient-to-br from-orange-100 to-rose-100">
+                        <div class="flex gap-2">
+                            <div class="bg-white/80 backdrop-blur p-2 rounded shadow text-xs font-bold">AICPA<br>SOC2</div>
+                            <div class="bg-white/80 backdrop-blur p-2 rounded shadow text-xs font-bold">HIPAA<br>Ready</div>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">SOC2 Type II & HIPAA Certified</h3>
+                    <p class="text-gray-600 text-sm mb-6">Designed to easily, safely and securely integrate with your product's tech stack.</p>
+                    <button class="text-sm font-medium text-gray-900 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">Learn more</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial Pink -->
+    <section class="py-12 px-4">
+        <div class="max-w-5xl mx-auto bg-pink-200 rounded-3xl p-8 md:p-12 flex flex-col-reverse md:flex-row items-center gap-10">
+            <div class="w-full md:w-1/2 z-10">
+                <i data-lucide="quote" class="w-10 h-10 text-pink-800 mb-6 fill-current opacity-50"></i>
+                <h3 class="text-xl md:text-2xl font-bold text-pink-900 mb-6 leading-snug">
+                    "Adora's unique journey maps have given us deep insight into our user experience. Visualising our product funnel this way, combined with data, empowers our team with the confidence to make faster, smarter design and product decisions."
+                </h3>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold">DH</div>
+                    <div>
+                        <p class="font-bold text-pink-900">David Higgs</p>
+                        <p class="text-pink-800 text-xs">Head of Research, Leonardo AI (Canva)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative w-full md:w-1/2">
+                <img src="https://placehold.co/500x400/be185d/ffffff?text=David+Photo" class="rounded-2xl shadow-lg rotate-[-2deg] transform hover:rotate-0 transition-transform duration-300">
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <span class="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-bold tracking-wide mb-4 border border-purple-200">USE CASES</span>
+                <h2 class="text-4xl font-bold text-gray-900">Empowering user-<br>obsessed teams</h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12">
+                <button class="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium border border-indigo-200">
+                    <i data-lucide="layout" class="w-4 h-4"></i> Onboarding optimization
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 bg-white text-gray-600 rounded-full text-sm font-medium border border-gray-200 hover:bg-gray-50">
+                    <i data-lucide="search" class="w-4 h-4"></i> Uncover Friction
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 bg-white text-gray-600 rounded-full text-sm font-medium border border-gray-200 hover:bg-gray-50">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Product documentation
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 bg-white text-gray-600 rounded-full text-sm font-medium border border-gray-200 hover:bg-gray-50">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Accessible analytics
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="bg-gray-50 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-12">
+                <div class="w-full md:w-1/3">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Uncover Friction</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Spot issues before they escalate with Frustrations. See what users see, pinpoint friction, and align your team on solutions, fast.
+                    </p>
+                </div>
+                <div class="w-full md:w-2/3">
+                    <img src="https://placehold.co/800x500/f3f4f6/d1d5db?text=Friction+Analysis+Dashboard" class="rounded-xl shadow-lg w-full">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial Blue -->
+    <section class="py-12 px-4">
+        <div class="max-w-5xl mx-auto bg-sky-200 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-10">
+            <div class="relative w-full md:w-1/2">
+                <img src="https://placehold.co/500x400/0369a1/ffffff?text=Lauryn+Photo" class="rounded-2xl shadow-lg rotate-2 transform hover:rotate-0 transition-transform duration-300">
+                <!-- Arrow doodle -->
+                <svg class="absolute -top-8 -right-8 w-16 h-16 text-sky-600 transform rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M12 5l-7 7M12 5l7 7"/></svg>
+            </div>
+            <div class="w-full md:w-1/2 z-10">
+                <i data-lucide="quote" class="w-10 h-10 text-sky-800 mb-6 fill-current opacity-50"></i>
+                <h3 class="text-xl md:text-2xl font-bold text-sky-900 mb-6 leading-snug">
+                    "Adora is a game-changer for product orgs. My team is continuously shipping experiments. At this scale it's so hard to know exactly what a given customer is experiencing in the product. Adora creates that clarity."
+                </h3>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-black rounded flex items-center justify-center text-white font-bold">N</div>
+                    <div>
+                        <p class="font-bold text-sky-900">Lauryn Motamedi</p>
+                        <p class="text-sky-800 text-xs">Head of Product Growth, Notion</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integration -->
+    <section class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12">
+                <span class="inline-block px-3 py-1 rounded-full bg-lime-100 text-lime-700 text-xs font-bold tracking-wide mb-4 border border-lime-200">INTEGRATION</span>
+                <h2 class="text-4xl font-bold text-gray-900">Easy to integrate</h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <!-- Step 1 -->
+                <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-6">
+                        <i data-lucide="code" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">Install the Adora JavaScript snippet</h3>
+                    <p class="text-sm text-gray-600">No manual event tagging needed to get started. Set up your privacy controls and any custom cohorts.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center text-pink-600 mb-6">
+                        <i data-lucide="layers" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">Let Adora get to work</h3>
+                    <p class="text-sm text-gray-600">Adora automatically aggregates all the screens you serve to your users. From pages to dialogs to dropdowns.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 bg-lime-100 rounded-lg flex items-center justify-center text-lime-600 mb-6">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">You're set up!</h3>
+                    <p class="text-sm text-gray-600">Adora is all set up. Enjoy real-time access to your product screens, journeys and all their variations.</p>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="space-y-4">
+                <div class="bg-white p-6 rounded-xl border border-gray-100 flex items-center gap-6">
+                    <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">Powerful privacy controls</h4>
+                        <p class="text-xs text-gray-500 mt-1">Privacy is our priority. We're SOC2 compliant and let you control exactly what to capture. Nothing more, nothing less.</p>
+                        <a href="#" class="text-xs text-indigo-600 font-medium mt-1 inline-block hover:underline">Learn more</a>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-100 flex items-center gap-6">
+                    <div class="w-10 h-10 bg-lime-50 rounded-full flex items-center justify-center text-lime-600 shrink-0">
+                        <i data-lucide="lock" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">Secure by design</h4>
+                        <p class="text-xs text-gray-500 mt-1">Your data is protected by SOC2 certified security, built by engineering leaders from Amazon, Canva, and Dropbox.</p>
+                        <a href="#" class="text-xs text-indigo-600 font-medium mt-1 inline-block hover:underline">Learn more</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white pt-20 pb-10 border-t border-gray-100 relative overflow-hidden">
+        <!-- Tape decoration -->
+        <div class="absolute top-0 left-10 w-32 h-8 bg-lime-200 opacity-50 rotate-[-5deg] transform -translate-y-1/2"></div>
+        <div class="absolute top-0 right-10 w-32 h-8 bg-lime-200 opacity-50 rotate-[5deg] transform -translate-y-1/2"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div class="col-span-2 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center text-white">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i>
+                        </div>
+                        <span class="font-bold text-lg text-indigo-900">Adora</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-indigo-900 text-sm mb-4">Product</h4>
+                    <ul class="space-y-2 text-xs text-gray-600">
+                        <li><a href="#" class="hover:text-indigo-600">Automated Journey Maps</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Session Replay</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Visual Analytics</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Wayback Machine</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Living Product Docs</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-indigo-900 text-sm mb-4">Getting Started</h4>
+                    <ul class="space-y-2 text-xs text-gray-600">
+                        <li><a href="#" class="hover:text-indigo-600">Join Waitlist</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Security and Privacy</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Developer Docs</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-indigo-900 text-sm mb-4">Company</h4>
+                    <ul class="space-y-2 text-xs text-gray-600">
+                        <li><a href="#" class="hover:text-indigo-600">About Us</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Blog</a></li>
+                        <li><a href="#" class="hover:text-indigo-600">Trust Centre</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-gray-500">
+                <div class="flex gap-6">
+                    <span>© 2025 Adora. All rights reserved.</span>
+                    <a href="#" class="hover:text-gray-900">Privacy Policy</a>
+                    <a href="#" class="hover:text-gray-900">Terms and Conditions</a>
+                </div>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-gray-900"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+                    <a href="#" class="hover:text-gray-900"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+\`\`\`
+    `
+  },
 
   {
     id: 'form-feedback',

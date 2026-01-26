@@ -18,8 +18,8 @@ export default {
   },
   created() {
     provideArtifactuse({ 
-      theme: 'dark',
-      panels: {
+      theme: 'light',
+      panels: { 
         // Add new panel type
         'form': 'http://localhost:5181/',
         // Override specific panel with different CDN
