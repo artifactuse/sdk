@@ -487,6 +487,16 @@
   z-index: 5;
 }
 
+/* Hide content panes during transition to prevent visual glitch */
+.artifactuse-panel__content--transitioning > .artifactuse-panel__preview,
+.artifactuse-panel__content--transitioning > .artifactuse-panel__code {
+  visibility: hidden;
+}
+
+.artifactuse-panel__content--transitioning > .artifactuse-panel__loading {
+  visibility: visible;
+}
+
 .artifactuse-panel__spinner {
   width: 24px;
   height: 24px;

@@ -289,13 +289,21 @@
         </header>
         
         <!-- Panel content -->
-        <div 
+        <div
           ref="contentRef"
           class="artifactuse-panel__content"
-          :class="`artifactuse-panel__content--${state.viewMode}`"
+          :class="[
+            `artifactuse-panel__content--${state.viewMode}`,
+            { 'artifactuse-panel__content--transitioning': isTransitioning }
+          ]"
         >
+          <!-- Transition overlay -->
+          <div v-if="isTransitioning" class="artifactuse-panel__loading">
+            <div class="artifactuse-panel__spinner"></div>
+          </div>
+
           <!-- Preview pane -->
-          <div 
+          <div
             v-if="state.viewMode === 'preview' || state.viewMode === 'split'"
             class="artifactuse-panel__preview"
             :style="state.viewMode === 'split' ? { width: `${splitPosition}%` } : undefined"
@@ -559,6 +567,7 @@ const codeScrollRef = ref(null);
 const copied = ref(false);
 const showArtifactList = ref(false);
 const iframeLoading = ref(true);
+const isTransitioning = ref(false);
 const cameFromList = ref(false); // Track if user navigated from list view
 const isDownloadingAll = ref(false); // Track download all progress
 
@@ -932,6 +941,14 @@ function stopSplitResize() {
 // Watch for artifact changes
 watch(activeArtifact, (newArtifact, oldArtifact) => {
   if (newArtifact) {
+    // Check if transitioning between different previewability types
+    if (oldArtifact && oldArtifact.isPreviewable !== newArtifact.isPreviewable) {
+      isTransitioning.value = true;
+      setTimeout(() => {
+        isTransitioning.value = false;
+      }, 150);
+    }
+
     // Set iframe loading when artifact changes
     if (!oldArtifact || newArtifact.id !== oldArtifact.id) {
       iframeLoading.value = true;

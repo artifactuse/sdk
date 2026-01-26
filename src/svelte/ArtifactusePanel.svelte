@@ -35,6 +35,7 @@
   let iframeLoading = true;
   let cameFromList = false;
   let isDownloadingAll = false;
+  let isTransitioning = false;
 
   // Panel/split resize state
   let panelWidth = 50;
@@ -79,7 +80,7 @@
     className,
   ].filter(Boolean).join(' ');
   
-  $: contentClass = `artifactuse-panel__content artifactuse-panel__content--${viewMode}`;
+  $: contentClass = `artifactuse-panel__content artifactuse-panel__content--${viewMode}${isTransitioning ? ' artifactuse-panel__content--transitioning' : ''}`;
   
   // Watch for artifact changes
   $: if (artifact) {
@@ -93,9 +94,19 @@
   
   let prevArtifactId = null;
   let prevArtifactCode = null;
-  
+  let prevIsPreviewable = null;
+
   function handleArtifactChange(newArtifact) {
     if (!newArtifact) return;
+
+    // Check if we're transitioning between different previewability types
+    if (prevIsPreviewable !== null && prevIsPreviewable !== newArtifact.isPreviewable) {
+      isTransitioning = true;
+      setTimeout(() => {
+        isTransitioning = false;
+      }, 150);
+    }
+    prevIsPreviewable = newArtifact.isPreviewable;
 
     // Set iframe loading when artifact changes
     if (prevArtifactId !== newArtifact.id) {
@@ -719,6 +730,13 @@
       
       <!-- Content -->
       <div class={contentClass} bind:this={contentRef}>
+        <!-- Transition overlay -->
+        {#if isTransitioning}
+          <div class="artifactuse-panel__loading">
+            <div class="artifactuse-panel__spinner"></div>
+          </div>
+        {/if}
+
         <!-- Preview pane -->
         {#if viewMode === 'preview' || viewMode === 'split'}
           <div 

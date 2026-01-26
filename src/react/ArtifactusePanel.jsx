@@ -43,6 +43,7 @@ export default function ArtifactusePanel({
   const [copied, setCopied] = useState(false);
   const [showArtifactList, setShowArtifactList] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [cameFromList, setCameFromList] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
@@ -55,6 +56,7 @@ export default function ArtifactusePanel({
   // Timers
   const streamEndTimerRef = useRef(null);
   const iframeLoadTimerRef = useRef(null);
+  const prevArtifactRef = useRef(null);
   
   // Computed values
   const languageDisplay = useMemo(() => {
@@ -368,6 +370,13 @@ export default function ArtifactusePanel({
   // Effect: Watch for artifact changes
   useEffect(() => {
     if (activeArtifact) {
+      // Check if transitioning between different previewability types
+      if (prevArtifactRef.current && prevArtifactRef.current.isPreviewable !== activeArtifact.isPreviewable) {
+        setIsTransitioning(true);
+        setTimeout(() => setIsTransitioning(false), 150);
+      }
+      prevArtifactRef.current = activeArtifact;
+
       setIframeLoading(true);
       startIframeLoadTimeout();
       updateCodeView();
@@ -418,7 +427,8 @@ export default function ArtifactusePanel({
   const contentClasses = [
     'artifactuse-panel__content',
     `artifactuse-panel__content--${state.viewMode}`,
-  ].join(' ');
+    isTransitioning && 'artifactuse-panel__content--transitioning',
+  ].filter(Boolean).join(' ');
   
   // ============================================
   // EMPTY STATE: No artifacts
@@ -723,9 +733,16 @@ export default function ArtifactusePanel({
         
         {/* Content */}
         <div className={contentClasses} ref={contentRef}>
+          {/* Transition overlay */}
+          {isTransitioning && (
+            <div className="artifactuse-panel__loading">
+              <div className="artifactuse-panel__spinner" />
+            </div>
+          )}
+
           {/* Preview pane */}
           {(state.viewMode === 'preview' || state.viewMode === 'split') && (
-            <div 
+            <div
               className="artifactuse-panel__preview"
               style={state.viewMode === 'split' ? { width: `${splitPosition}%` } : undefined}
             >
