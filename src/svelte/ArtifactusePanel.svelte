@@ -110,6 +110,7 @@
 
     // Set iframe loading when artifact changes
     if (prevArtifactId !== newArtifact.id) {
+      resetCodeContainerStyles();
       iframeLoading = true;
       startIframeLoadTimeout();
     }
@@ -178,7 +179,17 @@
       }
     }
   }
-  
+
+  // Reset code container inline styles
+  function resetCodeContainerStyles() {
+    if (codeScrollRef) {
+      codeScrollRef.style.backgroundColor = '';
+    }
+    if (lineNumbersRef) {
+      lineNumbersRef.style.backgroundColor = '';
+    }
+  }
+
   // Update code view
   function updateCodeView() {
     generateLineNumbers();
@@ -774,32 +785,30 @@
           </div>
         {/if}
         
-        <!-- Code pane -->
-        {#if viewMode === 'code' || viewMode === 'split'}
-          <div 
-            class="artifactuse-panel__code"
-            style={viewMode === 'split' ? `width: ${100 - splitPosition}%` : undefined}
-          >
-            <!-- Split resize handle -->
-            {#if viewMode === 'split'}
-              <button 
-                class="artifactuse-panel__split-handle"
-                on:mousedown|preventDefault={startSplitResize}
-                aria-label="Split Resize"
-              >
-                <div class="artifactuse-panel__split-handle-line"></div>
-              </button>
-            {/if}
-            
-            <div class="artifactuse-panel__code-scroll" bind:this={codeScrollRef}>
-              <div class="artifactuse-panel__line-numbers" bind:this={lineNumbersRef}></div>
-              <pre class="artifactuse-panel__code-block"><code 
-                bind:this={codeRef}
-                class="language-{normalizedLanguage}"
-              >{artifact.code}</code></pre>
-            </div>
+        <!-- Code pane - always mounted, shown/hidden via style -->
+        <div
+          class="artifactuse-panel__code"
+          style={viewMode === 'split' ? `width: ${100 - splitPosition}%` : (viewMode === 'code' ? '' : 'display: none')}
+        >
+          <!-- Split resize handle -->
+          {#if viewMode === 'split'}
+            <button
+              class="artifactuse-panel__split-handle"
+              on:mousedown|preventDefault={startSplitResize}
+              aria-label="Split Resize"
+            >
+              <div class="artifactuse-panel__split-handle-line"></div>
+            </button>
+          {/if}
+
+          <div class="artifactuse-panel__code-scroll" bind:this={codeScrollRef}>
+            <div class="artifactuse-panel__line-numbers" bind:this={lineNumbersRef}></div>
+            <pre class="artifactuse-panel__code-block"><code
+              bind:this={codeRef}
+              class="language-{normalizedLanguage}"
+            >{artifact.code}</code></pre>
           </div>
-        {/if}
+        </div>
       </div>
       
       <!-- Footer -->

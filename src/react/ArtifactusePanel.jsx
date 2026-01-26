@@ -149,7 +149,17 @@ export default function ArtifactusePanel({
       }
     }
   }, []);
-  
+
+  // Reset code container inline styles
+  const resetCodeContainerStyles = useCallback(() => {
+    if (codeScrollRef.current) {
+      codeScrollRef.current.style.backgroundColor = '';
+    }
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.style.backgroundColor = '';
+    }
+  }, []);
+
   // Update code view
   const updateCodeView = useCallback(() => {
     generateLineNumbers();
@@ -377,11 +387,12 @@ export default function ArtifactusePanel({
       }
       prevArtifactRef.current = activeArtifact;
 
+      resetCodeContainerStyles();
       setIframeLoading(true);
       startIframeLoadTimeout();
       updateCodeView();
     }
-  }, [activeArtifact?.id]);
+  }, [activeArtifact?.id, resetCodeContainerStyles]);
   
   // Effect: Update code view when viewMode changes
   useEffect(() => {
@@ -775,35 +786,36 @@ export default function ArtifactusePanel({
             </div>
           )}
           
-          {/* Code pane */}
-          {(state.viewMode === 'code' || state.viewMode === 'split') && (
-            <div 
-              className="artifactuse-panel__code"
-              style={state.viewMode === 'split' ? { width: `${100 - splitPosition}%` } : undefined}
-            >
-              {/* Split resize handle */}
-              {state.viewMode === 'split' && (
-                <div 
-                  className="artifactuse-panel__split-handle"
-                  onMouseDown={startSplitResize}
-                >
-                  <div className="artifactuse-panel__split-handle-line" />
-                </div>
-              )}
-              
-              <div className="artifactuse-panel__code-scroll" ref={codeScrollRef}>
-                <div className="artifactuse-panel__line-numbers" ref={lineNumbersRef} />
-                <pre className="artifactuse-panel__code-block">
-                  <code 
-                    ref={codeRef}
-                    className={`language-${normalizedLanguage}`}
-                  >
-                    {activeArtifact.code}
-                  </code>
-                </pre>
+          {/* Code pane - always mounted, shown/hidden via style */}
+          <div
+            className="artifactuse-panel__code"
+            style={{
+              ...(state.viewMode === 'split' ? { width: `${100 - splitPosition}%` } : {}),
+              display: (state.viewMode === 'code' || state.viewMode === 'split') ? undefined : 'none',
+            }}
+          >
+            {/* Split resize handle */}
+            {state.viewMode === 'split' && (
+              <div
+                className="artifactuse-panel__split-handle"
+                onMouseDown={startSplitResize}
+              >
+                <div className="artifactuse-panel__split-handle-line" />
               </div>
+            )}
+
+            <div className="artifactuse-panel__code-scroll" ref={codeScrollRef}>
+              <div className="artifactuse-panel__line-numbers" ref={lineNumbersRef} />
+              <pre className="artifactuse-panel__code-block">
+                <code
+                  ref={codeRef}
+                  className={`language-${normalizedLanguage}`}
+                >
+                  {activeArtifact.code}
+                </code>
+              </pre>
             </div>
-          )}
+          </div>
         </div>
         
         {/* Footer */}

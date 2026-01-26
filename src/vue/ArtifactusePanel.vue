@@ -333,9 +333,9 @@
             </div>
           </div>
           
-          <!-- Code pane -->
-          <div 
-            v-if="state.viewMode === 'code' || state.viewMode === 'split'"
+          <!-- Code pane - always mounted, shown/hidden via v-show -->
+          <div
+            v-show="state.viewMode === 'code' || state.viewMode === 'split'"
             class="artifactuse-panel__code"
             :style="state.viewMode === 'split' ? { width: `${100 - splitPosition}%` } : undefined"
           >
@@ -679,6 +679,16 @@ function syncPrismBackground() {
   }
 }
 
+// Reset code container inline styles
+function resetCodeContainerStyles() {
+  if (codeScrollRef.value) {
+    codeScrollRef.value.style.backgroundColor = '';
+  }
+  if (lineNumbersRef.value) {
+    lineNumbersRef.value.style.backgroundColor = '';
+  }
+}
+
 // Update code view (line numbers + highlighting)
 function updateCodeView() {
   nextTick(() => {
@@ -951,6 +961,7 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
 
     // Set iframe loading when artifact changes
     if (!oldArtifact || newArtifact.id !== oldArtifact.id) {
+      resetCodeContainerStyles();
       iframeLoading.value = true;
       startIframeLoadTimeout();
     }
