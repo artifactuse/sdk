@@ -521,20 +521,16 @@ export default defineComponent({
     const copied = ref(false);
     const showArtifactList = ref(false);
     const iframeLoading = ref(true);
-    const isStreaming = ref(false);
     const cameFromList = ref(false);
     const isDownloadingAll = ref(false);
-    
+
     // Panel/split resize state
     const panelWidth = ref(50);
     const splitPosition = ref(50);
-    // let panelResizeState = null;
-    // let splitResizeState = null;
     const panelResizeState = ref(null);
     const splitResizeState = ref(null);
-    
+
     // Timers
-    let updateTimer = null;
     let streamEndTimer = null;
     let iframeLoadTimer = null;
     
@@ -605,7 +601,8 @@ export default defineComponent({
     function highlightCode() {
       if (codeRef.value && isPrismAvailable()) {
         window.Prism.highlightElement(codeRef.value);
-        
+        codeRef.value.dataset.highlighted = 'true';
+
         nextTick(() => {
           syncPrismBackground();
         });
@@ -627,9 +624,7 @@ export default defineComponent({
     function updateCodeView() {
       nextTick(() => {
         generateLineNumbers();
-        if (!isStreaming.value) {
-          highlightCode();
-        }
+        highlightCode();
       });
     }
     
@@ -852,7 +847,7 @@ export default defineComponent({
       }
     }
     
-    // Watch for artifact changes with streaming support
+    // Watch for artifact changes
     watch(activeArtifact, (newArtifact, oldArtifact) => {
       if (newArtifact) {
         // Set iframe loading when artifact changes
@@ -860,37 +855,19 @@ export default defineComponent({
           iframeLoading.value = true;
           startIframeLoadTimeout();
         }
-        
+
         // Check if code changed
         if (!oldArtifact || newArtifact.code !== oldArtifact.code) {
-          isStreaming.value = true;
-          
-          clearTimeout(updateTimer);
-          updateTimer = setTimeout(() => {
-            generateLineNumbers();
-          }, 100);
-          
+          // Update code view immediately on each change
+          updateCodeView();
+
+          // Debounce iframe updates only
           clearTimeout(streamEndTimer);
           streamEndTimer = setTimeout(() => {
-            isStreaming.value = false;
-            nextTick(() => {
-              highlightCode();
-              
-              if (iframeRef.value && newArtifact.isPreviewable) {
-                //iframeLoading.value = true;
-                //startIframeLoadTimeout();
-                instance.bridge.loadArtifact(newArtifact);
-              }
-            });
-          }, 500);
-        } else {
-          if (iframeRef.value && newArtifact.isPreviewable) {
-            //iframeLoading.value = true;
-            //startIframeLoadTimeout();
-            nextTick(() => {
+            if (iframeRef.value && newArtifact.isPreviewable) {
               instance.bridge.loadArtifact(newArtifact);
-            });
-          }
+            }
+          }, 500);
         }
       }
     }, { deep: true });
@@ -918,7 +895,6 @@ export default defineComponent({
       stopPanelResize();
       stopSplitResize();
       document.removeEventListener('click', handleClickOutside);
-      clearTimeout(updateTimer);
       clearTimeout(streamEndTimer);
       clearTimeout(iframeLoadTimer);
     });

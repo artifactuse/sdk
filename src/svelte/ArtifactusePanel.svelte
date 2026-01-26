@@ -33,18 +33,16 @@
   let copied = false;
   let showArtifactList = false;
   let iframeLoading = true;
-  let isStreaming = false;
   let cameFromList = false;
   let isDownloadingAll = false;
-  
+
   // Panel/split resize state
   let panelWidth = 50;
   let splitPosition = 50;
   let panelResizeState = null;
   let splitResizeState = null;
-  
+
   // Timers
-  let updateTimer = null;
   let streamEndTimer = null;
   let iframeLoadTimer = null;
   
@@ -98,39 +96,27 @@
   
   function handleArtifactChange(newArtifact) {
     if (!newArtifact) return;
-    
+
     // Set iframe loading when artifact changes
     if (prevArtifactId !== newArtifact.id) {
       iframeLoading = true;
       startIframeLoadTimeout();
     }
-    
+
     // Check if code changed
     if (prevArtifactCode !== newArtifact.code) {
-      isStreaming = true;
-      
-      // Debounce updates during streaming
-      clearTimeout(updateTimer);
-      updateTimer = setTimeout(() => {
-        generateLineNumbers();
-      }, 100);
-      
-      // Debounce end-of-streaming detection
+      // Update code view immediately on each change
+      tick().then(() => updateCodeView());
+
+      // Debounce iframe updates only
       clearTimeout(streamEndTimer);
       streamEndTimer = setTimeout(() => {
-        isStreaming = false;
-        tick().then(() => {
-          highlightCode();
-          
-          if (iframeRef && newArtifact.isPreviewable) {
-            //iframeLoading = true;
-            //startIframeLoadTimeout();
-            instance.bridge.loadArtifact(newArtifact);
-          }
-        });
+        if (iframeRef && newArtifact.isPreviewable) {
+          instance.bridge.loadArtifact(newArtifact);
+        }
       }, 500);
     }
-    
+
     prevArtifactId = newArtifact.id;
     prevArtifactCode = newArtifact.code;
   }
@@ -161,7 +147,8 @@
   function highlightCode() {
     if (codeRef && isPrismAvailable()) {
       window.Prism.highlightElement(codeRef);
-      
+      codeRef.dataset.highlighted = 'true';
+
       tick().then(() => {
         syncPrismBackground();
       });
@@ -184,9 +171,7 @@
   // Update code view
   function updateCodeView() {
     generateLineNumbers();
-    if (!isStreaming) {
-      highlightCode();
-    }
+    highlightCode();
   }
   
   // Handle iframe load
@@ -409,7 +394,6 @@
   onDestroy(() => {
     stopPanelResize();
     stopSplitResize();
-    clearTimeout(updateTimer);
     clearTimeout(streamEndTimer);
     clearTimeout(iframeLoadTimer);
   });

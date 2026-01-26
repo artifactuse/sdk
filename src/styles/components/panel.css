@@ -604,6 +604,15 @@
   font-family: inherit;
 }
 
+/* Hide code until highlighted to prevent flash */
+.artifactuse-panel__code-block code:not([data-highlighted="true"]) {
+  opacity: 0;
+}
+
+.artifactuse-panel__code-block code[data-highlighted="true"] {
+  opacity: 1;
+}
+
 /* Prism pre override */
 .artifactuse-panel__code pre[class*="language-"],
 .artifactuse-panel__code code[class*="language-"] {

@@ -43,18 +43,16 @@ export default function ArtifactusePanel({
   const [copied, setCopied] = useState(false);
   const [showArtifactList, setShowArtifactList] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [cameFromList, setCameFromList] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
-  
+
   // Panel/split resize state
   const [panelWidth, setPanelWidth] = useState(50);
   const [splitPosition, setSplitPosition] = useState(50);
   const panelResizeStateRef = useRef(null);
   const splitResizeStateRef = useRef(null);
-  
+
   // Timers
-  const updateTimerRef = useRef(null);
   const streamEndTimerRef = useRef(null);
   const iframeLoadTimerRef = useRef(null);
   
@@ -128,7 +126,8 @@ export default function ArtifactusePanel({
   const highlightCode = useCallback(() => {
     if (codeRef.current && isPrismAvailable()) {
       window.Prism.highlightElement(codeRef.current);
-      
+      codeRef.current.dataset.highlighted = 'true';
+
       // Sync Prism background to containers
       setTimeout(() => {
         syncPrismBackground();
@@ -152,10 +151,8 @@ export default function ArtifactusePanel({
   // Update code view
   const updateCodeView = useCallback(() => {
     generateLineNumbers();
-    if (!isStreaming) {
-      highlightCode();
-    }
-  }, [generateLineNumbers, highlightCode, isStreaming]);
+    highlightCode();
+  }, [generateLineNumbers, highlightCode]);
   
   // Handle iframe load
   const handleIframeLoad = useCallback(() => {
@@ -402,7 +399,6 @@ export default function ArtifactusePanel({
     return () => {
       stopPanelResize();
       stopSplitResize();
-      clearTimeout(updateTimerRef.current);
       clearTimeout(streamEndTimerRef.current);
       clearTimeout(iframeLoadTimerRef.current);
     };

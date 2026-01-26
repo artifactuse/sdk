@@ -562,11 +562,9 @@ const iframeLoading = ref(true);
 const cameFromList = ref(false); // Track if user navigated from list view
 const isDownloadingAll = ref(false); // Track download all progress
 
-// Streaming state
-let updateTimer = null;
+// Timers
 let streamEndTimer = null;
 let iframeLoadTimer = null;
-const isStreaming = ref(false);
 
 // Panel width (percentage)
 const panelWidth = ref(50);
@@ -650,7 +648,8 @@ function generateLineNumbers() {
 function highlightCode() {
   if (codeRef.value && isPrismAvailable()) {
     window.Prism.highlightElement(codeRef.value);
-    
+    codeRef.value.dataset.highlighted = 'true';
+
     // Sync Prism background to containers
     nextTick(() => {
       syncPrismBackground();
@@ -675,10 +674,7 @@ function syncPrismBackground() {
 function updateCodeView() {
   nextTick(() => {
     generateLineNumbers();
-    // Don't highlight during streaming
-    if (!isStreaming.value) {
-      highlightCode();
-    }
+    highlightCode();
   });
 }
 
@@ -933,7 +929,7 @@ function stopSplitResize() {
   iframes.forEach(iframe => iframe.style.pointerEvents = '');
 }
 
-// Watch for artifact changes with streaming support
+// Watch for artifact changes
 watch(activeArtifact, (newArtifact, oldArtifact) => {
   if (newArtifact) {
     // Set iframe loading when artifact changes
@@ -941,47 +937,19 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
       iframeLoading.value = true;
       startIframeLoadTimeout();
     }
-    
+
     // Check if code changed
     if (!oldArtifact || newArtifact.code !== oldArtifact.code) {
-      // Mark as streaming
-      isStreaming.value = true;
-      
-      // Debounce updates during streaming
-      clearTimeout(updateTimer);
-      updateTimer = setTimeout(() => {
-        // Update line numbers immediately
-        generateLineNumbers();
-      }, 100);
-      
-      // Debounce end-of-streaming detection (longer delay)
+      // Update code view immediately on each change
+      updateCodeView();
+
+      // Debounce iframe updates only
       clearTimeout(streamEndTimer);
       streamEndTimer = setTimeout(() => {
-        // No updates for 500ms = streaming finished
-        isStreaming.value = false;
-        nextTick(() => {
-          // Highlight code
-          highlightCode();
-          
-          // Reload preview iframe after streaming ends
-          if (iframeRef.value && newArtifact.isPreviewable) {
-            //iframeLoading.value = true;
-            //startIframeLoadTimeout();
-            instance.bridge.loadArtifact(newArtifact);
-          }
-        });
-      }, 500);
-    } else {
-      // Artifact changed but code didn't (e.g., different artifact selected)
-      // Reload immediately
-      if (iframeRef.value && newArtifact.isPreviewable) {
-        //iframeLoading.value = true;
-        //startIframeLoadTimeout();
-        nextTick(() => {
+        if (iframeRef.value && newArtifact.isPreviewable) {
           instance.bridge.loadArtifact(newArtifact);
-        });
-      }
-      updateCodeView();
+        }
+      }, 500);
     }
   }
 }, { deep: true });
@@ -1019,7 +987,6 @@ onUnmounted(() => {
   stopPanelResize();
   stopSplitResize();
   document.removeEventListener('click', handleClickOutside);
-  clearTimeout(updateTimer);
   clearTimeout(streamEndTimer);
   clearTimeout(iframeLoadTimer);
 });
