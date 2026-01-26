@@ -19,7 +19,8 @@ export default {
   created() {
     provideArtifactuse({ 
       theme: 'light',
-      cdnUrl: 'http://localhost:8787/',
+      //cdnUrl: 'http://localhost:8787/',
+      cdnUrl: 'https://cdn.artifactuse.com/',
       // panels: { 
       //   // Add new panel type
       //   'form': 'http://localhost:5181/',

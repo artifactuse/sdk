@@ -36,6 +36,37 @@ Here's a contact form:
 \`\`\`
 `
   },
+    
+  {
+    id: 'json-data-001',
+    content: `
+Here's a contact form:
+
+\`\`\`json
+{
+  "title": "Contact Us",
+  "description": "We'd love to hear from you!",
+  "variant": "fields",
+  "display": "inline",
+  "data": {
+    "fields": [
+      { "name": "name", "type": "text", "label": "Full Name", "required": true, "placeholder": "John Doe" },
+      { "name": "email", "type": "email", "label": "Email Address", "required": true },
+      { "name": "subject", "type": "select", "label": "Subject", "options": ["General Inquiry", "Support", "Sales", "Partnership"] },
+      { "name": "message", "type": "textarea", "label": "Message", "rows": 4 },
+      {
+        "type": "buttons",
+        "fields": [
+          { "type": "button", "label": "Cancel", "action": "cancel", "variant": "ghost" },
+          { "type": "button", "label": "Send Message", "action": "submit", "variant": "primary" }
+        ]
+      }
+    ]
+  }
+}
+\`\`\`
+`
+  },
   {
     id: "html-content-23",
     content: `

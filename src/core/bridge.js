@@ -29,6 +29,7 @@ export function createBridge(initialOrigins = []) {
   const listeners = new Map();
   let panelIframe = null;
   let isReady = false;
+  let readySignalReceived = false; // Track if ANY panel:ready was received
   const pendingMessages = [];
   
   /**
@@ -63,22 +64,31 @@ export function createBridge(initialOrigins = []) {
    * Handle messages from iframe
    */
   function handleMessage(event) {
+    // Debug logging
+    if (event.data?.type === 'artifactuse') {
+      console.log('[Bridge] Message from:', event.origin, 'action:', event.data?.action);
+      console.log('[Bridge] Allowed origins:', getAllowedOrigins());
+    }
+
     // Verify origin against allowed origins
     if (!isOriginAllowed(event.origin)) {
+      if (event.data?.type === 'artifactuse') {
+        console.warn('[Bridge] Origin NOT allowed:', event.origin);
+      }
       return;
     }
-    
+
     const { type, action, data, requestId } = event.data || {};
 
     if (type !== 'artifactuse') return;
-    
+
     // Handle ready signal
     if (action === 'ready' || action === 'panel:ready') {
+      console.log('[Bridge] panel:ready received, setting isReady=true');
       isReady = true;
-      
-      // Send any pending messages
-      pendingMessages.forEach(msg => sendRaw(msg));
-      pendingMessages.length = 0;
+      readySignalReceived = true;
+      // Only sends if iframe is also set
+      flushPendingMessages();
       return;
     }
     
@@ -142,10 +152,38 @@ export function createBridge(initialOrigins = []) {
    * Set panel iframe reference
    */
   function setIframe(iframe) {
-    panelIframe = iframe;
-    isReady = false;
+    console.log('[Bridge] setIframe called, current isReady:', isReady, 'readySignalReceived:', readySignalReceived, 'same iframe:', panelIframe === iframe);
+    // Only reset ready state if changing to a different iframe
+    // This prevents a race condition where the panel signals ready
+    // before the browser fires the iframe load event
+    if (panelIframe !== iframe) {
+      panelIframe = iframe;
+      // If we already received a ready signal (race condition case),
+      // restore isReady so messages can be flushed
+      if (readySignalReceived) {
+        console.log('[Bridge] Ready signal was already received, keeping isReady=true');
+        isReady = true;
+      } else {
+        isReady = false;
+      }
+    }
+    // Try to flush pending messages (handles case where ready signal came first)
+    console.log('[Bridge] setIframe done, isReady:', isReady, 'pendingMessages:', pendingMessages.length);
+    flushPendingMessages();
   }
-  
+
+  /**
+   * Flush pending messages if both iframe and ready state are set
+   */
+  function flushPendingMessages() {
+    console.log('[Bridge] flushPendingMessages: isReady=', isReady, 'hasIframe=', !!panelIframe?.contentWindow, 'pending=', pendingMessages.length);
+    if (isReady && panelIframe?.contentWindow && pendingMessages.length > 0) {
+      console.log('[Bridge] Flushing', pendingMessages.length, 'pending messages');
+      pendingMessages.forEach(msg => sendRaw(msg));
+      pendingMessages.length = 0;
+    }
+  }
+
   /**
    * Send raw message to iframe
    * 
@@ -288,6 +326,7 @@ export function createBridge(initialOrigins = []) {
     allowedOrigins.clear();
     panelIframe = null;
     isReady = false;
+    readySignalReceived = false;
     pendingMessages.length = 0;
   }
   
