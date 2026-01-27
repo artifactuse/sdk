@@ -136,11 +136,14 @@ export function createArtifactuseStores(config = {}) {
     on: instance.on,
     off: instance.off,
     
+    // State management
+    clearArtifacts: () => instance.state.clear(),
+
     // Theme
     applyTheme: instance.applyTheme,
     setTheme,
     getTheme: instance.getTheme,
-    
+
     // Cleanup
     destroy,
   };

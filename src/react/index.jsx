@@ -154,6 +154,9 @@ export function ArtifactuseProvider({ children, config = {} }) {
     on: instance.on,
     off: instance.off,
     
+    // State management
+    clearArtifacts: () => instance.state.clear(),
+
     // Theme
     applyTheme: instance.applyTheme,
     setTheme,

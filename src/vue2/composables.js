@@ -114,7 +114,10 @@ export function provideArtifactuse(config = {}) {
     // Events
     on: instance.on,
     off: instance.off,
-    
+
+    // State management
+    clearArtifacts: () => instance.state.clear(),
+
     // Theme - wrap setTheme to also apply
     applyTheme: instance.applyTheme,
     setTheme: (theme) => {
@@ -123,7 +126,7 @@ export function provideArtifactuse(config = {}) {
     },
     getTheme: instance.getTheme,
   };
-  
+
   provide(ARTIFACTUSE_KEY, provided);
   
   return provided;
@@ -228,7 +231,10 @@ export function createArtifactuseComposable(config = {}) {
     // Events
     on: instance.on,
     off: instance.off,
-    
+
+    // State management
+    clearArtifacts: () => instance.state.clear(),
+
     // Theme - wrap setTheme to also apply
     applyTheme: instance.applyTheme,
     setTheme: (theme) => {
