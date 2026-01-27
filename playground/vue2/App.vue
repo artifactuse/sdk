@@ -46,6 +46,10 @@ export default {
     const isStreaming = ref(false)
     const showTestPanel = ref(true)
 
+    const artifactCount = computed(() => {
+      return artifactuse.artifactCount.value;
+    })
+
     const selectedMessage = computed(() => {
       return mockMessages.find(m => m.id === selectedMessageId.value)
     })
@@ -101,6 +105,7 @@ export default {
       stopStream,
       clearMessages,
       loadAllInstantly,
+      artifactCount
     }
   },
 }
@@ -175,7 +180,7 @@ export default {
         :message-id="m.id"
         :is-last-message="index === messages.length - 1"
       />
-      <ArtifactusePanelToggle />
+      <ArtifactusePanelToggle v-if="artifactCount > 0" class="h-8 w-8 flex items-center justify-center cursor-pointer rounded-full disabled:opacity-65 disabled:cursor-default transition-all duration-200 hover:bg-gray-100 hover:text-gray-600" />
     </div>
     <ArtifactusePanel />
 

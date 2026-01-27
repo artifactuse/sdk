@@ -7,30 +7,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  /* width: 40px;
   height: 40px;
   background: rgb(var(--artifactuse-surface));
-  border: 1px solid rgb(var(--artifactuse-border));
-  border-radius: 10px;
+  border: 1px solid rgb(var(--artifactuse-border)); */
+  /* border-radius: 10px; */
+  background: transparent;
+  border: none;
   color: rgb(var(--artifactuse-text-secondary));
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .artifactuse-panel-toggle:hover {
-  background: rgb(var(--artifactuse-surface-hover));
+  /* background: rgb(var(--artifactuse-surface-hover)); */
   color: rgb(var(--artifactuse-text));
   border-color: rgb(var(--artifactuse-border));
 }
 
 .artifactuse-panel-toggle--active {
-  background: rgba(var(--artifactuse-primary), 0.15);
-  border-color: rgb(var(--artifactuse-primary));
+  /* background: rgba(var(--artifactuse-primary), 0.15); */
+  /* border-color: rgb(var(--artifactuse-primary)); */
   color: rgb(var(--artifactuse-primary));
 }
 
 .artifactuse-panel-toggle--active:hover {
-  background: rgba(var(--artifactuse-primary), 0.25);
+  /* background: rgba(var(--artifactuse-primary), 0.25); */
 }
 
 .artifactuse-panel-toggle--has-artifacts {
