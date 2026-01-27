@@ -521,16 +521,6 @@
     </div>
   </Transition>
   
-  <!-- Backdrop (fullscreen only - teleported to body) -->
-  <!-- <Teleport to="body">
-    <Transition name="artifactuse-backdrop">
-      <div 
-        v-if="state.isPanelOpen && state.isFullscreen"
-        class="artifactuse-panel__backdrop"
-        @click="closePanel"
-      ></div>
-    </Transition>
-  </Teleport> -->
 </template>
 
 <script setup>

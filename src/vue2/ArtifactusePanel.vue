@@ -473,16 +473,6 @@
       </div>
     </transition>
     
-    <!-- Backdrop (fullscreen/mobile only - uses portal) -->
-    <!-- <portal to="artifactuse" :disabled="!usePortal">
-      <transition name="artifactuse-backdrop">
-        <div 
-          v-if="state.isFullscreen && activeArtifact"
-          class="artifactuse-panel__backdrop"
-          @click="closePanel"
-        ></div>
-      </transition>
-    </portal> -->
   </div>
 </template>
 

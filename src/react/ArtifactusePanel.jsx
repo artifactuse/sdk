@@ -970,13 +970,6 @@ export default function ArtifactusePanel({
         </footer>
       </div>
       
-      {/* Backdrop (fullscreen only) */}
-      {/* {state.isFullscreen && (
-        <div 
-          className="artifactuse-panel__backdrop"
-          onClick={closePanel}
-        />
-      )} */}
     </>
   );
 }

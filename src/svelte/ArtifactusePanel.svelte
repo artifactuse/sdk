@@ -968,16 +968,5 @@
       </footer>
     </div>
     
-    <!-- Backdrop (fullscreen only) -->
-    <!-- {#if isFullscreen}
-      <div 
-        class="artifactuse-panel__backdrop"
-        on:click={closePanel}
-        on:keydown={(e) => e.key === 'Escape' && closePanel()}
-        role="button"
-        tabindex="-1"
-        aria-label="Close panel"
-      ></div>
-    {/if} -->
   {/if}
 {/if}
