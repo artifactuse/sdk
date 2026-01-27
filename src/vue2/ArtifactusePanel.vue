@@ -524,7 +524,7 @@ export default defineComponent({
     const isDownloadingAll = ref(false);
 
     // Panel/split resize state
-    const panelWidth = ref(50);
+    const panelWidth = ref(65);
     const splitPosition = ref(50);
     const panelResizeState = ref(null);
     const splitResizeState = ref(null);

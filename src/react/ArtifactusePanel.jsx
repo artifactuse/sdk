@@ -48,7 +48,7 @@ export default function ArtifactusePanel({
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
   // Panel/split resize state
-  const [panelWidth, setPanelWidth] = useState(50);
+  const [panelWidth, setPanelWidth] = useState(65);
   const [splitPosition, setSplitPosition] = useState(50);
   const panelResizeStateRef = useRef(null);
   const splitResizeStateRef = useRef(null);

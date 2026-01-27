@@ -19,8 +19,8 @@ export default {
     // Must call provideArtifactuse in setup() for provide/inject to work
     const artifactuse = provideArtifactuse({
       theme: 'light',
-      //cdnUrl: 'http://localhost:8787/',
-      cdnUrl: 'https://cdn.artifactuse.com/',
+      cdnUrl: 'http://localhost:8787/',
+      //cdnUrl: 'https://cdn.artifactuse.com/',
       // panels: { 
       //   // Add new panel type
       //   'form': 'http://localhost:5181/',

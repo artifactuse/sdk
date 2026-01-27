@@ -565,7 +565,7 @@ let streamEndTimer = null;
 let iframeLoadTimer = null;
 
 // Panel width (percentage)
-const panelWidth = ref(50);
+const panelWidth = ref(65);
 const splitPosition = ref(50);
 
 // Computed

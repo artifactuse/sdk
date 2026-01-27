@@ -38,7 +38,7 @@
   let isTransitioning = false;
 
   // Panel/split resize state
-  let panelWidth = 50;
+  let panelWidth = 65;
   let splitPosition = 50;
   let panelResizeState = null;
   let splitResizeState = null;
