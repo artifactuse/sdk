@@ -67,18 +67,19 @@ export function provideArtifactuse(config = {}) {
     return state.artifacts.find(a => a.id === state.activeArtifactId) || null;
   });
   
-  const artifactCount = computed(() => state.artifacts.length);
-  
-  const hasArtifacts = computed(() => state.artifacts.length > 0);
-  
+  // Only count non-inline artifacts (inline artifacts render in message content)
+  const artifactCount = computed(() => state.artifacts.filter(a => !a.isInline).length);
+
+  const hasArtifacts = computed(() => state.artifacts.some(a => !a.isInline));
+
   // Panel-related computed
   const panelTypes = computed(() => instance.getPanelTypes());
-  
+
   const activePanelUrl = computed(() => {
     if (!activeArtifact.value) return null;
     return instance.getPanelUrl(activeArtifact.value);
   });
-  
+
   // Apply theme immediately on initialization
   instance.applyTheme();
   
@@ -188,18 +189,19 @@ export function createArtifactuseComposable(config = {}) {
     return state.artifacts.find(a => a.id === state.activeArtifactId) || null;
   });
   
-  const artifactCount = computed(() => state.artifacts.length);
-  
-  const hasArtifacts = computed(() => state.artifacts.length > 0);
-  
+  // Only count non-inline artifacts (inline artifacts render in message content)
+  const artifactCount = computed(() => state.artifacts.filter(a => !a.isInline).length);
+
+  const hasArtifacts = computed(() => state.artifacts.some(a => !a.isInline));
+
   // Panel-related computed
   const panelTypes = computed(() => instance.getPanelTypes());
-  
+
   const activePanelUrl = computed(() => {
     if (!activeArtifact.value) return null;
     return instance.getPanelUrl(activeArtifact.value);
   });
-  
+
   return {
     instance,
     state,

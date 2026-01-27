@@ -95,7 +95,8 @@ export function ArtifactuseProvider({ children, config = {} }) {
     return state.artifacts.find(a => a.id === state.activeArtifactId) || null;
   }, [state.artifacts, state.activeArtifactId]);
   
-  const artifactCount = state.artifacts.length;
+  // Only count non-inline artifacts (inline artifacts render in message content)
+  const artifactCount = state.artifacts.filter(a => !a.isInline).length;
   const hasArtifacts = artifactCount > 0;
   
   // Panel URL for active artifact

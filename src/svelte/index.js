@@ -64,9 +64,10 @@ export function createArtifactuseStores(config = {}) {
     }
   );
   
-  const artifactCount = derived(artifacts, ($artifacts) => $artifacts.length);
-  
-  const hasArtifacts = derived(artifacts, ($artifacts) => $artifacts.length > 0);
+  // Only count non-inline artifacts (inline artifacts render in message content)
+  const artifactCount = derived(artifacts, ($artifacts) => $artifacts.filter(a => !a.isInline).length);
+
+  const hasArtifacts = derived(artifacts, ($artifacts) => $artifacts.some(a => !a.isInline));
   
   // Panel URL for active artifact
   const activePanelUrl = derived(activeArtifact, ($activeArtifact) => {
