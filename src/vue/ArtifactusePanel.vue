@@ -350,11 +350,10 @@
             
             <div class="artifactuse-panel__code-scroll" ref="codeScrollRef" @scroll="handleCodeScroll">
               <div class="artifactuse-panel__line-numbers" ref="lineNumbersRef"></div>
-              <pre class="artifactuse-panel__code-block"><code 
-                ref="codeRef" 
+              <pre class="artifactuse-panel__code-block" :class="`language-${normalizedLanguage}`"><code
+                ref="codeRef"
                 :key="activeArtifact.id"
                 :class="`language-${normalizedLanguage}`"
-                v-text="activeArtifact.code"
               ></code></pre>
             </div>
           </div>
@@ -655,8 +654,18 @@ function generateLineNumbers() {
 
 // Prism highlighting
 function highlightCode() {
-  if (codeRef.value && isPrismAvailable()) {
-    window.Prism.highlightElement(codeRef.value);
+  if (codeRef.value && isPrismAvailable() && activeArtifact.value?.code) {
+    const grammar = window.Prism.languages[normalizedLanguage.value];
+    if (grammar) {
+      codeRef.value.innerHTML = window.Prism.highlight(
+        activeArtifact.value.code,
+        grammar,
+        normalizedLanguage.value
+      );
+    } else {
+      // Fallback: set as text if no grammar available
+      codeRef.value.textContent = activeArtifact.value.code;
+    }
     codeRef.value.dataset.highlighted = 'true';
 
     // Sync Prism background to containers

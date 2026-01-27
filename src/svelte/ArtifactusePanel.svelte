@@ -157,8 +157,18 @@
   
   // Highlight code with Prism
   function highlightCode() {
-    if (codeRef && isPrismAvailable()) {
-      window.Prism.highlightElement(codeRef);
+    if (codeRef && isPrismAvailable() && artifact?.code) {
+      const grammar = window.Prism.languages[normalizedLanguage];
+      if (grammar) {
+        codeRef.innerHTML = window.Prism.highlight(
+          artifact.code,
+          grammar,
+          normalizedLanguage
+        );
+      } else {
+        // Fallback: set as text if no grammar available
+        codeRef.textContent = artifact.code;
+      }
       codeRef.dataset.highlighted = 'true';
 
       tick().then(() => {
@@ -803,10 +813,10 @@
 
           <div class="artifactuse-panel__code-scroll" bind:this={codeScrollRef}>
             <div class="artifactuse-panel__line-numbers" bind:this={lineNumbersRef}></div>
-            <pre class="artifactuse-panel__code-block"><code
+            <pre class="artifactuse-panel__code-block language-{normalizedLanguage}"><code
               bind:this={codeRef}
               class="language-{normalizedLanguage}"
-            >{artifact.code}</code></pre>
+            ></code></pre>
           </div>
         </div>
       </div>

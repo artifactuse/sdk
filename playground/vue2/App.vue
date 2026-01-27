@@ -19,7 +19,25 @@ export default {
     // Must call provideArtifactuse in setup() for provide/inject to work
     const artifactuse = provideArtifactuse({
       theme: 'light',
+      //cdnUrl: 'http://localhost:8787/',
       cdnUrl: 'https://cdn.artifactuse.com/',
+      // panels: { 
+      //   // Add new panel type
+      //   'form': 'http://localhost:5181/',
+      //   // Override specific panel with different CDN
+      //   'video': 'http://localhost:3001/video',
+      //   // Disable a panel
+      //   'canvas': 'http://localhost:3001/canvas',
+      //   'diff': ' http://localhost:5176/',
+      //   'html': 'http://localhost:5178/',
+      //   'svg': 'http://localhost:5175/',
+      //   'javascript': 'http://localhost:5177/',
+      //   'python': 'http://localhost:5177/',
+      //   'react': 'http://localhost:5179/',
+      //   'vue': 'http://localhost:5180/',
+      //   'json': 'http://localhost:3002/'
+
+      // }
     })
 
     const messages = ref([])

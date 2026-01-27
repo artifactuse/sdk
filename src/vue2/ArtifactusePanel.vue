@@ -332,11 +332,11 @@
               
               <div ref="codeScrollRef" class="artifactuse-panel__code-scroll">
                 <div ref="lineNumbersRef" class="artifactuse-panel__line-numbers"></div>
-                <pre class="artifactuse-panel__code-block"><code 
+                <pre class="artifactuse-panel__code-block" :class="`language-${normalizedLanguage}`"><code
                   ref="codeRef"
                   :key="activeArtifact.id"
                   :class="`language-${normalizedLanguage}`"
-                >{{ activeArtifact.code }}</code></pre>
+                ></code></pre>
               </div>
             </div>
           </div>
@@ -608,8 +608,18 @@ export default defineComponent({
     }
     
     function highlightCode() {
-      if (codeRef.value && isPrismAvailable()) {
-        window.Prism.highlightElement(codeRef.value);
+      if (codeRef.value && isPrismAvailable() && activeArtifact.value?.code) {
+        const grammar = window.Prism.languages[normalizedLanguage.value];
+        if (grammar) {
+          codeRef.value.innerHTML = window.Prism.highlight(
+            activeArtifact.value.code,
+            grammar,
+            normalizedLanguage.value
+          );
+        } else {
+          // Fallback: set as text if no grammar available
+          codeRef.value.textContent = activeArtifact.value.code;
+        }
         codeRef.value.dataset.highlighted = 'true';
 
         nextTick(() => {

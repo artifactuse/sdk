@@ -126,8 +126,18 @@ export default function ArtifactusePanel({
   
   // Highlight code with Prism
   const highlightCode = useCallback(() => {
-    if (codeRef.current && isPrismAvailable()) {
-      window.Prism.highlightElement(codeRef.current);
+    if (codeRef.current && isPrismAvailable() && activeArtifact?.code) {
+      const grammar = window.Prism.languages[normalizedLanguage];
+      if (grammar) {
+        codeRef.current.innerHTML = window.Prism.highlight(
+          activeArtifact.code,
+          grammar,
+          normalizedLanguage
+        );
+      } else {
+        // Fallback: set as text if no grammar available
+        codeRef.current.textContent = activeArtifact.code;
+      }
       codeRef.current.dataset.highlighted = 'true';
 
       // Sync Prism background to containers
@@ -135,7 +145,7 @@ export default function ArtifactusePanel({
         syncPrismBackground();
       }, 0);
     }
-  }, []);
+  }, [activeArtifact?.code, normalizedLanguage]);
   
   // Sync Prism theme background to code containers
   const syncPrismBackground = useCallback(() => {
@@ -806,13 +816,11 @@ export default function ArtifactusePanel({
 
             <div className="artifactuse-panel__code-scroll" ref={codeScrollRef}>
               <div className="artifactuse-panel__line-numbers" ref={lineNumbersRef} />
-              <pre className="artifactuse-panel__code-block">
+              <pre className={`artifactuse-panel__code-block language-${normalizedLanguage}`}>
                 <code
                   ref={codeRef}
                   className={`language-${normalizedLanguage}`}
-                >
-                  {activeArtifact.code}
-                </code>
+                />
               </pre>
             </div>
           </div>
