@@ -5,6 +5,7 @@ import { parseArtifacts, extractCodeBlockArtifacts, getIsInline } from './detect
 import { createState } from './state.js';
 import { createBridge } from './bridge.js';
 import { createTheme } from './theme.js';
+import { createShareService } from './share.js';
 import { marked } from 'marked';
 
 // Import from modular processors
@@ -257,6 +258,22 @@ const DEFAULT_CONFIG = {
   
   // Syntax highlighting (requires Prism.js)
   syntaxHighlight: true,
+
+  // Sharing configuration
+  sharing: {
+    // Enable share/save functionality
+    enabled: true,
+    // API URL for share endpoints
+    apiUrl: 'https://api.artifactuse.com',
+    // App URL for auth popup (login/signup)
+    appUrl: 'https://app.artifactuse.com',
+    // localStorage key for auth data
+    storageKey: 'artifactuse_auth',
+    // Allow anonymous sharing (without account)
+    allowAnonymous: true,
+    // Days until anonymous shares expire
+    expiryDays: 30,
+  },
 };
 
 /**
@@ -521,7 +538,10 @@ export function createArtifactuse(userConfig = {}) {
   
   // Create panel resolver (pass bridge for runtime origin registration)
   const panelResolver = createPanelResolver(config, bridge);
-  
+
+  // Create share service
+  const share = createShareService(config.sharing);
+
   /**
    * Process AI agent message content
    * Returns processed HTML with artifact placeholders
@@ -921,7 +941,10 @@ export function createArtifactuse(userConfig = {}) {
     
     // Bridge (for advanced use)
     bridge,
-    
+
+    // Sharing
+    share,
+
     // Cleanup
     destroy,
   };

@@ -1059,3 +1059,484 @@
   opacity: 0;
   transform: translateY(8px);
 }
+
+/* ============================================
+   Share Popup (positioned above share button)
+   ============================================ */
+
+.artifactuse-share-popup {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  width: 300px;
+  background: rgb(var(--artifactuse-surface));
+  border: 1px solid rgb(var(--artifactuse-border));
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.artifactuse-share-popup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-share-popup__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  margin: 0;
+}
+
+.artifactuse-share-popup__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: rgb(var(--artifactuse-text-secondary));
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.artifactuse-share-popup__close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+
+.artifactuse-share-popup__close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.artifactuse-share-popup__body {
+  padding: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* Option buttons */
+.artifactuse-share-popup__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.artifactuse-share-popup__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgb(var(--artifactuse-border));
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.artifactuse-share-popup__option:hover {
+  border-color: rgb(var(--artifactuse-primary));
+  background: rgba(var(--artifactuse-primary), 0.05);
+}
+
+.artifactuse-share-popup__option-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--artifactuse-primary), 0.1);
+  color: rgb(var(--artifactuse-primary));
+  border-radius: 6px;
+}
+
+.artifactuse-share-popup__option-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.artifactuse-share-popup__option-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.artifactuse-share-popup__option-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  margin: 0 0 2px 0;
+}
+
+.artifactuse-share-popup__option-desc {
+  font-size: 11px;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin: 0;
+}
+
+/* Email form */
+.artifactuse-share-popup__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.artifactuse-share-popup__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text));
+  margin-bottom: 4px;
+  display: block;
+}
+
+.artifactuse-share-popup__input-wrapper {
+  position: relative;
+}
+
+.artifactuse-share-popup__input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: rgb(var(--artifactuse-text));
+  background: rgb(var(--artifactuse-background));
+  border: 1px solid rgb(var(--artifactuse-border));
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+
+.artifactuse-share-popup__input:focus {
+  border-color: rgb(var(--artifactuse-primary));
+  box-shadow: 0 0 0 2px rgba(var(--artifactuse-primary), 0.15);
+}
+
+.artifactuse-share-popup__input--verified {
+  padding-right: 32px;
+}
+
+.artifactuse-share-popup__verified-badge {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+}
+
+.artifactuse-share-popup__verified-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Buttons */
+.artifactuse-share-popup__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.artifactuse-share-popup__btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+}
+
+.artifactuse-share-popup__btn--secondary {
+  background: transparent;
+  color: rgb(var(--artifactuse-text));
+  border: 1px solid rgb(var(--artifactuse-border));
+}
+
+.artifactuse-share-popup__btn--secondary:hover {
+  background: rgba(var(--artifactuse-text), 0.05);
+}
+
+.artifactuse-share-popup__btn--primary {
+  background: rgb(var(--artifactuse-primary));
+  color: white;
+}
+
+.artifactuse-share-popup__btn--primary:hover {
+  opacity: 0.9;
+}
+
+.artifactuse-share-popup__btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Success state */
+.artifactuse-share-popup__success {
+  text-align: center;
+  padding: 4px 0;
+}
+
+.artifactuse-share-popup__success-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-radius: 50%;
+}
+
+.artifactuse-share-popup__success-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.artifactuse-share-popup__success-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  margin: 0 0 4px 0;
+}
+
+.artifactuse-share-popup__success-desc {
+  font-size: 12px;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin: 0 0 12px 0;
+}
+
+/* Link display */
+.artifactuse-share-popup__link-wrapper {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.artifactuse-share-popup__link {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  color: rgb(var(--artifactuse-text));
+  background: rgb(var(--artifactuse-background));
+  border: 1px solid rgb(var(--artifactuse-border));
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artifactuse-share-popup__copy-btn {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgb(var(--artifactuse-primary));
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.artifactuse-share-popup__copy-btn:hover {
+  opacity: 0.9;
+}
+
+.artifactuse-share-popup__copy-btn--copied {
+  background: #10b981;
+}
+
+/* Expiry warning */
+.artifactuse-share-popup__expiry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.artifactuse-share-popup__expiry-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.artifactuse-share-popup__expiry-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.artifactuse-share-popup__expiry-text {
+  font-size: 11px;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+/* Save prompt after share */
+.artifactuse-share-popup__save-prompt {
+  padding-top: 10px;
+  border-top: 1px solid rgb(var(--artifactuse-border));
+  text-align: center;
+}
+
+.artifactuse-share-popup__save-prompt-text {
+  font-size: 11px;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin: 0 0 8px 0;
+}
+
+.artifactuse-share-popup__save-prompt-btn {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: transparent;
+  color: rgb(var(--artifactuse-primary));
+  border: 1px solid rgb(var(--artifactuse-primary));
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.artifactuse-share-popup__save-prompt-btn:hover {
+  background: rgba(var(--artifactuse-primary), 0.05);
+}
+
+/* Verification pending state */
+.artifactuse-share-popup__verify {
+  text-align: center;
+  padding: 4px 0;
+}
+
+.artifactuse-share-popup__verify-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--artifactuse-primary), 0.1);
+  color: rgb(var(--artifactuse-primary));
+  border-radius: 50%;
+}
+
+.artifactuse-share-popup__verify-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.artifactuse-share-popup__verify-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+  margin: 0 0 4px 0;
+}
+
+.artifactuse-share-popup__verify-desc {
+  font-size: 12px;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin: 0 0 12px 0;
+}
+
+.artifactuse-share-popup__verify-email {
+  font-weight: 600;
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-share-popup__resend {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: transparent;
+  color: rgb(var(--artifactuse-primary));
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.artifactuse-share-popup__resend:hover {
+  text-decoration: underline;
+}
+
+.artifactuse-share-popup__resend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading spinner */
+.artifactuse-share-popup__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.artifactuse-share-popup__spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgb(var(--artifactuse-border));
+  border-top-color: rgb(var(--artifactuse-primary));
+  border-radius: 50%;
+  animation: artifactuse-spin 0.8s linear infinite;
+}
+
+@keyframes artifactuse-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.artifactuse-share-popup__loading-text {
+  font-size: 12px;
+  color: rgb(var(--artifactuse-text-secondary));
+  margin-top: 10px;
+}
+
+/* Error state */
+.artifactuse-share-popup__error {
+  padding: 8px 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.artifactuse-share-popup__error-text {
+  font-size: 11px;
+  color: #ef4444;
+  margin: 0;
+}
+
+/* Back button in popup */
+.artifactuse-share-popup__back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: rgb(var(--artifactuse-text-secondary));
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.artifactuse-share-popup__back:hover {
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-share-popup__back svg {
+  width: 14px;
+  height: 14px;
+}

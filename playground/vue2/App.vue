@@ -21,7 +21,12 @@ export default {
       theme: 'light',
       cdnUrl: 'http://localhost:8787/',
       //cdnUrl: 'https://cdn.artifactuse.com/',
-      // panels: { 
+      sharing: {
+        apiUrl: 'http://api.artifactuse.test',
+        appUrl: 'http://app.artifactuse.test',
+        storageKey: 'artifactuse_auth',
+      },
+      // panels: {
       //   // Add new panel type
       //   'form': 'http://localhost:5181/',
       //   // Override specific panel with different CDN

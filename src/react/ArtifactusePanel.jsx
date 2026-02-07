@@ -47,6 +47,15 @@ export default function ArtifactusePanel({
   const [cameFromList, setCameFromList] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
+  // Share modal state
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareModalState, setShareModalState] = useState('options');
+  const [shareUrl, setShareUrl] = useState('');
+  const [shareExpiresAt, setShareExpiresAt] = useState(null);
+  const [shareError, setShareError] = useState('');
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+  const [shareIsSaved, setShareIsSaved] = useState(false);
+
   // Panel/split resize state
   const [panelWidth, setPanelWidth] = useState(65);
   const [splitPosition, setSplitPosition] = useState(50);
@@ -93,7 +102,15 @@ export default function ArtifactusePanel({
   const showBranding = useMemo(() => {
     return instance?.config?.branding !== false;
   }, [instance]);
-  
+
+  const sharingEnabled = useMemo(() => {
+    return instance?.share?.enabled !== false;
+  }, [instance]);
+
+  const isAuthenticated = useMemo(() => {
+    return instance?.share?.isAuthenticated() || false;
+  }, [instance]);
+
   // Effective panel width - smaller for list/empty views
   const effectivePanelWidth = useMemo(() => {
     if (!activeArtifact) {
@@ -281,7 +298,113 @@ export default function ArtifactusePanel({
       setIsDownloadingAll(false);
     }
   }, [isDownloadingAll, nonInlineArtifacts]);
-  
+
+  // Share methods
+  const formatExpiryDate = useCallback((dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }, []);
+
+  const toggleSharePopup = useCallback(() => {
+    if (showShareModal) {
+      setShowShareModal(false);
+      return;
+    }
+
+    if (!activeArtifact) return;
+
+    setShareModalState('options');
+    setShareUrl('');
+    setShareExpiresAt(null);
+    setShareError('');
+    setShareLinkCopied(false);
+    setShareIsSaved(false);
+
+    setShowShareModal(true);
+  }, [activeArtifact, instance, showShareModal]);
+
+  const closeShareModal = useCallback(() => {
+    setShowShareModal(false);
+  }, []);
+
+  const handleQuickShare = useCallback(async () => {
+    if (!activeArtifact || !instance?.share) return;
+
+    setShareModalState('loading');
+    setShareError('');
+
+    try {
+      const result = await instance.share.share(activeArtifact);
+      setShareUrl(result.url);
+      setShareExpiresAt(result.expiresAt);
+      setShareIsSaved(false);
+      setShareModalState('success');
+    } catch (error) {
+      setShareError(error.message || 'Failed to create share link');
+      setShareModalState('error');
+    }
+  }, [activeArtifact, instance]);
+
+  const handleSaveOption = useCallback(async () => {
+    if (isAuthenticated) {
+      handleSave();
+    } else {
+      // Open auth popup
+      setShareModalState('loading');
+      try {
+        await instance.share.openAuthPopup();
+        // Auth successful, now save
+        handleSave();
+      } catch (error) {
+        if (error.message === 'Authentication cancelled') {
+          setShareModalState('options');
+        } else {
+          setShareError(error.message || 'Authentication failed');
+          setShareModalState('error');
+        }
+      }
+    }
+  }, [isAuthenticated, instance]);
+
+  const handleSave = useCallback(async () => {
+    if (!activeArtifact || !instance?.share) return;
+
+    setShareModalState('loading');
+    setShareError('');
+
+    try {
+      const result = await instance.share.save(activeArtifact);
+      setShareUrl(result.url);
+      setShareExpiresAt(null);
+      setShareIsSaved(true);
+      setShareModalState('success');
+    } catch (error) {
+      setShareError(error.message || 'Failed to save artifact');
+      setShareModalState('error');
+    }
+  }, [activeArtifact, instance]);
+
+  const retryShare = useCallback(() => {
+    if (shareIsSaved) {
+      handleSave();
+    } else {
+      handleQuickShare();
+    }
+  }, [shareIsSaved, handleSave, handleQuickShare]);
+
+  const copyShareLink = useCallback(async () => {
+    if (!shareUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareLinkCopied(true);
+      setTimeout(() => setShareLinkCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+    }
+  }, [shareUrl]);
+
   // Navigate artifacts
   const navigatePrev = useCallback(() => {
     if (currentNonInlineIndex > 0) {
@@ -874,7 +997,7 @@ export default function ArtifactusePanel({
             </button>
             
             {/* Download button */}
-            <button 
+            <button
               className="artifactuse-panel__footer-action"
               title="Download"
               onClick={handleDownload}
@@ -885,7 +1008,148 @@ export default function ArtifactusePanel({
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
             </button>
-            
+
+            {/* Share button + popup */}
+            {sharingEnabled && (
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="artifactuse-panel__footer-action"
+                  title="Share"
+                  onClick={toggleSharePopup}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                </button>
+
+                {/* Share popup */}
+                {showShareModal && (
+                  <div className="artifactuse-share-popup">
+                    <div className="artifactuse-share-popup__header">
+                      <span className="artifactuse-share-popup__title">
+                        {shareModalState === 'success' ? 'Link created!' : 'Share Artifact'}
+                      </span>
+                      <button className="artifactuse-share-popup__close" onClick={closeShareModal}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="artifactuse-share-popup__body">
+                      {/* Loading state */}
+                      {shareModalState === 'loading' && (
+                        <div className="artifactuse-share-popup__loading">
+                          <div className="artifactuse-share-popup__spinner" />
+                          <p className="artifactuse-share-popup__loading-text">Creating link...</p>
+                        </div>
+                      )}
+
+                      {/* Error state */}
+                      {shareModalState === 'error' && (
+                        <div>
+                          <div className="artifactuse-share-popup__error">
+                            <p className="artifactuse-share-popup__error-text">{shareError}</p>
+                          </div>
+                          <div className="artifactuse-share-popup__actions">
+                            <button className="artifactuse-share-popup__btn artifactuse-share-popup__btn--secondary" onClick={() => setShareModalState('options')}>
+                              Back
+                            </button>
+                            <button className="artifactuse-share-popup__btn artifactuse-share-popup__btn--primary" onClick={retryShare}>
+                              Retry
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Options state */}
+                      {shareModalState === 'options' && (
+                        <div className="artifactuse-share-popup__options">
+                          <button className="artifactuse-share-popup__option" onClick={handleQuickShare}>
+                            <div className="artifactuse-share-popup__option-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                              </svg>
+                            </div>
+                            <div className="artifactuse-share-popup__option-content">
+                              <p className="artifactuse-share-popup__option-title">Share link</p>
+                              <p className="artifactuse-share-popup__option-desc">Expires in 30 days</p>
+                            </div>
+                          </button>
+                          <button className="artifactuse-share-popup__option" onClick={handleSaveOption}>
+                            <div className="artifactuse-share-popup__option-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                              </svg>
+                            </div>
+                            <div className="artifactuse-share-popup__option-content">
+                              <p className="artifactuse-share-popup__option-title">Save to account</p>
+                              <p className="artifactuse-share-popup__option-desc">Permanent, manageable</p>
+                            </div>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Success state */}
+                      {shareModalState === 'success' && (
+                        <div className="artifactuse-share-popup__success">
+                          <div className="artifactuse-share-popup__success-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                          <div className="artifactuse-share-popup__link-wrapper">
+                            <input
+                              type="text"
+                              className="artifactuse-share-popup__link"
+                              value={shareUrl}
+                              readOnly
+                              onClick={(e) => e.target.select()}
+                            />
+                            <button
+                              className={`artifactuse-share-popup__copy-btn ${shareLinkCopied ? 'artifactuse-share-popup__copy-btn--copied' : ''}`}
+                              onClick={copyShareLink}
+                            >
+                              {shareLinkCopied ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                          {shareExpiresAt && !shareIsSaved && (
+                            <div className="artifactuse-share-popup__expiry">
+                              <span className="artifactuse-share-popup__expiry-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="12" cy="12" r="10" />
+                                  <line x1="12" y1="8" x2="12" y2="12" />
+                                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                              </span>
+                              <span className="artifactuse-share-popup__expiry-text">
+                                Expires {formatExpiryDate(shareExpiresAt)}
+                              </span>
+                            </div>
+                          )}
+                          {!shareIsSaved && (
+                            <div className="artifactuse-share-popup__save-prompt">
+                              <p className="artifactuse-share-popup__save-prompt-text">Keep it permanently?</p>
+                              <button className="artifactuse-share-popup__save-prompt-btn" onClick={handleSaveOption}>
+                                Save to account
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Navigation */}
             {nonInlineArtifacts.length > 1 && (
               <div className="artifactuse-panel__nav">
@@ -969,7 +1233,7 @@ export default function ArtifactusePanel({
           </div>
         </footer>
       </div>
-      
+
     </>
   );
 }
