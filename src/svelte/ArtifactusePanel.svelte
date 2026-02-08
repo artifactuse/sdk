@@ -1024,7 +1024,9 @@
                     <span class="artifactuse-share-popup__title">
                       {shareModalState === 'success' ? 'Link created!' : 'Share Artifact'}
                     </span>
-                    <button class="artifactuse-share-popup__close" on:click={closeShareModal}>
+                    <button 
+                    aria-label="share"
+                    class="artifactuse-share-popup__close" on:click={closeShareModal}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
