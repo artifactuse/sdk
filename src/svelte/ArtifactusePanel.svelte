@@ -895,7 +895,7 @@
                 src={panelUrl}
                 class="artifactuse-panel__iframe"
                 class:artifactuse-panel__iframe--loading={iframeLoading}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
                 on:load={handleIframeLoad}
                 on:error={handleIframeError}
                 title="Artifact Preview"
