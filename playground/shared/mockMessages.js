@@ -126,7 +126,7 @@ Here's a contact form:
 
                 <div class="flex items-center gap-4">
                     <a href="#" class="text-sm font-medium text-gray-600 hover:text-indigo-600">Login</a>
-                    <a href="#" class="bg-indigo-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Join Waitlist</a>
+                    <a href="https://agent.pageremix.com/" class="bg-indigo-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Join Waitlist</a>
                 </div>
             </div>
         </div>
@@ -153,9 +153,9 @@ Here's a contact form:
             </p>
 
             <div class="flex justify-center items-center gap-4 mb-16">
-                <button class="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200">
+                <a href="https://agent.pageremix.com/" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200">
                     Join Waitlist
-                </button>
+                </a>
                 <button class="flex items-center gap-2 text-gray-700 font-medium px-6 py-3 rounded-full hover:bg-gray-50 transition-colors border border-gray-200">
                     <i data-lucide="play" class="w-4 h-4 fill-current"></i> Watch video
                 </button>
