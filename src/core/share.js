@@ -206,6 +206,77 @@ export function openAuthPopup(options = {}) {
 }
 
 /**
+ * List user's saved artifacts, optionally filtered by language
+ * @param {Object} options - Options
+ * @param {string} [options.language] - Filter by language
+ * @returns {Promise<Object>} - { total, projects }
+ */
+export async function listArtifacts(options = {}) {
+  const { apiUrl = API_URL, language, getStoredAuthData: _getAuth = getStoredAuthData } = options;
+
+  const storedData = _getAuth();
+
+  if (!storedData?.token) {
+    throw new Error('Authentication required. Please sign in first.');
+  }
+
+  const params = new URLSearchParams();
+  if (language) params.set('language', language);
+
+  const response = await fetch(`${apiUrl}/v1/project/fetch?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': storedData.token,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch artifacts' }));
+    throw new Error(error.message || 'Failed to fetch artifacts');
+  }
+
+  return response.json();
+}
+
+/**
+ * Update an existing saved artifact's code
+ * @param {string} projectId - The project UUID to update
+ * @param {Object} artifact - The artifact data { code, language }
+ * @param {Object} options - Options
+ * @returns {Promise<Object>} - { project }
+ */
+export async function updateArtifact(projectId, artifact, options = {}) {
+  const { apiUrl = API_URL, getStoredAuthData: _getAuth = getStoredAuthData } = options;
+
+  const storedData = _getAuth();
+
+  if (!storedData?.token) {
+    throw new Error('Authentication required. Please sign in first.');
+  }
+
+  const response = await fetch(`${apiUrl}/v1/project/update`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': storedData.token,
+    },
+    body: JSON.stringify({
+      project_id: projectId,
+      code: artifact.code,
+      language: artifact.language,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to update artifact' }));
+    throw new Error(error.message || 'Failed to update artifact');
+  }
+
+  return response.json();
+}
+
+/**
  * Sign out - clear stored auth data
  */
 export function signOut() {
@@ -263,6 +334,8 @@ export function createShareService(config = {}) {
     // API methods
     share: (artifact) => shareArtifact(artifact, { apiUrl }),
     save: (artifact) => saveArtifact(artifact, { apiUrl, getStoredAuthData: _getStoredAuthData }),
+    listArtifacts: (language) => listArtifacts({ apiUrl, language, getStoredAuthData: _getStoredAuthData }),
+    updateArtifact: (projectId, artifact) => updateArtifact(projectId, artifact, { apiUrl, getStoredAuthData: _getStoredAuthData }),
     openAuthPopup: () => openAuthPopup({ appUrl, setStoredAuthData: _setStoredAuthData, getStoredAuthData: _getStoredAuthData }),
   };
 }

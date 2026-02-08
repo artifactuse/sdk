@@ -1439,6 +1439,77 @@
   background: rgba(var(--artifactuse-primary), 0.05);
 }
 
+/* Artifact list for update view */
+.artifactuse-share-popup__artifact-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.artifactuse-share-popup__artifact-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgb(var(--artifactuse-border));
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.artifactuse-share-popup__artifact-item:hover {
+  border-color: rgb(var(--artifactuse-primary));
+  background: rgba(var(--artifactuse-primary), 0.05);
+}
+
+.artifactuse-share-popup__artifact-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifactuse-share-popup__artifact-date {
+  font-size: 10px;
+  color: rgb(var(--artifactuse-text-secondary));
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.artifactuse-share-popup__empty {
+  text-align: center;
+  padding: 16px 0;
+  font-size: 12px;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-share-popup__back-btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: rgb(var(--artifactuse-text-secondary));
+  border: 1px solid rgb(var(--artifactuse-border));
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.artifactuse-share-popup__back-btn:hover {
+  background: rgba(var(--artifactuse-text), 0.05);
+  color: rgb(var(--artifactuse-text));
+}
+
 /* Verification pending state */
 .artifactuse-share-popup__verify {
   text-align: center;

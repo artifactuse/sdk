@@ -434,7 +434,7 @@
                 <div v-if="showShareModal" class="artifactuse-share-popup">
                   <div class="artifactuse-share-popup__header">
                     <span class="artifactuse-share-popup__title">
-                      {{ shareModalState === 'success' ? 'Link created!' : 'Share Artifact' }}
+                      {{ shareModalState === 'success' ? (updatedArtifactName ? 'Artifact updated!' : 'Link created!') : shareModalState === 'update-list' ? 'Update saved artifact' : 'Share Artifact' }}
                     </span>
                     <button class="artifactuse-share-popup__close" @click="closeShareModal">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -492,6 +492,42 @@
                           <p class="artifactuse-share-popup__option-desc">Permanent, manageable</p>
                         </div>
                       </button>
+                      <button class="artifactuse-share-popup__option" @click="handleUpdateOption">
+                        <div class="artifactuse-share-popup__option-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                          </svg>
+                        </div>
+                        <div class="artifactuse-share-popup__option-content">
+                          <p class="artifactuse-share-popup__option-title">Update saved</p>
+                          <p class="artifactuse-share-popup__option-desc">Replace an existing artifact</p>
+                        </div>
+                      </button>
+                    </div>
+
+                    <!-- Update list state -->
+                    <div v-else-if="shareModalState === 'update-list'">
+                      <div v-if="savedArtifactsLoading" class="artifactuse-share-popup__loading">
+                        <div class="artifactuse-share-popup__spinner"></div>
+                        <p class="artifactuse-share-popup__loading-text">Loading artifacts...</p>
+                      </div>
+                      <div v-else-if="savedArtifacts.length === 0" class="artifactuse-share-popup__empty">
+                        No saved artifacts of this type
+                      </div>
+                      <div v-else class="artifactuse-share-popup__artifact-list">
+                        <button
+                          v-for="artifact in savedArtifacts"
+                          :key="artifact.project?.uuid || artifact.id"
+                          class="artifactuse-share-popup__artifact-item"
+                          @click="handleUpdateArtifact(artifact)"
+                        >
+                          <span class="artifactuse-share-popup__artifact-name">{{ artifact.project?.name || 'Untitled' }}</span>
+                          <span class="artifactuse-share-popup__artifact-date">{{ formatExpiryDate(artifact.project?.created_at) }}</span>
+                        </button>
+                      </div>
+                      <button class="artifactuse-share-popup__back-btn" @click="shareModalState = 'options'">Back</button>
                     </div>
 
                     <!-- Success state -->
@@ -705,6 +741,9 @@ const shareExpiresAt = ref(null);
 const shareError = ref('');
 const shareLinkCopied = ref(false);
 const shareIsSaved = ref(false);
+const savedArtifacts = ref([]);
+const savedArtifactsLoading = ref(false);
+const updatedArtifactName = ref('');
 
 // Timers
 let streamEndTimer = null;
@@ -970,6 +1009,9 @@ function toggleSharePopup() {
   shareError.value = '';
   shareLinkCopied.value = false;
   shareIsSaved.value = false;
+  savedArtifacts.value = [];
+  savedArtifactsLoading.value = false;
+  updatedArtifactName.value = '';
 
   showShareModal.value = true;
 }
@@ -1048,6 +1090,63 @@ function retryShare() {
     handleSave();
   } else {
     handleQuickShare();
+  }
+}
+
+async function handleUpdateOption() {
+  if (!instance.share) return;
+
+  // Check auth first
+  if (!isAuthenticated.value) {
+    shareModalState.value = 'loading';
+    try {
+      await instance.share.openAuthPopup();
+    } catch (error) {
+      if (error.message === 'Authentication cancelled') {
+        shareModalState.value = 'options';
+      } else {
+        shareError.value = error.message || 'Authentication failed';
+        shareModalState.value = 'error';
+      }
+      return;
+    }
+  }
+
+  // Fetch artifacts
+  shareModalState.value = 'update-list';
+  savedArtifactsLoading.value = true;
+
+  try {
+    const lang = activeArtifact.value?.language || null;
+    const result = await instance.share.listArtifacts(lang);
+    savedArtifacts.value = result.projects || [];
+  } catch (error) {
+    shareError.value = error.message || 'Failed to load artifacts';
+    shareModalState.value = 'error';
+  } finally {
+    savedArtifactsLoading.value = false;
+  }
+}
+
+async function handleUpdateArtifact(artifact) {
+  if (!activeArtifact.value || !instance.share) return;
+
+  const projectUuid = artifact.project?.uuid;
+  if (!projectUuid) return;
+
+  shareModalState.value = 'loading';
+  shareError.value = '';
+
+  try {
+    const result = await instance.share.updateArtifact(projectUuid, activeArtifact.value);
+    shareUrl.value = result.url || '';
+    shareExpiresAt.value = null;
+    shareIsSaved.value = true;
+    updatedArtifactName.value = artifact.project?.name || 'Untitled';
+    shareModalState.value = 'success';
+  } catch (error) {
+    shareError.value = error.message || 'Failed to update artifact';
+    shareModalState.value = 'error';
   }
 }
 

@@ -46,6 +46,9 @@
   let shareError = '';
   let shareLinkCopied = false;
   let shareIsSaved = false;
+  let savedArtifacts = [];
+  let savedArtifactsLoading = false;
+  let updatedArtifactName = '';
 
   // Panel/split resize state
   let panelWidth = 65;
@@ -345,6 +348,9 @@
     shareError = '';
     shareLinkCopied = false;
     shareIsSaved = false;
+    savedArtifacts = [];
+    savedArtifactsLoading = false;
+    updatedArtifactName = '';
 
     showShareModal = true;
   }
@@ -415,6 +421,61 @@
       handleSave();
     } else {
       handleQuickShare();
+    }
+  }
+
+  async function handleUpdateOption() {
+    if (!instance?.share) return;
+
+    if (!isAuthenticated) {
+      shareModalState = 'loading';
+      try {
+        await instance.share.openAuthPopup();
+      } catch (error) {
+        if (error.message === 'Authentication cancelled') {
+          shareModalState = 'options';
+        } else {
+          shareError = error.message || 'Authentication failed';
+          shareModalState = 'error';
+        }
+        return;
+      }
+    }
+
+    shareModalState = 'update-list';
+    savedArtifactsLoading = true;
+
+    try {
+      const lang = artifact?.language || null;
+      const result = await instance.share.listArtifacts(lang);
+      savedArtifacts = result.projects || [];
+    } catch (error) {
+      shareError = error.message || 'Failed to load artifacts';
+      shareModalState = 'error';
+    } finally {
+      savedArtifactsLoading = false;
+    }
+  }
+
+  async function handleUpdateArtifact(art) {
+    if (!artifact || !instance?.share) return;
+
+    const projectUuid = art.project?.uuid;
+    if (!projectUuid) return;
+
+    shareModalState = 'loading';
+    shareError = '';
+
+    try {
+      const result = await instance.share.updateArtifact(projectUuid, artifact);
+      shareUrl = result.url || '';
+      shareExpiresAt = null;
+      shareIsSaved = true;
+      updatedArtifactName = art.project?.name || 'Untitled';
+      shareModalState = 'success';
+    } catch (error) {
+      shareError = error.message || 'Failed to update artifact';
+      shareModalState = 'error';
     }
   }
 
@@ -1022,7 +1083,7 @@
                 <div class="artifactuse-share-popup" transition:fade={{ duration: 150 }}>
                   <div class="artifactuse-share-popup__header">
                     <span class="artifactuse-share-popup__title">
-                      {shareModalState === 'success' ? 'Link created!' : 'Share Artifact'}
+                      {shareModalState === 'success' ? (updatedArtifactName ? 'Artifact updated!' : 'Link created!') : shareModalState === 'update-list' ? 'Update saved artifact' : 'Share Artifact'}
                     </span>
                     <button
                     aria-label="share"
@@ -1085,6 +1146,47 @@
                             <p class="artifactuse-share-popup__option-desc">Permanent, manageable</p>
                           </div>
                         </button>
+                        <button class="artifactuse-share-popup__option" on:click={handleUpdateOption}>
+                          <div class="artifactuse-share-popup__option-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <polyline points="23 4 23 10 17 10"></polyline>
+                              <polyline points="1 20 1 14 7 14"></polyline>
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                          </div>
+                          <div class="artifactuse-share-popup__option-content">
+                            <p class="artifactuse-share-popup__option-title">Update saved</p>
+                            <p class="artifactuse-share-popup__option-desc">Replace an existing artifact</p>
+                          </div>
+                        </button>
+                      </div>
+
+                    <!-- Update list state -->
+                    {:else if shareModalState === 'update-list'}
+                      <div>
+                        {#if savedArtifactsLoading}
+                          <div class="artifactuse-share-popup__loading">
+                            <div class="artifactuse-share-popup__spinner"></div>
+                            <p class="artifactuse-share-popup__loading-text">Loading artifacts...</p>
+                          </div>
+                        {:else if savedArtifacts.length === 0}
+                          <div class="artifactuse-share-popup__empty">
+                            No saved artifacts of this type
+                          </div>
+                        {:else}
+                          <div class="artifactuse-share-popup__artifact-list">
+                            {#each savedArtifacts as art (art.project?.uuid || art.id)}
+                              <button
+                                class="artifactuse-share-popup__artifact-item"
+                                on:click={() => handleUpdateArtifact(art)}
+                              >
+                                <span class="artifactuse-share-popup__artifact-name">{art.project?.name || 'Untitled'}</span>
+                                <span class="artifactuse-share-popup__artifact-date">{formatExpiryDate(art.project?.created_at)}</span>
+                              </button>
+                            {/each}
+                          </div>
+                        {/if}
+                        <button class="artifactuse-share-popup__back-btn" on:click={() => shareModalState = 'options'}>Back</button>
                       </div>
 
                     <!-- Success state -->
