@@ -964,6 +964,7 @@ export default function ArtifactusePanel({
                   src={panelUrl}
                   className={`artifactuse-panel__iframe ${iframeLoading ? 'artifactuse-panel__iframe--loading' : ''}`}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
+                  allow="camera; microphone; fullscreen; geolocation; display-capture; autoplay; clipboard-write"
                   onLoad={handleIframeLoad}
                   onError={handleIframeError}
                 />

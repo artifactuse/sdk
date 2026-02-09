@@ -68,6 +68,458 @@ Here's a contact form:
 `
   },
   {
+    id: "html-content-20",
+    content: `
+    this is an AI Video Interviewer
+\`\`\`html 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuseFlow - AI Video Interviewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        
+        /* Pastel Background */
+        .bg-pastel {
+            background-image: url('https://images.pexels.com/photos/7130536/pexels-photo-7130536.jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Aspect Ratios */
+        .ratio-9-16 { aspect-ratio: 9/16; max-height: 80vh; }
+        .ratio-16-9 { aspect-ratio: 16/9; width: 100%; max-width: 900px; }
+        .ratio-1-1 { aspect-ratio: 1/1; max-height: 70vh; }
+        .ratio-3-4 { aspect-ratio: 3/4; max-height: 75vh; }
+
+        /* Animations */
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .question-pop {
+            animation: floatUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        
+        /* Active Button State */
+        .ratio-btn.active {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-pastel min-h-screen flex flex-col text-slate-800 overflow-hidden">
+
+    <!-- Header -->
+    <nav class="w-full px-8 py-4 flex justify-between items-center z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center backdrop-blur-md border border-white/50">
+                <i data-lucide="aperture" class="text-white h-6 w-6"></i>
+            </div>
+            <span class="serif text-2xl font-semibold text-white tracking-wide">MuseFlow</span>
+        </div>
+        <div class="flex gap-4">
+            <button class="glass px-4 py-2 rounded-full text-white text-sm font-medium hover:bg-white/40 transition-all">Settings</button>
+            <button class="bg-white text-slate-900 px-5 py-2 rounded-full text-sm font-medium shadow-lg hover:scale-105 transition-transform">Pro Mode</button>
+        </div>
+    </nav>
+
+    <!-- Main Studio -->
+    <main class="flex-1 flex flex-col items-center justify-center relative p-4">
+        
+        <!-- Controls Bar (Top) -->
+        <div class="glass px-6 py-3 rounded-full mb-6 flex items-center gap-6 shadow-xl z-20">
+            <span class="text-xs font-semibold text-white/80 uppercase tracking-wider">Format</span>
+            <div class="flex gap-2">
+                <!-- Fixed: Added 'ratio-' prefix to arguments and IDs for easier selection -->
+                <button onclick="setRatio('ratio-9-16')" id="btn-ratio-9-16" class="ratio-btn active p-2 rounded-lg hover:bg-white/20 text-white/70 transition-all" title="Story (9:16)"><i data-lucide="smartphone" class="w-5 h-5"></i></button>
+                <button onclick="setRatio('ratio-16-9')" id="btn-ratio-16-9" class="ratio-btn p-2 rounded-lg hover:bg-white/20 text-white/70 transition-all" title="Landscape (16:9)"><i data-lucide="monitor" class="w-5 h-5"></i></button>
+                <button onclick="setRatio('ratio-1-1')" id="btn-ratio-1-1" class="ratio-btn p-2 rounded-lg hover:bg-white/20 text-white/70 transition-all" title="Square (1:1)"><i data-lucide="square" class="w-5 h-5"></i></button>
+                <button onclick="setRatio('ratio-3-4')" id="btn-ratio-3-4" class="ratio-btn p-2 rounded-lg hover:bg-white/20 text-white/70 transition-all" title="Portrait (3:4)"><i data-lucide="tablet" class="w-5 h-5"></i></button>
+            </div>
+            <div class="w-px h-6 bg-white/20"></div>
+            <div class="flex items-center gap-2">
+                <div id="ai-status-dot" class="w-2 h-2 rounded-full bg-red-400"></div>
+                <span id="ai-status-text" class="text-xs text-white font-medium">AI Offline</span>
+            </div>
+        </div>
+
+        <!-- Video Container -->
+        <div id="video-wrapper" class="relative shadow-2xl rounded-3xl overflow-hidden transition-all duration-500 ease-in-out ratio-9-16 bg-black group">
+            
+            <!-- The Video Feed -->
+            <video id="camera-feed" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
+            
+            <!-- AI Overlay Layer -->
+            <div class="absolute inset-0 pointer-events-none flex flex-col justify-end p-8 pb-24 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+                <div id="question-container" class="hidden">
+                    <div class="inline-flex items-center gap-2 mb-3">
+                        <span class="px-2 py-1 rounded bg-indigo-500/80 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">Host</span>
+                        <span class="text-white/80 text-xs italic">Listening...</span>
+                    </div>
+                    <h3 id="current-question" class="serif text-3xl md:text-4xl text-white leading-tight drop-shadow-lg">
+                        "Tell me about a time you failed."
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Recording State Overlay -->
+            <div id="recording-indicator" class="absolute top-6 right-6 flex items-center gap-2 bg-red-500/90 text-white px-3 py-1.5 rounded-full backdrop-blur-md hidden">
+                <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span id="timer" class="text-xs font-mono font-medium">00:00</span>
+            </div>
+
+            <!-- Start Screen Overlay -->
+            <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-sm z-10">
+                <button onclick="startCamera()" class="group relative flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300">
+                    <i data-lucide="camera" class="w-8 h-8 text-slate-800 group-hover:text-indigo-600 transition-colors"></i>
+                    <div class="absolute -inset-3 border border-white/30 rounded-full animate-ping opacity-50"></div>
+                </button>
+                <p class="mt-6 text-white font-medium tracking-wide">Tap to Initialize Studio</p>
+            </div>
+
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="fixed bottom-8 flex items-center gap-6 z-30">
+            
+            <!-- Record Button -->
+            <button id="record-btn" onclick="toggleRecording()" disabled class="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center bg-transparent hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <div id="record-inner" class="w-12 h-12 rounded-full bg-red-500 transition-all duration-300"></div>
+            </button>
+
+            <!-- Silence Removal Toggle -->
+            <div class="glass px-4 py-3 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-white/30 transition-colors" onclick="toggleSilenceRemoval()">
+                <div id="silence-toggle" class="w-5 h-5 rounded border border-white/60 flex items-center justify-center transition-colors">
+                    <i data-lucide="check" class="w-3 h-3 text-white opacity-0 transition-opacity"></i>
+                </div>
+                <div class="text-left">
+                    <div class="text-xs font-bold text-white">Smart Cut</div>
+                    <div class="text-[10px] text-white/70">Remove silence</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Post-Processing Modal -->
+    <div id="processing-modal" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-xl hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
+            <!-- Decorative BG -->
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"></div>
+            
+            <h2 class="serif text-3xl font-bold text-slate-800 mb-2">Your Episode is Ready</h2>
+            <p class="text-slate-500 text-sm mb-6">AI has analyzed your recording.</p>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div class="text-xs text-slate-400 uppercase font-bold mb-1">Duration</div>
+                    <div class="text-xl font-bold text-slate-800" id="final-duration">00:00</div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div class="text-xs text-slate-400 uppercase font-bold mb-1">Silence Removed</div>
+                    <div class="text-xl font-bold text-green-600" id="silence-saved">-0s</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-3">
+                <button onclick="downloadVideo()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Download MP4
+                </button>
+                <button onclick="closeModal()" class="w-full bg-transparent text-slate-500 py-3 rounded-xl font-medium hover:text-slate-800 transition-colors">
+                    Discard & Record Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // State
+        let stream;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+        let startTime;
+        let timerInterval;
+        let audioContext;
+        let analyser;
+        let silenceRemovalEnabled = false;
+        let silenceSecondsDetected = 0;
+        
+        // AI Logic State
+        let isSpeaking = false;
+        let silenceStart = null;
+        
+        // Questions Database
+        const starters = [
+            "What's a belief you hold that others disagree with?",
+            "Tell me about a turning point in your career.",
+            "If you could restart your life, what would you change?",
+            "What is the most valuable lesson you learned this year?",
+            "Describe your perfect creative environment."
+        ];
+        
+        const followUps = [
+            "That's interesting. Can you elaborate on that?",
+            "Why do you think that happened?",
+            "How did that make you feel in the moment?",
+            "Tell me more about the specific details.",
+            "What would you say to someone in that same situation?"
+        ];
+
+        // DOM Elements
+        const videoWrapper = document.getElementById('video-wrapper');
+        const videoElement = document.getElementById('camera-feed');
+        const recordBtn = document.getElementById('record-btn');
+        const recordInner = document.getElementById('record-inner');
+        const timerDisplay = document.getElementById('timer');
+        const recordingIndicator = document.getElementById('recording-indicator');
+        const questionContainer = document.getElementById('question-container');
+        const currentQuestion = document.getElementById('current-question');
+        const aiStatusDot = document.getElementById('ai-status-dot');
+        const aiStatusText = document.getElementById('ai-status-text');
+
+        // 1. Camera & Audio Setup
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoElement.srcObject = stream;
+                document.getElementById('start-screen').classList.add('hidden');
+                recordBtn.disabled = false;
+                
+                // Initialize Audio Analysis for AI
+                initAudioAnalysis();
+                
+                // Set AI Ready
+                aiStatusDot.classList.remove('bg-red-400');
+                aiStatusDot.classList.add('bg-green-400', 'animate-pulse');
+                aiStatusText.textContent = "AI Listening";
+                
+                // Show first prompt after delay
+                setTimeout(() => showQuestion(starters[Math.floor(Math.random() * starters.length)]), 1500);
+
+            } catch (err) {
+                console.error(err);
+                alert("Could not access camera. Please allow permissions.");
+            }
+        }
+
+        // 2. Audio Analysis (The "Listening" AI)
+        function initAudioAnalysis() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function analyze() {
+                analyser.getByteFrequencyData(dataArray);
+                
+                // Calculate average volume
+                let sum = 0;
+                for(let i = 0; i < bufferLength; i++) { sum += dataArray[i]; }
+                let average = sum / bufferLength;
+
+                // Threshold for "Speaking"
+                if (average > 10) {
+                    if (!isSpeaking) {
+                        isSpeaking = true;
+                    }
+                    silenceStart = null;
+                } else {
+                    if (isSpeaking) {
+                        isSpeaking = false;
+                        silenceStart = Date.now();
+                    }
+                }
+
+                // Check for awkward silence (2.5 seconds)
+                if (silenceStart && (Date.now() - silenceStart > 2500) && isRecording) {
+                    triggerFollowUp();
+                    silenceStart = null; // Reset so we don't spam
+                }
+                
+                // Track silence for "Smart Cut" stats
+                if (!isSpeaking && isRecording) {
+                    silenceSecondsDetected += 0.05; // Approx based on requestAnimationFrame
+                }
+
+                requestAnimationFrame(analyze);
+            }
+            analyze();
+        }
+
+        // 3. AI Question Logic
+        function showQuestion(text) {
+            currentQuestion.textContent = text;
+            questionContainer.classList.remove('hidden');
+            questionContainer.classList.remove('question-pop');
+            void questionContainer.offsetWidth; // Trigger reflow
+            questionContainer.classList.add('question-pop');
+        }
+
+        function triggerFollowUp() {
+            const text = followUps[Math.floor(Math.random() * followUps.length)];
+            showQuestion(text);
+        }
+
+        // 4. Recording Logic
+        function toggleRecording() {
+            if (!isRecording) {
+                // Start
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    showProcessingModal();
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                startTime = Date.now();
+                silenceSecondsDetected = 0;
+                
+                // UI Updates
+                recordInner.classList.replace('rounded-full', 'rounded-md');
+                recordInner.classList.add('scale-50');
+                recordingIndicator.classList.remove('hidden');
+                
+                // Timer
+                timerInterval = setInterval(updateTimer, 1000);
+
+            } else {
+                // Stop
+                mediaRecorder.stop();
+                isRecording = false;
+                clearInterval(timerInterval);
+                
+                // UI Updates
+                recordInner.classList.replace('rounded-md', 'rounded-full');
+                recordInner.classList.remove('scale-50');
+                recordingIndicator.classList.add('hidden');
+            }
+        }
+
+        function updateTimer() {
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(diff / 60).toString().padStart(2, '0');
+            const secs = (diff % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = \`\${mins}:\${secs}\`;
+        }
+
+        // 5. Aspect Ratio Logic (FIXED)
+        function setRatio(ratioClass) {
+            // Apply class to video wrapper
+            videoWrapper.className = \`relative shadow-2xl rounded-3xl overflow-hidden transition-all duration-500 ease-in-out bg-black group \${ratioClass}\`;
+            
+            // Update Active Button State
+            document.querySelectorAll('.ratio-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Find the button that was clicked (using ID for precision)
+            const activeBtn = document.getElementById(\`btn-\${ratioClass}\`);
+            if(activeBtn) {
+                activeBtn.classList.add('active');
+            }
+        }
+
+        // 6. Silence Removal & Export (FIXED)
+        function toggleSilenceRemoval() {
+            silenceRemovalEnabled = !silenceRemovalEnabled;
+            const toggle = document.getElementById('silence-toggle');
+            
+            // FIX: Lucide replaces <i> with <svg>, so we must look for SVG first
+            const icon = toggle.querySelector('svg') || toggle.querySelector('i');
+            
+            if (silenceRemovalEnabled) {
+                toggle.classList.add('bg-green-500', 'border-transparent');
+                if(icon) icon.classList.remove('opacity-0');
+            } else {
+                toggle.classList.remove('bg-green-500', 'border-transparent');
+                if(icon) icon.classList.add('opacity-0');
+            }
+        }
+
+        function showProcessingModal() {
+            const modal = document.getElementById('processing-modal');
+            const durationEl = document.getElementById('final-duration');
+            const silenceEl = document.getElementById('silence-saved');
+            
+            const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            
+            durationEl.textContent = \`\${mins}:\${secs.toString().padStart(2, '0')}\`;
+            
+            if (silenceRemovalEnabled) {
+                const saved = Math.min(silenceSecondsDetected, totalSeconds * 0.4).toFixed(1); // Cap at 40% for realism
+                silenceEl.textContent = \`-\${saved}s\`;
+                silenceEl.parentElement.classList.remove('opacity-50');
+            } else {
+                silenceEl.textContent = "Disabled";
+                silenceEl.parentElement.classList.add('opacity-50');
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('processing-modal').classList.add('hidden');
+            timerDisplay.textContent = "00:00";
+        }
+
+        function downloadVideo() {
+            if (recordedChunks.length === 0) {
+                alert("No video data recorded.");
+                return;
+            }
+            const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = \`museflow-recording-\${Date.now()}.mp4\`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            closeModal();
+        }
+    </script>
+</body>
+</html>
+\`\`\`
+    `
+  },
+  {
     id: "html-content-23",
     content: `
       this is suppose to be html
