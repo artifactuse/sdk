@@ -715,6 +715,7 @@ export function createArtifactuse(userConfig = {}) {
     state.addArtifact(artifact);
     openArtifact(artifact);
     if (options.viewMode) state.setViewMode(options.viewMode);
+    else if (options.tabs) state.setViewMode(options.tabs[0]);
     return artifact;
   }
 

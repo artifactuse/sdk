@@ -122,6 +122,23 @@ export default {
       artifactuse.openCode('function greet(name) {\n  console.log(`Hello, ${name}!`);\n}\n\ngreet("World");', 'javascript', { title: 'My Script' })
     }
 
+    // New feature demos
+    function testViewModeCode() {
+      artifactuse.openFile('page.html', '<!DOCTYPE html>\n<html>\n<body>\n  <h1>viewMode: code</h1>\n  <p>This opened with the Code tab active instead of Preview.</p>\n</body>\n</html>', { viewMode: 'code' })
+    }
+
+    function testCodeOnly() {
+      artifactuse.openFile('utils.py', 'def greet(name):\n    print(f"Hello, {name}!")\n\ndef add(a, b):\n    return a + b\n\nif __name__ == "__main__":\n    greet("World")\n    print(add(2, 3))', { tabs: ['code'] })
+    }
+
+    function testNoSplit() {
+      artifactuse.openFile('card.html', '<!DOCTYPE html>\n<html>\n<body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f0f0f0">\n  <div style="background:#fff;padding:32px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.1)">\n    <h2>No Split Tab</h2>\n    <p>Only Preview and Code tabs are visible.</p>\n  </div>\n</body>\n</html>', { tabs: ['preview', 'code'] })
+    }
+
+    function testTxtFallback() {
+      artifactuse.openFile('config.ini', '[database]\nhost = localhost\nport = 5432\nname = myapp_db\n\n[server]\nport = 3000\ndebug = true\nlog_level = info')
+    }
+
     return {
       messages,
       mockMessages,
@@ -142,6 +159,10 @@ export default {
       testOpenMarkdown,
       testOpenUnknown,
       testOpenCode,
+      testViewModeCode,
+      testCodeOnly,
+      testNoSplit,
+      testTxtFallback,
     }
   },
 }
@@ -210,6 +231,18 @@ export default {
         </div>
         <div class="test-panel__actions">
           <button @click="testOpenCode">openCode()</button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>New Features:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testViewModeCode">viewMode: code</button>
+          <button @click="testCodeOnly">Code Only</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testNoSplit">No Split</button>
+          <button @click="testTxtFallback">txt (.ini)</button>
         </div>
 
         <div class="test-panel__status">

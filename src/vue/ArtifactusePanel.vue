@@ -1332,7 +1332,7 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
     }
 
     // Check if code changed
-    if (!oldArtifact || newArtifact.code !== oldArtifact.code) {
+    if (!oldArtifact || newArtifact.id !== oldArtifact.id || newArtifact.code !== oldArtifact.code) {
       // Update code view immediately on each change
       updateCodeView();
 
@@ -1356,7 +1356,7 @@ watch(() => state.viewMode, (newMode) => {
 
 // Watch panel open state
 watch(() => state.isPanelOpen, (isOpen) => {
-  if (isOpen && (state.viewMode === 'code' || state.viewMode === 'split')) {
+  if (isOpen && activeArtifact.value) {
     updateCodeView();
   }
 });

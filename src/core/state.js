@@ -117,14 +117,18 @@ export function createState() {
    */
   function setActiveArtifact(artifactId) {
     const artifact = getArtifact(artifactId);
-    
+
+    let viewMode = artifact?.isPreviewable === false ? 'code' : 'preview';
+    if (artifact?.tabs && !artifact.tabs.includes(viewMode)) {
+      viewMode = artifact.tabs[0];
+    }
+
     state = {
       ...state,
       activeArtifactId: artifactId,
-      // Set view mode based on artifact type
-      viewMode: artifact?.isPreviewable === false ? 'code' : 'preview',
+      viewMode,
     };
-    
+
     notify();
   }
   

@@ -131,7 +131,7 @@
     }
 
     // Check if code changed
-    if (prevArtifactCode !== newArtifact.code) {
+    if (prevArtifactId !== newArtifact.id || prevArtifactCode !== newArtifact.code) {
       // Update code view immediately on each change
       tick().then(() => updateCodeView());
 

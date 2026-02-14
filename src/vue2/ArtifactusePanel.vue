@@ -1249,7 +1249,7 @@ export default defineComponent({
         }
 
         // Check if code changed
-        if (!oldArtifact || newArtifact.code !== oldArtifact.code) {
+        if (!oldArtifact || newArtifact.id !== oldArtifact.id || newArtifact.code !== oldArtifact.code) {
           // Update code view immediately on each change
           updateCodeView();
 
@@ -1270,7 +1270,14 @@ export default defineComponent({
         updateCodeView();
       }
     });
-    
+
+    // Watch panel open state — v-if destroys DOM on close, need to re-render code on reopen
+    watch(() => state.isPanelOpen, (isOpen) => {
+      if (isOpen && activeArtifact.value) {
+        updateCodeView();
+      }
+    });
+
     onMounted(() => {
       instance.on('ai:request', (data) => emit('ai-request', data));
       instance.on('save:request', (data) => emit('save', data));
