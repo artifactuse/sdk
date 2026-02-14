@@ -866,7 +866,8 @@ export default function ArtifactusePanel({
           
           {/* Tabs */}
           <div className="artifactuse-panel__tabs">
-            <button 
+            {(!activeArtifact.tabs || activeArtifact.tabs.includes('preview')) && (
+            <button
               className={`artifactuse-panel__tab ${state.viewMode === 'preview' ? 'artifactuse-panel__tab--active' : ''}`}
               disabled={!activeArtifact.isPreviewable}
               title="Preview"
@@ -877,7 +878,9 @@ export default function ArtifactusePanel({
                 <circle cx="12" cy="12" r="3" />
               </svg>
             </button>
-            <button 
+            )}
+            {(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && (
+            <button
               className={`artifactuse-panel__tab ${state.viewMode === 'code' ? 'artifactuse-panel__tab--active' : ''}`}
               title="Code"
               onClick={() => setViewMode('code')}
@@ -887,7 +890,9 @@ export default function ArtifactusePanel({
                 <polyline points="8 6 2 12 8 18" />
               </svg>
             </button>
-            <button 
+            )}
+            {(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && (
+            <button
               className={`artifactuse-panel__tab ${state.viewMode === 'split' ? 'artifactuse-panel__tab--active' : ''}`}
               disabled={!activeArtifact.isPreviewable}
               title="Split view"
@@ -898,6 +903,7 @@ export default function ArtifactusePanel({
                 <line x1="12" y1="3" x2="12" y2="21" />
               </svg>
             </button>
+            )}
           </div>
           
           {/* Actions */}

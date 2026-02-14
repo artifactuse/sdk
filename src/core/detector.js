@@ -142,6 +142,7 @@ export function getLanguageDisplayName(language) {
     // Structured artifacts
     form: 'Form',
     social: 'Social Preview',
+    txt: 'Plain Text',
   };
   return names[language?.toLowerCase()] || language?.toUpperCase() || 'Code';
 }
@@ -191,6 +192,41 @@ export function getFileExtension(language) {
     social: 'json',
   };
   return extensions[language?.toLowerCase()] || 'txt';
+}
+
+/**
+ * Get language from file extension (reverse of getFileExtension)
+ */
+export function getLanguageFromExtension(ext) {
+  const map = {
+    html: 'html', htm: 'html',
+    css: 'css',
+    js: 'javascript', mjs: 'javascript',
+    ts: 'typescript',
+    jsx: 'jsx', tsx: 'tsx',
+    vue: 'vue',
+    py: 'python',
+    java: 'java',
+    cs: 'csharp',
+    cpp: 'cpp', c: 'c', h: 'c',
+    go: 'go',
+    rs: 'rust',
+    rb: 'ruby',
+    php: 'php',
+    swift: 'swift',
+    kt: 'kotlin',
+    scala: 'scala',
+    sql: 'sql',
+    sh: 'bash',
+    json: 'json',
+    xml: 'xml',
+    yaml: 'yaml', yml: 'yaml',
+    md: 'markdown',
+    svg: 'svg',
+    diff: 'diff',
+    patch: 'patch',
+  };
+  return map[ext?.toLowerCase()] || null;
 }
 
 /**
@@ -478,7 +514,7 @@ function getArtifactType(language) {
  * @param {string} messageId - Message ID
  * @param {number} blockIndex - Block index
  */
-function createArtifact(code, language, messageId, blockIndex) {
+export function createArtifact(code, language, messageId, blockIndex) {
   const langLower = language?.toLowerCase();
   const type = getArtifactType(langLower);
   const isInline = getIsInline(langLower, code);

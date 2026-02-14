@@ -97,6 +97,31 @@ export default {
       messages.value = [...mockMessages]
     }
 
+    // openFile / openCode tests
+    function testOpenHtml() {
+      artifactuse.openFile('index.html', '<!DOCTYPE html>\n<html>\n<head><title>Test</title></head>\n<body>\n  <h1>Hello World</h1>\n  <p>This is a test HTML file opened via <code>openFile()</code>.</p>\n</body>\n</html>')
+    }
+
+    function testOpenReact() {
+      artifactuse.openFile('App.jsx', 'import React, { useState } from "react";\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n  return (\n    <div style={{ padding: 40, fontFamily: "sans-serif" }}>\n      <h1>Counter: {count}</h1>\n      <button onClick={() => setCount(c => c + 1)}>Increment</button>\n    </div>\n  );\n}')
+    }
+
+    function testOpenJson() {
+      artifactuse.openFile('data.json', JSON.stringify({ name: 'Artifactuse', version: '1.0.0', features: ['openFile', 'openCode', 'panels'] }, null, 2))
+    }
+
+    function testOpenMarkdown() {
+      artifactuse.openFile('readme.md', '# Hello Markdown\n\nThis file was opened via `openFile("readme.md", ...)`.\n\n## Features\n\n- Auto-detect language from extension\n- Falls back to code-panel for unknown types\n- Works across all frameworks\n\n```js\nsdk.openFile("readme.md", content);\n```')
+    }
+
+    function testOpenUnknown() {
+      artifactuse.openFile('config.xyz', 'key = value\nhost = localhost\nport = 3000\n\n[section]\nenabled = true')
+    }
+
+    function testOpenCode() {
+      artifactuse.openCode('function greet(name) {\n  console.log(`Hello, ${name}!`);\n}\n\ngreet("World");', 'javascript', { title: 'My Script' })
+    }
+
     return {
       messages,
       mockMessages,
@@ -110,7 +135,13 @@ export default {
       stopStream,
       clearMessages,
       loadAllInstantly,
-      artifactCount
+      artifactCount,
+      testOpenHtml,
+      testOpenReact,
+      testOpenJson,
+      testOpenMarkdown,
+      testOpenUnknown,
+      testOpenCode,
     }
   },
 }
@@ -163,6 +194,22 @@ export default {
           <button @click="clearMessages">
             Clear
           </button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>Open File Tests:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testOpenHtml">HTML</button>
+          <button @click="testOpenReact">React</button>
+          <button @click="testOpenJson">JSON</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testOpenMarkdown">Markdown</button>
+          <button @click="testOpenUnknown">Unknown (.xyz)</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testOpenCode">openCode()</button>
         </div>
 
         <div class="test-panel__status">

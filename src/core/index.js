@@ -1,7 +1,7 @@
 // artifactuse/core/index.js
 // Main entry point for Artifactuse SDK
 
-import { parseArtifacts, extractCodeBlockArtifacts, getIsInline } from './detector.js';
+import { parseArtifacts, extractCodeBlockArtifacts, getIsInline, getLanguageFromExtension, createArtifact, generateArtifactId } from './detector.js';
 import { createState } from './state.js';
 import { createBridge } from './bridge.js';
 import { createTheme } from './theme.js';
@@ -173,6 +173,9 @@ const DEFAULT_PANELS = {
   diff: 'diff-panel',
   patch: 'diff-panel',
   
+  // Plain text
+  txt: 'code-panel',
+
   // Programming languages
   javascript: 'code-panel',
   js: 'code-panel',
@@ -688,7 +691,33 @@ export function createArtifactuse(userConfig = {}) {
     
     emit('artifact:opened', artifact);
   }
-  
+
+  /**
+   * Open a file by name — auto-detects language from extension
+   */
+  function openFile(filename, code, options = {}) {
+    const ext = filename.split('.').pop();
+    const language = options.language || getLanguageFromExtension(ext) || ext;
+    const title = options.title || filename;
+    return openCode(code, language, { ...options, title });
+  }
+
+  /**
+   * Open code with explicit language
+   */
+  function openCode(code, language, options = {}) {
+    const msgId = options.messageId || generateArtifactId('open');
+    const resolvedLang = hasPanel({ type: language, language }) ? language : 'txt';
+    const artifact = createArtifact(code, resolvedLang, msgId, 0);
+    artifact.title = options.title || artifact.title;
+    artifact.isInline = false;
+    if (options.tabs) artifact.tabs = options.tabs;
+    state.addArtifact(artifact);
+    openArtifact(artifact);
+    if (options.viewMode) state.setViewMode(options.viewMode);
+    return artifact;
+  }
+
   /**
    * Close panel
    */
@@ -914,6 +943,8 @@ export function createArtifactuse(userConfig = {}) {
     
     // Panel control
     openArtifact,
+    openFile,
+    openCode,
     closePanel,
     togglePanel,
     toggleFullscreen,

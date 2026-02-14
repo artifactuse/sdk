@@ -138,6 +138,8 @@ export function ArtifactuseProvider({ children, config = {} }) {
     processMessage: instance.processMessage,
     initializeContent: instance.initializeContent,
     openArtifact: instance.openArtifact,
+    openFile: instance.openFile,
+    openCode: instance.openCode,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
     toggleFullscreen: instance.toggleFullscreen,

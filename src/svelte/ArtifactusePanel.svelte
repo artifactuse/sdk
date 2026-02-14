@@ -855,7 +855,8 @@
         
         <!-- Tabs -->
         <div class="artifactuse-panel__tabs">
-          <button 
+          {#if !artifact.tabs || artifact.tabs.includes('preview')}
+          <button
             class="artifactuse-panel__tab"
             class:artifactuse-panel__tab--active={viewMode === 'preview'}
             disabled={!artifact.isPreviewable}
@@ -867,7 +868,9 @@
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button 
+          {/if}
+          {#if !artifact.tabs || artifact.tabs.includes('code')}
+          <button
             class="artifactuse-panel__tab"
             class:artifactuse-panel__tab--active={viewMode === 'code'}
             title="Code"
@@ -878,7 +881,9 @@
               <polyline points="8 6 2 12 8 18"></polyline>
             </svg>
           </button>
-          <button 
+          {/if}
+          {#if !artifact.tabs || artifact.tabs.includes('split')}
+          <button
             class="artifactuse-panel__tab"
             class:artifactuse-panel__tab--active={viewMode === 'split'}
             disabled={!artifact.isPreviewable}
@@ -890,6 +895,7 @@
               <line x1="12" y1="3" x2="12" y2="21"></line>
             </svg>
           </button>
+          {/if}
         </div>
         
         <!-- Actions -->

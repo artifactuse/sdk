@@ -200,7 +200,8 @@
             
             <!-- View mode tabs -->
             <div class="artifactuse-panel__tabs">
-              <button 
+              <button
+                v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('preview')"
                 class="artifactuse-panel__tab"
                 :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
                 :disabled="!activeArtifact.isPreviewable"
@@ -212,7 +213,8 @@
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
-              <button 
+              <button
+                v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('code')"
                 class="artifactuse-panel__tab"
                 :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
                 title="Code"
@@ -223,7 +225,8 @@
                   <polyline points="8 6 2 12 8 18"></polyline>
                 </svg>
               </button>
-              <button 
+              <button
+                v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('split')"
                 class="artifactuse-panel__tab"
                 :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
                 :disabled="!activeArtifact.isPreviewable"
