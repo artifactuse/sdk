@@ -210,7 +210,7 @@ export default function ArtifactusePanel({
     }
     editorInstanceRef.current = instance.editor.create(editorContainerRef.current, {
       code: activeArtifact.code || '',
-      language: activeArtifact.language || 'plaintext',
+      language: activeArtifact.editorLanguage || activeArtifact.language || 'plaintext',
       sdkTheme: instance.getTheme(),
     });
   }, [isEditorAvailable, activeArtifact, instance]);

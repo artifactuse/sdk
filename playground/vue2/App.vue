@@ -15,9 +15,26 @@ import * as cmView from '@codemirror/view'
 import * as cmCommands from '@codemirror/commands'
 import * as cmLanguage from '@codemirror/language'
 import * as cmAutocomplete from '@codemirror/autocomplete'
+import * as lezerHighlight from '@lezer/highlight'
+// Language packages
 import * as cmLangJavascript from '@codemirror/lang-javascript'
 import * as cmLangPython from '@codemirror/lang-python'
-import * as lezerHighlight from '@lezer/highlight'
+import * as cmLangHtml from '@codemirror/lang-html'
+import * as cmLangCss from '@codemirror/lang-css'
+import * as cmLangJson from '@codemirror/lang-json'
+import * as cmLangMarkdown from '@codemirror/lang-markdown'
+import * as cmLangXml from '@codemirror/lang-xml'
+import * as cmLangYaml from '@codemirror/lang-yaml'
+import * as cmLangSql from '@codemirror/lang-sql'
+import * as cmLangJava from '@codemirror/lang-java'
+import * as cmLangCpp from '@codemirror/lang-cpp'
+import * as cmLangGo from '@codemirror/lang-go'
+import * as cmLangRust from '@codemirror/lang-rust'
+import * as cmLangPhp from '@codemirror/lang-php'
+import * as cmLangVue from '@codemirror/lang-vue'
+import * as cmLangAngular from '@codemirror/lang-angular'
+import * as cmLangLess from '@codemirror/lang-less'
+import * as cmLangSass from '@codemirror/lang-sass'
 
 export default {
   components: {
@@ -43,9 +60,25 @@ export default {
           commands: cmCommands,
           language: cmLanguage,
           autocomplete: cmAutocomplete,
+          lezerHighlight: lezerHighlight,
           langJavascript: cmLangJavascript,
           langPython: cmLangPython,
-          lezerHighlight: lezerHighlight,
+          langHtml: cmLangHtml,
+          langCss: cmLangCss,
+          langJson: cmLangJson,
+          langMarkdown: cmLangMarkdown,
+          langXml: cmLangXml,
+          langYaml: cmLangYaml,
+          langSql: cmLangSql,
+          langJava: cmLangJava,
+          langCpp: cmLangCpp,
+          langGo: cmLangGo,
+          langRust: cmLangRust,
+          langPhp: cmLangPhp,
+          langVue: cmLangVue,
+          langAngular: cmLangAngular,
+          langLess: cmLangLess,
+          langSass: cmLangSass,
         },
         theme: 'dark',
       },
@@ -172,6 +205,31 @@ export default {
       })
     }
 
+    // Edit tab language tests
+    function testEditLang(filename, code) {
+      artifactuse.openFile(filename, code, { tabs: ['edit'] })
+    }
+
+    const langSamples = {
+      'style.css': 'body {\n  margin: 0;\n  font-family: sans-serif;\n  background: #1a1a2e;\n  color: #e4e4e7;\n}\n\n.container {\n  display: flex;\n  justify-content: center;\n  padding: 2rem;\n}',
+      'page.html': '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Test</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n  <p class="intro">Welcome</p>\n</body>\n</html>',
+      'data.json': '{\n  "name": "Artifactuse",\n  "version": "1.0.0",\n  "features": ["openFile", "edit"],\n  "config": {\n    "theme": "dark",\n    "enabled": true\n  }\n}',
+      'notes.md': '# Project Notes\n\n## Features\n\n- **Bold text** and *italic*\n- `inline code`\n\n```js\nconsole.log("hello");\n```\n\n> A blockquote here',
+      'config.xml': '<?xml version="1.0" encoding="UTF-8"?>\n<config>\n  <database>\n    <host>localhost</host>\n    <port>5432</port>\n  </database>\n  <server port="3000" debug="true" />\n</config>',
+      'config.yaml': 'server:\n  host: localhost\n  port: 3000\n  debug: true\n\ndatabase:\n  engine: postgres\n  name: myapp\n  credentials:\n    user: admin\n    password: secret',
+      'query.sql': 'SELECT u.id, u.name, COUNT(o.id) AS order_count\nFROM users u\nLEFT JOIN orders o ON o.user_id = u.id\nWHERE u.created_at > \'2024-01-01\'\nGROUP BY u.id, u.name\nHAVING COUNT(o.id) > 5\nORDER BY order_count DESC\nLIMIT 10;',
+      'Main.java': 'import java.util.List;\nimport java.util.stream.Collectors;\n\npublic class Main {\n    public static void main(String[] args) {\n        List<String> names = List.of("Alice", "Bob", "Charlie");\n        String result = names.stream()\n            .filter(n -> n.length() > 3)\n            .collect(Collectors.joining(", "));\n        System.out.println(result);\n    }\n}',
+      'main.cpp': '#include <iostream>\n#include <vector>\n#include <algorithm>\n\nint main() {\n    std::vector<int> nums = {3, 1, 4, 1, 5};\n    std::sort(nums.begin(), nums.end());\n    for (const auto& n : nums) {\n        std::cout << n << " ";\n    }\n    return 0;\n}',
+      'main.go': 'package main\n\nimport (\n\t"fmt"\n\t"strings"\n)\n\nfunc greet(name string) string {\n\treturn fmt.Sprintf("Hello, %s!", strings.Title(name))\n}\n\nfunc main() {\n\tfmt.Println(greet("world"))\n}',
+      'main.rs': 'use std::collections::HashMap;\n\nfn main() {\n    let mut scores: HashMap<&str, i32> = HashMap::new();\n    scores.insert("Alice", 10);\n    scores.insert("Bob", 20);\n\n    for (name, score) in &scores {\n        println!("{}: {}", name, score);\n    }\n}',
+      'index.php': '<?php\n\nclass UserController {\n    private array $users = [];\n\n    public function index(): string {\n        $filtered = array_filter($this->users, fn($u) => $u[\'active\']);\n        return json_encode($filtered);\n    }\n\n    public function store(array $data): void {\n        $this->users[] = $data;\n    }\n}',
+      'App.vue': '<template>\n  <div class="app">\n    <h1>{{ title }}</h1>\n    <button @click="count++">Count: {{ count }}</button>\n  </div>\n</template>\n\n<style scoped>\n.app {\n  padding: 20px;\n  font-family: sans-serif;\n}\n</style>',
+      'style.less': '@primary: #6366f1;\n@radius: 8px;\n\n.card {\n  background: darken(@primary, 40%);\n  border-radius: @radius;\n  padding: 16px;\n\n  &__title {\n    color: lighten(@primary, 20%);\n    font-size: 1.2em;\n  }\n\n  &:hover {\n    background: darken(@primary, 35%);\n  }\n}',
+      'style.scss': '$primary: #6366f1;\n$radius: 8px;\n\n.card {\n  background: darken($primary, 40%);\n  border-radius: $radius;\n  padding: 16px;\n\n  &__title {\n    color: lighten($primary, 20%);\n    font-size: 1.2em;\n  }\n\n  &:hover {\n    background: darken($primary, 35%);\n  }\n}',
+      'App.tsx': 'import React, { useState } from "react";\n\ninterface Props {\n  name: string;\n  age?: number;\n}\n\nconst Greeting: React.FC<Props> = ({ name, age = 0 }) => {\n  const [count, setCount] = useState<number>(0);\n  return (\n    <div>\n      <h1>Hello, {name}!</h1>\n      <p>Age: {age}, Clicks: {count}</p>\n      <button onClick={() => setCount(c => c + 1)}>Click</button>\n    </div>\n  );\n};',
+      'utils.py': 'from dataclasses import dataclass\nfrom typing import List, Optional\n\n@dataclass\nclass User:\n    name: str\n    email: str\n    age: Optional[int] = None\n\ndef filter_adults(users: List[User]) -> List[User]:\n    return [u for u in users if u.age and u.age >= 18]\n\nif __name__ == "__main__":\n    users = [User("Alice", "alice@test.com", 25)]\n    print(filter_adults(users))',
+    }
+
     // Listen for edit:save events
     artifactuse.on('edit:save', (data) => {
       console.log('[edit:save]', data)
@@ -204,6 +262,8 @@ export default {
       testTxtFallback,
       testEditTab,
       testPanelUrl,
+      testEditLang,
+      langSamples,
     }
   },
 }
@@ -288,6 +348,15 @@ export default {
         <div class="test-panel__actions">
           <button @click="testEditTab">Edit Tab</button>
           <button @click="testPanelUrl">panelUrl</button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>Edit Languages:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button v-for="(code, filename) in langSamples" :key="filename" @click="testEditLang(filename, code)">
+            {{ filename.split('.').pop() }}
+          </button>
         </div>
 
         <div class="test-panel__status">
@@ -386,6 +455,8 @@ html, body {
 
 .test-panel__content {
   padding: 12px;
+  height: 500px;
+  overflow: scroll;
 }
 
 .test-panel__field {

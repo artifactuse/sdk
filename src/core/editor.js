@@ -239,18 +239,53 @@ export function createEditorManager(editorConfig = {}) {
 	}
 
 	/**
+	 * Language → CodeMirror module mapping
+	 * Each entry: { mod: module key in config.editor.modules, fn: factory function name, opts?: options }
+	 */
+	const LANG_MAP = {
+		'javascript': { mod: 'langJavascript', fn: 'javascript' },
+		'js':         { mod: 'langJavascript', fn: 'javascript' },
+		'jsx':        { mod: 'langJavascript', fn: 'javascript', opts: { jsx: true } },
+		'typescript': { mod: 'langJavascript', fn: 'javascript', opts: { typescript: true } },
+		'ts':         { mod: 'langJavascript', fn: 'javascript', opts: { typescript: true } },
+		'tsx':        { mod: 'langJavascript', fn: 'javascript', opts: { jsx: true, typescript: true } },
+		'python':     { mod: 'langPython', fn: 'python' },
+		'py':         { mod: 'langPython', fn: 'python' },
+		'html':       { mod: 'langHtml', fn: 'html' },
+		'htm':        { mod: 'langHtml', fn: 'html' },
+		'css':        { mod: 'langCss', fn: 'css' },
+		'json':       { mod: 'langJson', fn: 'json' },
+		'markdown':   { mod: 'langMarkdown', fn: 'markdown' },
+		'md':         { mod: 'langMarkdown', fn: 'markdown' },
+		'xml':        { mod: 'langXml', fn: 'xml' },
+		'yaml':       { mod: 'langYaml', fn: 'yaml' },
+		'yml':        { mod: 'langYaml', fn: 'yaml' },
+		'sql':        { mod: 'langSql', fn: 'sql' },
+		'java':       { mod: 'langJava', fn: 'java' },
+		'cpp':        { mod: 'langCpp', fn: 'cpp' },
+		'c':          { mod: 'langCpp', fn: 'cpp' },
+		'c++':        { mod: 'langCpp', fn: 'cpp' },
+		'go':         { mod: 'langGo', fn: 'go' },
+		'golang':     { mod: 'langGo', fn: 'go' },
+		'rust':       { mod: 'langRust', fn: 'rust' },
+		'rs':         { mod: 'langRust', fn: 'rust' },
+		'php':        { mod: 'langPhp', fn: 'php' },
+		'vue':        { mod: 'langVue', fn: 'vue' },
+		'angular':    { mod: 'langAngular', fn: 'angular' },
+		'less':       { mod: 'langLess', fn: 'less' },
+		'sass':       { mod: 'langSass', fn: 'sass', opts: { indented: true } },
+		'scss':       { mod: 'langSass', fn: 'sass' },
+	};
+
+	/**
 	 * Resolve language extension from language string
 	 */
 	function getLanguageExtension(lang) {
-		const normalized = lang?.toLowerCase();
-		if ((normalized === 'javascript' || normalized === 'js' || normalized === 'jsx' || normalized === 'tsx' || normalized === 'typescript' || normalized === 'ts') && modules.langJavascript) {
-			return modules.langJavascript.javascript();
-		}
-		if ((normalized === 'python' || normalized === 'py') && modules.langPython) {
-			return modules.langPython.python();
-		}
-		// No language extension — plain text
-		return [];
+		const entry = LANG_MAP[lang?.toLowerCase()];
+		if (!entry) return [];
+		const mod = modules[entry.mod];
+		if (!mod || typeof mod[entry.fn] !== 'function') return [];
+		return entry.opts ? mod[entry.fn](entry.opts) : mod[entry.fn]();
 	}
 
 	/**

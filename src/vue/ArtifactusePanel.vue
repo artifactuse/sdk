@@ -936,7 +936,7 @@ function initEditor() {
   destroyEditor();
   editorInstance = instance.editor.create(editorContainerRef.value, {
     code: activeArtifact.value.code || '',
-    language: activeArtifact.value.language || 'plaintext',
+    language: activeArtifact.value.editorLanguage || activeArtifact.value.language || 'plaintext',
     sdkTheme: instance.getTheme(),
   });
 }

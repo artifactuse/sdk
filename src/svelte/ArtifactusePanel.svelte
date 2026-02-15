@@ -250,7 +250,7 @@
     destroyEditor();
     editorInstance = instance.editor.create(editorContainerRef, {
       code: artifact.code || '',
-      language: artifact.language || 'plaintext',
+      language: artifact.editorLanguage || artifact.language || 'plaintext',
       sdkTheme: instance.getTheme(),
     });
   }

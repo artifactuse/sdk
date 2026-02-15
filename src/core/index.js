@@ -715,6 +715,7 @@ export function createArtifactuse(userConfig = {}) {
     const artifact = createArtifact(code, resolvedLang, msgId, 0);
     artifact.title = options.title || artifact.title;
     artifact.isInline = false;
+    artifact.editorLanguage = language;
     if (options.tabs) artifact.tabs = options.tabs;
     if (options.panelUrl) artifact.panelUrl = options.panelUrl;
     state.addArtifact(artifact);

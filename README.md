@@ -594,17 +594,36 @@ provideArtifactuse({
   // Code Editor (Optional) — CodeMirror 6 for the edit tab
   // Requires: @codemirror/state, @codemirror/view, @codemirror/commands,
   //           @codemirror/language, @codemirror/autocomplete
-  // Optional: @codemirror/lang-javascript, @codemirror/lang-python, @lezer/highlight
+  // Optional: language packages and @lezer/highlight (for syntax highlighting)
   editor: {
     modules: {
+      // Required
       state: cmState,                       // @codemirror/state
       view: cmView,                         // @codemirror/view
       commands: cmCommands,                 // @codemirror/commands
       language: cmLanguage,                 // @codemirror/language
       autocomplete: cmAutocomplete,         // @codemirror/autocomplete
-      langJavascript: cmLangJavascript,     // @codemirror/lang-javascript
+      // Syntax highlighting (optional)
+      lezerHighlight: lezerHighlight,       // @lezer/highlight
+      // Language packages (all optional — add only what you need)
+      langJavascript: cmLangJavascript,     // @codemirror/lang-javascript (js/jsx/ts/tsx)
       langPython: cmLangPython,             // @codemirror/lang-python
-      lezerHighlight: lezerHighlight,       // @lezer/highlight (for syntax colors)
+      langHtml: cmLangHtml,                 // @codemirror/lang-html
+      langCss: cmLangCss,                   // @codemirror/lang-css
+      langJson: cmLangJson,                 // @codemirror/lang-json
+      langMarkdown: cmLangMarkdown,         // @codemirror/lang-markdown
+      langXml: cmLangXml,                   // @codemirror/lang-xml
+      langYaml: cmLangYaml,                 // @codemirror/lang-yaml
+      langSql: cmLangSql,                   // @codemirror/lang-sql
+      langJava: cmLangJava,                 // @codemirror/lang-java
+      langCpp: cmLangCpp,                   // @codemirror/lang-cpp (c/c++)
+      langGo: cmLangGo,                     // @codemirror/lang-go
+      langRust: cmLangRust,                 // @codemirror/lang-rust
+      langPhp: cmLangPhp,                   // @codemirror/lang-php
+      langVue: cmLangVue,                   // @codemirror/lang-vue
+      langAngular: cmLangAngular,           // @codemirror/lang-angular
+      langLess: cmLangLess,                 // @codemirror/lang-less
+      langSass: cmLangSass,                 // @codemirror/lang-sass (sass/scss)
     },
     theme: 'dark', // 'dark' | 'light' | 'auto'
   },
