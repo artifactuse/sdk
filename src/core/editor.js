@@ -24,7 +24,7 @@ export function createEditorManager(editorConfig = {}) {
 	function buildDarkTheme(EditorView) {
 		return EditorView.theme({
 			'&': {
-				backgroundColor: 'transparent',
+				backgroundColor: '#1e1e1e',
 				color: '#e4e4e7',
 				height: '100%',
 			},
@@ -101,7 +101,7 @@ export function createEditorManager(editorConfig = {}) {
 	function buildLightTheme(EditorView) {
 		return EditorView.theme({
 			'&': {
-				backgroundColor: 'transparent',
+				backgroundColor: '#ffffff',
 				color: '#27272a',
 				height: '100%',
 			},
