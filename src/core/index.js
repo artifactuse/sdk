@@ -716,6 +716,7 @@ export function createArtifactuse(userConfig = {}) {
     artifact.title = options.title || artifact.title;
     artifact.isInline = false;
     if (options.tabs) artifact.tabs = options.tabs;
+    if (options.panelUrl) artifact.panelUrl = options.panelUrl;
     state.addArtifact(artifact);
     openArtifact(artifact);
     if (options.viewMode) state.setViewMode(options.viewMode);
@@ -775,7 +776,10 @@ export function createArtifactuse(userConfig = {}) {
    */
   function getPanelUrl(artifact, options = {}) {
     if (!artifact) return null;
-    
+
+    // Custom panel URL takes priority over registry lookup
+    if (artifact.panelUrl) return artifact.panelUrl;
+
     const { type, language } = artifact;
     
     // Build options for panel URL

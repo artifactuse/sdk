@@ -718,6 +718,7 @@ openFile('utils.py', code, {
 | `options.tabs` | `string[]` | No | Visible tabs: `'preview'`, `'code'`, `'split'`, `'edit'` |
 | `options.viewMode` | `string` | No | Initial view mode |
 | `options.language` | `string` | No | Override auto-detected language |
+| `options.panelUrl` | `string` | No | Custom iframe URL (bypasses panel registry) |
 
 ### openCode
 

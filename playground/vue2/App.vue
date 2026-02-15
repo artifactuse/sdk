@@ -166,6 +166,12 @@ export default {
       artifactuse.openFile('app.js', 'function hello(name) {\n  console.log(`Hello, ${name}!`);\n}\n\nfunction add(a, b) {\n  return a + b;\n}\n\nhello("World");\nconsole.log(add(2, 3));', { tabs: ['edit'] })
     }
 
+    function testPanelUrl() {
+      artifactuse.openFile('simulation.html', '<h1>Custom Panel</h1>', {
+        panelUrl: 'https://megan-39df41ad.boostgpt.test/w/b0979b81-2e21-49d8-9451-7fbea323afe3/simulations/index.html'
+      })
+    }
+
     // Listen for edit:save events
     artifactuse.on('edit:save', (data) => {
       console.log('[edit:save]', data)
@@ -197,6 +203,7 @@ export default {
       testNoSplit,
       testTxtFallback,
       testEditTab,
+      testPanelUrl,
     }
   },
 }
@@ -280,6 +287,7 @@ export default {
         </div>
         <div class="test-panel__actions">
           <button @click="testEditTab">Edit Tab</button>
+          <button @click="testPanelUrl">panelUrl</button>
         </div>
 
         <div class="test-panel__status">
