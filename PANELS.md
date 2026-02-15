@@ -93,6 +93,7 @@ The SDK includes these built-in panels:
 | `vue` | `vue-panel` |
 | `html`, `htm`, `markdown`, `md` | `html-panel` |
 | `mermaid` | `mermaid-panel` |
+| `txt` | `code-panel` |
 
 ### Override Examples
 

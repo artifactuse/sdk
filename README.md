@@ -525,9 +525,14 @@ const {
   closePanel,         // Close panel
   togglePanel,        // Toggle panel visibility
   toggleFullscreen,   // Toggle fullscreen mode
-  setViewMode,        // Set 'preview' | 'code' | 'split'
+  setViewMode,        // Set 'preview' | 'code' | 'split' | 'edit'
   getPanelUrl,        // Get panel URL for artifact
-  
+
+  // Programmatic API
+  openFile,           // Open file in panel (auto-detect language from extension)
+  openCode,           // Open code in panel (explicit language)
+  clearArtifacts,     // Clear all artifacts
+
   // Panel management
   hasPanel,           // Check if panel exists for artifact
   registerPanel,      // Register panel (string or string[])
@@ -584,6 +589,24 @@ provideArtifactuse({
   codeExtraction: {
     minLines: 3,
     minLength: 50,
+  },
+
+  // Code Editor (Optional) — CodeMirror 6 for the edit tab
+  // Requires: @codemirror/state, @codemirror/view, @codemirror/commands,
+  //           @codemirror/language, @codemirror/autocomplete
+  // Optional: @codemirror/lang-javascript, @codemirror/lang-python, @lezer/highlight
+  editor: {
+    modules: {
+      state: cmState,                       // @codemirror/state
+      view: cmView,                         // @codemirror/view
+      commands: cmCommands,                 // @codemirror/commands
+      language: cmLanguage,                 // @codemirror/language
+      autocomplete: cmAutocomplete,         // @codemirror/autocomplete
+      langJavascript: cmLangJavascript,     // @codemirror/lang-javascript
+      langPython: cmLangPython,             // @codemirror/lang-python
+      lezerHighlight: lezerHighlight,       // @lezer/highlight (for syntax colors)
+    },
+    theme: 'dark', // 'dark' | 'light' | 'auto'
   },
 });
 ```
@@ -658,6 +681,71 @@ on('social:copy', ({ platform, text }) => {
 on('media:open', ({ type, src, alt, caption }) => {
   console.log('Media opened:', type, src);
 });
+
+// Code editor saved (edit tab)
+on('edit:save', ({ artifactId, artifact, code }) => {
+  console.log('Code saved:', code);
+});
+```
+
+## Programmatic API
+
+Open artifacts directly without processing AI message content:
+
+### openFile
+
+Opens a file in the panel, auto-detecting the language from the file extension:
+
+```js
+const { openFile } = useArtifactuse();
+
+// Basic usage
+openFile('app.jsx', code);
+
+// With options
+openFile('utils.py', code, {
+  title: 'My Utils',           // Custom display title (defaults to filename)
+  tabs: ['code', 'edit'],       // Control which tabs are visible
+  viewMode: 'code',             // Initial view mode
+});
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `filename` | `string` | Yes | Filename with extension (e.g. `'app.jsx'`, `'style.css'`) |
+| `code` | `string` | Yes | The file content |
+| `options.title` | `string` | No | Custom title (defaults to filename) |
+| `options.tabs` | `string[]` | No | Visible tabs: `'preview'`, `'code'`, `'split'`, `'edit'` |
+| `options.viewMode` | `string` | No | Initial view mode |
+| `options.language` | `string` | No | Override auto-detected language |
+
+### openCode
+
+Opens code in the panel with an explicit language:
+
+```js
+const { openCode } = useArtifactuse();
+
+openCode('console.log("hello")', 'javascript');
+openCode(pythonCode, 'python', { title: 'My Script', tabs: ['code', 'edit'] });
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `code` | `string` | Yes | The code content |
+| `language` | `string` | Yes | Language identifier (e.g. `'javascript'`, `'python'`, `'html'`) |
+| `options` | `object` | No | Same options as `openFile` |
+
+> **Note:** If the language has no registered panel, it falls back to `txt` (plain text) in the code panel.
+
+### clearArtifacts
+
+Removes all artifacts and closes the panel:
+
+```js
+const { clearArtifacts } = useArtifactuse();
+
+clearArtifacts();
 ```
 
 ## Framework Support
