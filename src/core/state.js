@@ -161,7 +161,7 @@ export function createState() {
    * Set view mode
    */
   function setViewMode(mode) {
-    if (!['preview', 'code', 'split'].includes(mode)) {
+    if (!['preview', 'code', 'split', 'edit'].includes(mode)) {
       console.warn(`Invalid view mode: ${mode}`);
       return;
     }

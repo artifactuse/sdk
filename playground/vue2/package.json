@@ -5,6 +5,13 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.0.0",
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/lang-javascript": "^6.2.0",
+    "@codemirror/lang-python": "^6.1.0",
+    "@codemirror/language": "^6.10.0",
+    "@codemirror/state": "^6.4.0",
+    "@codemirror/view": "^6.34.0",
     "vue": "^2.7.16",
     "portal-vue": "^2.1.7"
   },

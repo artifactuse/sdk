@@ -6,6 +6,7 @@ import { createState } from './state.js';
 import { createBridge } from './bridge.js';
 import { createTheme } from './theme.js';
 import { createShareService } from './share.js';
+import { createEditorManager } from './editor.js';
 import { marked } from 'marked';
 
 // Import from modular processors
@@ -545,6 +546,9 @@ export function createArtifactuse(userConfig = {}) {
   // Create share service
   const share = createShareService(config.sharing);
 
+  // Create editor manager (CodeMirror integration — optional)
+  const editor = createEditorManager(config.editor);
+
   /**
    * Process AI agent message content
    * Returns processed HTML with artifact placeholders
@@ -971,6 +975,9 @@ export function createArtifactuse(userConfig = {}) {
     off,
     emit,
     
+    // Editor (CodeMirror integration)
+    editor,
+
     // Bridge (for advanced use)
     bridge,
 
@@ -1039,6 +1046,7 @@ export { createState } from './state.js';
 export { createBridge } from './bridge.js';
 export { createTheme } from './theme.js';
 export * from './highlight.js';
+export { createEditorManager } from './editor.js';
 
 // Export panel utilities
 export { DEFAULT_PANELS };

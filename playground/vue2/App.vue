@@ -9,6 +9,16 @@ import {
 import { messages as mockMessages } from '../shared/mockMessages'
 import { createStreamSimulator } from '../shared/streamSimulator'
 
+// CodeMirror modules for editor tab
+import * as cmState from '@codemirror/state'
+import * as cmView from '@codemirror/view'
+import * as cmCommands from '@codemirror/commands'
+import * as cmLanguage from '@codemirror/language'
+import * as cmAutocomplete from '@codemirror/autocomplete'
+import * as cmLangJavascript from '@codemirror/lang-javascript'
+import * as cmLangPython from '@codemirror/lang-python'
+import * as lezerHighlight from '@lezer/highlight'
+
 export default {
   components: {
     ArtifactuseAgentMessage,
@@ -25,6 +35,19 @@ export default {
         apiUrl: 'http://api.artifactuse.test',
         appUrl: 'http://app.artifactuse.test',
         storageKey: 'artifactuse_auth',
+      },
+      editor: {
+        modules: {
+          state: cmState,
+          view: cmView,
+          commands: cmCommands,
+          language: cmLanguage,
+          autocomplete: cmAutocomplete,
+          langJavascript: cmLangJavascript,
+          langPython: cmLangPython,
+          lezerHighlight: lezerHighlight,
+        },
+        theme: 'dark',
       },
       // panels: {
       //   // Add new panel type
@@ -139,6 +162,16 @@ export default {
       artifactuse.openFile('config.ini', '[database]\nhost = localhost\nport = 5432\nname = myapp_db\n\n[server]\nport = 3000\ndebug = true\nlog_level = info')
     }
 
+    function testEditTab() {
+      artifactuse.openFile('app.js', 'function hello(name) {\n  console.log(`Hello, ${name}!`);\n}\n\nfunction add(a, b) {\n  return a + b;\n}\n\nhello("World");\nconsole.log(add(2, 3));', { tabs: ['edit'] })
+    }
+
+    // Listen for edit:save events
+    artifactuse.on('edit:save', (data) => {
+      console.log('[edit:save]', data)
+      alert('Code saved! Check console for data.')
+    })
+
     return {
       messages,
       mockMessages,
@@ -163,6 +196,7 @@ export default {
       testCodeOnly,
       testNoSplit,
       testTxtFallback,
+      testEditTab,
     }
   },
 }
@@ -243,6 +277,9 @@ export default {
         <div class="test-panel__actions">
           <button @click="testNoSplit">No Split</button>
           <button @click="testTxtFallback">txt (.ini)</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testEditTab">Edit Tab</button>
         </div>
 
         <div class="test-panel__status">

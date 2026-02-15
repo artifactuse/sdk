@@ -255,11 +255,35 @@
                 <line x1="12" y1="3" x2="12" y2="21"></line>
               </svg>
             </button>
+            <button
+              v-if="activeArtifact.tabs && activeArtifact.tabs.includes('edit') && isEditorAvailable"
+              class="artifactuse-panel__tab"
+              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'edit' }"
+              title="Edit"
+              @click="setViewMode('edit')"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
           </div>
-          
+
           <!-- Header actions (icon only) -->
           <div class="artifactuse-panel__actions">
-            <button 
+            <button
+              v-if="state.viewMode === 'edit'"
+              class="artifactuse-panel__action artifactuse-panel__action--save"
+              title="Save"
+              @click="handleEditorSave"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+            </button>
+            <button
               class="artifactuse-panel__action"
               :title="state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
               @click="toggleFullscreen"
@@ -361,8 +385,16 @@
               ></code></pre>
             </div>
           </div>
+
+          <!-- Edit pane (CodeMirror) -->
+          <div
+            v-show="state.viewMode === 'edit'"
+            class="artifactuse-panel__edit"
+          >
+            <div ref="editorContainerRef" class="artifactuse-panel__editor-container"></div>
+          </div>
         </div>
-        
+
         <!-- Panel footer -->
         <footer class="artifactuse-panel__footer">
           <div class="artifactuse-panel__footer-left">
@@ -730,6 +762,7 @@ const codeRef = ref(null);
 const contentRef = ref(null);
 const lineNumbersRef = ref(null);
 const codeScrollRef = ref(null);
+const editorContainerRef = ref(null);
 const copied = ref(false);
 const showArtifactList = ref(false);
 const iframeLoading = ref(true);
@@ -752,6 +785,10 @@ const updatedArtifactName = ref('');
 // Timers
 let streamEndTimer = null;
 let iframeLoadTimer = null;
+
+// Editor (CodeMirror) instance — not reactive to avoid proxy overhead
+let editorInstance = null;
+const isEditorAvailable = computed(() => instance.editor?.isAvailable() || false);
 
 // Panel width (percentage)
 const panelWidth = ref(65);
@@ -890,6 +927,34 @@ function updateCodeView() {
   nextTick(() => {
     generateLineNumbers();
     highlightCode();
+  });
+}
+
+// Editor (CodeMirror) functions
+function initEditor() {
+  if (!isEditorAvailable.value || !editorContainerRef.value || !activeArtifact.value) return;
+  destroyEditor();
+  editorInstance = instance.editor.create(editorContainerRef.value, {
+    code: activeArtifact.value.code || '',
+    language: activeArtifact.value.language || 'plaintext',
+    sdkTheme: instance.getTheme(),
+  });
+}
+
+function destroyEditor() {
+  if (editorInstance) {
+    editorInstance.destroy();
+    editorInstance = null;
+  }
+}
+
+function handleEditorSave() {
+  if (!editorInstance || !activeArtifact.value) return;
+  const code = editorInstance.getCode();
+  instance.emit('edit:save', {
+    artifactId: activeArtifact.value.id,
+    artifact: activeArtifact.value,
+    code,
   });
 }
 
@@ -1336,6 +1401,15 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
       // Update code view immediately on each change
       updateCodeView();
 
+      // Update editor content if in edit mode
+      if (state.viewMode === 'edit') {
+        if (!oldArtifact || newArtifact.id !== oldArtifact.id) {
+          nextTick(() => initEditor());
+        } else if (editorInstance) {
+          editorInstance.setCode(newArtifact.code || '');
+        }
+      }
+
       // Debounce iframe updates only
       clearTimeout(streamEndTimer);
       streamEndTimer = setTimeout(() => {
@@ -1352,12 +1426,18 @@ watch(() => state.viewMode, (newMode) => {
   if (newMode === 'code' || newMode === 'split') {
     updateCodeView();
   }
+  if (newMode === 'edit') {
+    nextTick(() => initEditor());
+  }
 });
 
 // Watch panel open state
 watch(() => state.isPanelOpen, (isOpen) => {
   if (isOpen && activeArtifact.value) {
     updateCodeView();
+  }
+  if (!isOpen) {
+    destroyEditor();
   }
 });
 
@@ -1379,6 +1459,7 @@ onMounted(() => {
 onUnmounted(() => {
   stopPanelResize();
   stopSplitResize();
+  destroyEditor();
   document.removeEventListener('click', handleClickOutside);
   clearTimeout(streamEndTimer);
   clearTimeout(iframeLoadTimer);

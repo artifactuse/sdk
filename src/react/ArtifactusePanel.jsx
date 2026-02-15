@@ -38,6 +38,8 @@ export default function ArtifactusePanel({
   const contentRef = useRef(null);
   const lineNumbersRef = useRef(null);
   const codeScrollRef = useRef(null);
+  const editorContainerRef = useRef(null);
+  const editorInstanceRef = useRef(null);
   
   // State
   const [copied, setCopied] = useState(false);
@@ -195,7 +197,34 @@ export default function ArtifactusePanel({
     generateLineNumbers();
     highlightCode();
   }, [generateLineNumbers, highlightCode]);
-  
+
+  // Editor availability
+  const isEditorAvailable = instance.editor?.isAvailable() || false;
+
+  // Editor functions
+  const initEditor = useCallback(() => {
+    if (!isEditorAvailable || !editorContainerRef.current || !activeArtifact) return;
+    if (editorInstanceRef.current) {
+      editorInstanceRef.current.destroy();
+      editorInstanceRef.current = null;
+    }
+    editorInstanceRef.current = instance.editor.create(editorContainerRef.current, {
+      code: activeArtifact.code || '',
+      language: activeArtifact.language || 'plaintext',
+      sdkTheme: instance.getTheme(),
+    });
+  }, [isEditorAvailable, activeArtifact, instance]);
+
+  const handleEditorSave = useCallback(() => {
+    if (!editorInstanceRef.current || !activeArtifact) return;
+    const code = editorInstanceRef.current.getCode();
+    instance.emit('edit:save', {
+      artifactId: activeArtifact.id,
+      artifact: activeArtifact,
+      code,
+    });
+  }, [activeArtifact, instance]);
+
   // Handle iframe load
   const handleIframeLoad = useCallback(() => {
     clearTimeout(iframeLoadTimerRef.current);
@@ -593,7 +622,10 @@ export default function ArtifactusePanel({
     if (state.viewMode === 'code' || state.viewMode === 'split') {
       updateCodeView();
     }
-  }, [state.viewMode, updateCodeView]);
+    if (state.viewMode === 'edit') {
+      initEditor();
+    }
+  }, [state.viewMode, updateCodeView, initEditor]);
   
   // Effect: Event subscriptions
   useEffect(() => {
@@ -613,6 +645,10 @@ export default function ArtifactusePanel({
     return () => {
       stopPanelResize();
       stopSplitResize();
+      if (editorInstanceRef.current) {
+        editorInstanceRef.current.destroy();
+        editorInstanceRef.current = null;
+      }
       clearTimeout(streamEndTimerRef.current);
       clearTimeout(iframeLoadTimerRef.current);
     };
@@ -904,11 +940,36 @@ export default function ArtifactusePanel({
               </svg>
             </button>
             )}
+            {activeArtifact.tabs && activeArtifact.tabs.includes('edit') && isEditorAvailable && (
+            <button
+              className={`artifactuse-panel__tab ${state.viewMode === 'edit' ? 'artifactuse-panel__tab--active' : ''}`}
+              title="Edit"
+              onClick={() => setViewMode('edit')}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            )}
           </div>
-          
+
           {/* Actions */}
           <div className="artifactuse-panel__actions">
-            <button 
+            {state.viewMode === 'edit' && (
+            <button
+              className="artifactuse-panel__action artifactuse-panel__action--save"
+              title="Save"
+              onClick={handleEditorSave}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+            </button>
+            )}
+            <button
               className="artifactuse-panel__action"
               title={state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
               onClick={toggleFullscreen}
@@ -1015,8 +1076,16 @@ export default function ArtifactusePanel({
               </pre>
             </div>
           </div>
+
+          {/* Edit pane (CodeMirror) */}
+          <div
+            className="artifactuse-panel__edit"
+            style={{ display: state.viewMode === 'edit' ? undefined : 'none' }}
+          >
+            <div ref={editorContainerRef} className="artifactuse-panel__editor-container" />
+          </div>
         </div>
-        
+
         {/* Footer */}
         <footer className="artifactuse-panel__footer">
           <div className="artifactuse-panel__footer-left">

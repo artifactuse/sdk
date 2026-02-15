@@ -227,7 +227,8 @@
 }
 
 .artifactuse-panel__content--preview .artifactuse-panel__preview,
-.artifactuse-panel__content--code .artifactuse-panel__code {
+.artifactuse-panel__content--code .artifactuse-panel__code,
+.artifactuse-panel__content--edit .artifactuse-panel__edit {
   width: 100%;
 }
 
@@ -489,7 +490,8 @@
 
 /* Hide content panes during transition to prevent visual glitch */
 .artifactuse-panel__content--transitioning > .artifactuse-panel__preview,
-.artifactuse-panel__content--transitioning > .artifactuse-panel__code {
+.artifactuse-panel__content--transitioning > .artifactuse-panel__code,
+.artifactuse-panel__content--transitioning > .artifactuse-panel__edit {
   visibility: hidden;
 }
 
@@ -632,6 +634,32 @@
   padding: 16px 12px;
   margin: 0;
   overflow: visible;
+}
+
+/* Edit pane (CodeMirror) */
+.artifactuse-panel__edit {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.artifactuse-panel__editor-container {
+  flex: 1;
+  overflow: auto;
+}
+
+.artifactuse-panel__editor-container .cm-editor {
+  height: 100%;
+}
+
+/* Save action button */
+.artifactuse-panel__action--save {
+  color: rgb(var(--artifactuse-accent, 99, 102, 241));
+}
+
+.artifactuse-panel__action--save:hover {
+  background: rgba(var(--artifactuse-accent, 99, 102, 241), 0.1);
 }
 
 /* Footer */
