@@ -809,7 +809,11 @@ const languageIcon = computed(() => {
 
 const panelUrl = computed(() => {
   if (!activeArtifact.value) return null;
-  return getPanelUrl(activeArtifact.value);
+  let url = getPanelUrl(activeArtifact.value);
+  if (url && activeArtifact.value._refreshToken) {
+    url += (url.includes('?') ? '&' : '?') + '_t=' + activeArtifact.value._refreshToken;
+  }
+  return url;
 });
 
 const currentArtifactIndex = computed(() => {

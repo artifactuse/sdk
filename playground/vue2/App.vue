@@ -205,6 +205,28 @@ export default {
       })
     }
 
+    // updateFile test
+    const updateFileArtifact = ref(null)
+    let updateFileCounter = 0
+    const updateFileVersions = [
+      '<h1>Version 1</h1>\n<p>Original content</p>',
+      '<h1>Version 2</h1>\n<p style="color:blue">Updated via updateFile!</p>',
+      '<h1>Version 3</h1>\n<p style="color:green">Third update, same tab.</p>',
+    ]
+
+    function testUpdateFileOpen() {
+      updateFileCounter = 0
+      updateFileArtifact.value = artifactuse.openFile('demo.html', updateFileVersions[0], {
+        panelUrl: 'http://localhost:8787/html-panel/'
+      })
+    }
+
+    function testUpdateFileUpdate() {
+      if (!updateFileArtifact.value) return alert('Click "updateFile: Open" first')
+      updateFileCounter = (updateFileCounter + 1) % updateFileVersions.length
+      artifactuse.updateFile(updateFileArtifact.value, updateFileVersions[updateFileCounter])
+    }
+
     // Edit tab language tests
     function testEditLang(filename, code) {
       artifactuse.openFile(filename, code, { tabs: ['edit'] })
@@ -264,6 +286,8 @@ export default {
       testPanelUrl,
       testEditLang,
       langSamples,
+      testUpdateFileOpen,
+      testUpdateFileUpdate,
     }
   },
 }
@@ -348,6 +372,10 @@ export default {
         <div class="test-panel__actions">
           <button @click="testEditTab">Edit Tab</button>
           <button @click="testPanelUrl">panelUrl</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testUpdateFileOpen">updateFile: Open</button>
+          <button @click="testUpdateFileUpdate">updateFile: Update</button>
         </div>
 
         <div class="test-panel__field">

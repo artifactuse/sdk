@@ -531,6 +531,7 @@ const {
   // Programmatic API
   openFile,           // Open file in panel (auto-detect language from extension)
   openCode,           // Open code in panel (explicit language)
+  updateFile,          // Update existing artifact's code and refresh panel
   clearArtifacts,     // Clear all artifacts
 
   // Panel management
@@ -757,6 +758,31 @@ openCode(pythonCode, 'python', { title: 'My Script', tabs: ['code', 'edit'] });
 | `options` | `object` | No | Same options as `openFile` |
 
 > **Note:** If the language has no registered panel, it falls back to `txt` (plain text) in the code panel.
+
+### updateFile
+
+Updates an existing artifact's code in place and refreshes the panel (no duplicate tabs):
+
+```js
+const { openFile, updateFile } = useArtifactuse();
+
+// First open — returns artifact reference
+const artifact = openFile('app.html', code, { panelUrl: '...' });
+
+// Later — update in place, refreshes iframe
+updateFile(artifact, newCode);
+updateFile(artifact.id, newCode, { panelUrl: newUrl });
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `artifact` | `object\|string` | Yes | Artifact object (from `openFile`) or artifact ID string |
+| `code` | `string` | Yes | New code content |
+| `options.title` | `string` | No | Update display title |
+| `options.tabs` | `string[]` | No | Update visible tabs |
+| `options.panelUrl` | `string` | No | Update custom iframe URL |
+
+> **Note:** `updateFile` triggers the `artifact:updated` event with `{ artifactId, artifact }`.
 
 ### clearArtifacts
 

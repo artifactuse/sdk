@@ -87,7 +87,11 @@ export default function ArtifactusePanel({
   
   const panelUrl = useMemo(() => {
     if (!activeArtifact) return null;
-    return getPanelUrl(activeArtifact);
+    let url = getPanelUrl(activeArtifact);
+    if (url && activeArtifact._refreshToken) {
+      url += (url.includes('?') ? '&' : '?') + '_t=' + activeArtifact._refreshToken;
+    }
+    return url;
   }, [activeArtifact, getPanelUrl]);
   
   const normalizedLanguage = useMemo(() => {

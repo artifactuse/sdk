@@ -76,7 +76,14 @@
   
   $: languageDisplay = artifact ? getLanguageDisplayName(artifact.language) : '';
   $: languageIcon = artifact ? getLanguageIcon(artifact.language) : '';
-  $: panelUrl = artifact ? getPanelUrl(artifact) : null;
+  $: panelUrl = (() => {
+    if (!artifact) return null;
+    let url = getPanelUrl(artifact);
+    if (url && artifact._refreshToken) {
+      url += (url.includes('?') ? '&' : '?') + '_t=' + artifact._refreshToken;
+    }
+    return url;
+  })();
   $: normalizedLanguage = artifact ? normalizeLang(artifact.language) : 'plaintext';
   
   $: nonInlineArtifacts = artifacts.filter(a => !a.isInline);

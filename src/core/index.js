@@ -726,6 +726,24 @@ export function createArtifactuse(userConfig = {}) {
   }
 
   /**
+   * Update an existing artifact's code and refresh the panel
+   */
+  function updateFile(artifactOrId, code, options = {}) {
+    const id = typeof artifactOrId === 'string' ? artifactOrId : artifactOrId?.id;
+    const existing = state.getArtifact(id);
+    if (!existing) return null;
+
+    const updates = { ...existing, code, _refreshToken: Date.now() };
+    if (options.title !== undefined) updates.title = options.title;
+    if (options.tabs !== undefined) updates.tabs = options.tabs;
+    if (options.panelUrl !== undefined) updates.panelUrl = options.panelUrl;
+
+    state.addArtifact(updates);
+    emit('artifact:updated', { artifactId: id, artifact: state.getArtifact(id) });
+    return state.getArtifact(id);
+  }
+
+  /**
    * Close panel
    */
   function closePanel() {
@@ -955,6 +973,7 @@ export function createArtifactuse(userConfig = {}) {
     openArtifact,
     openFile,
     openCode,
+    updateFile,
     closePanel,
     togglePanel,
     toggleFullscreen,
