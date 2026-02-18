@@ -84,7 +84,7 @@ export default {
       },
       inlinePreview: {
         maxLines: 12,
-        languages: ['smartdiff', 'html', 'javascript', 'jsx', 'python', 'vue','txt','php'],
+        languages: ['smartdiff', 'html', 'javascript', 'jsx', 'python', 'vue', 'txt', 'php', 'markdown'],
       },
       inlineCode: {
         languages: ['css', 'bash', 'sql'],
