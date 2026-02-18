@@ -26,7 +26,7 @@
         
         <!-- Panel artifact card (code, non-inline forms) -->
         <ArtifactuseCard
-          v-else-if="segment.type === 'panel' && inlineCards"
+          v-else-if="segment.type === 'panel' && effectiveInlineCards"
           :artifact="segment.artifact"
           :is-active="activeArtifactId === segment.artifact.id"
           @open="handleOpenArtifact"
@@ -83,6 +83,26 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Override global inlinePreview config for this message
+  inlinePreview: {
+    type: Object,
+    default: null,
+  },
+  // Show full inline code (no extraction) for listed languages
+  inlineCode: {
+    type: Object,
+    default: null,
+  },
+  // Override visible panel tabs for artifacts from this message
+  tabs: {
+    type: Array,
+    default: null,
+  },
+  // Override initial panel view mode for artifacts from this message
+  viewMode: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits([
@@ -123,6 +143,9 @@ const theme = computed(() => getTheme?.() || 'dark');
 
 // Get active artifact ID from state
 const activeArtifactId = computed(() => state.activeArtifactId);
+
+// Resolve inlineCards: component prop → global config → default (true)
+const effectiveInlineCards = computed(() => props.inlineCards ?? instance?.config?.inlineCards ?? true);
 
 /**
  * Track if this message was ever "live" (typed/streamed) in this session
@@ -485,7 +508,12 @@ watch(
   () => props.content,
   (newContent) => {
     if (newContent) {
-      const result = processMessage(newContent, props.messageId);
+      const result = processMessage(newContent, props.messageId, {
+        inlinePreview: props.inlinePreview,
+        inlineCode: props.inlineCode,
+        tabs: props.tabs,
+        viewMode: props.viewMode,
+      });
       processedHtml.value = result.html;
       messageArtifacts.value = result.artifacts;
       

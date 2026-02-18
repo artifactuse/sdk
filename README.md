@@ -445,6 +445,22 @@ provideArtifactuse({
 });
 ```
 
+All config options (`inlinePreview`, `inlineCode`, `tabs`, `viewMode`, `inlineCards`) also work as component props for per-message overrides. Precedence: **component prop → global config → default**.
+
+#### Inline Code (Optional)
+
+Show full syntax-highlighted code directly in the message without extraction or panel:
+
+```js
+provideArtifactuse({
+  inlineCode: {
+    languages: ['css', 'bash', 'sql'], // or true for all
+  },
+});
+```
+
+When a language matches both `inlineCode` and `inlinePreview`, `inlineCode` takes priority (no extraction).
+
 ### Inline Artifacts
 
 Inline artifacts render directly within the message.
@@ -617,6 +633,23 @@ provideArtifactuse({
     maxLines: 15,                                        // max lines before truncation
     languages: ['smartdiff', 'html', 'javascript', 'jsx'], // or true for all extracted languages
   },
+
+  // Inline code: show full code inline with Prism highlighting, no extraction (optional)
+  // Default: null (disabled). Takes priority over inlinePreview when both match.
+  inlineCode: {
+    languages: ['css', 'bash', 'sql'],                   // or true for all
+  },
+
+  // Show clickable artifact cards inline (default: true)
+  inlineCards: true,
+
+  // Visible panel tabs for all extracted artifacts (optional)
+  // Default: null (all tabs shown). Options: 'preview', 'code', 'split', 'edit'
+  tabs: ['preview', 'code'],
+
+  // Initial panel view mode for all extracted artifacts (optional)
+  // Default: null (first available tab). Options: 'preview', 'code', 'split', 'edit'
+  viewMode: 'preview',
 
   // Code Editor (Optional) — CodeMirror 6 for the edit tab
   // Requires: @codemirror/state, @codemirror/view, @codemirror/commands,

@@ -554,20 +554,29 @@ export function createArtifactuse(userConfig = {}) {
    * Process AI agent message content
    * Returns processed HTML with artifact placeholders
    */
-  function processMessage(content, messageId) {
+  function processMessage(content, messageId, overrides = {}) {
     // First, convert markdown to HTML
     let html = marked.parse(content);
-    
+
     const artifacts = [];
-    
+
     // Get current resolved theme for processors that need it
     const processorOptions = { theme: theme.resolved };
-    
+
+    // Merge overrides with global config (component prop → global config → default)
+    const inlinePreview = overrides.inlinePreview ?? config.inlinePreview ?? null;
+    const inlineCode = overrides.inlineCode ?? config.inlineCode ?? null;
+    const tabs = overrides.tabs ?? config.tabs ?? null;
+    const viewMode = overrides.viewMode ?? config.viewMode ?? null;
+
     // Extract all code block artifacts (code, form, social)
     if (config.processors.codeBlocks) {
       const result = extractCodeBlockArtifacts(html, messageId, {
         ...config.codeExtraction,
-        inlinePreview: config.inlinePreview || null,
+        inlinePreview,
+        inlineCode,
+        tabs,
+        viewMode,
       });
       html = result.html;
       artifacts.push(...result.artifacts);
@@ -715,7 +724,10 @@ export function createArtifactuse(userConfig = {}) {
     
     state.setActiveArtifact(artifact.id);
     state.setPanelOpen(true);
-    
+    if (artifact.viewMode) {
+      state.setViewMode(artifact.viewMode);
+    }
+
     emit('artifact:opened', artifact);
   }
 

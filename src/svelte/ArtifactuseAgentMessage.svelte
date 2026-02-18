@@ -13,6 +13,10 @@
   export let inlineCards = true;
   export let typing = false;
   export let isLastMessage = false; // Whether this is the last/most recent message
+  export let inlinePreview = null;
+  export let inlineCode = null;
+  export let tabs = null;
+  export let viewMode = null;
   
   const dispatch = createEventDispatcher();
   
@@ -49,6 +53,9 @@
   
   // Reactive active artifact ID
   $: activeArtifactId = activeArtifactIdProp || null;
+
+  // Resolve inlineCards: component prop → global config → default (true)
+  $: effectiveInlineCards = inlineCards ?? instance?.config?.inlineCards ?? true;
   
   // Determine form initial state
   // - 'active' if this message was typed/streamed in current session
@@ -382,7 +389,9 @@
   
   // Process content when it changes
   $: if (content) {
-    const result = processMessage(content, messageId);
+    const result = processMessage(content, messageId, {
+      inlinePreview, inlineCode, tabs, viewMode,
+    });
     processedHtml = result.html;
     messageArtifacts = result.artifacts;
     contentSegments = parseContentSegments(processedHtml);
@@ -492,7 +501,7 @@
           {theme}
           on:copy={handleSocialCopy}
         />
-      {:else if segment.type === 'panel' && inlineCards}
+      {:else if segment.type === 'panel' && effectiveInlineCards}
         <ArtifactuseCard
           artifact={segment.artifact}
           isActive={activeArtifactId === segment.artifact.id}

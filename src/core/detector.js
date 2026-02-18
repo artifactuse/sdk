@@ -664,12 +664,22 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
     minLength = 50,
     extractAll = false,
     inlinePreview = null,
+    inlineCode = null,
+    tabs = null,
+    viewMode = null,
   } = options;
 
   function shouldShowPreview(lang) {
     if (!inlinePreview) return false;
     if (inlinePreview.languages === true) return true;
     if (Array.isArray(inlinePreview.languages)) return inlinePreview.languages.includes(lang);
+    return false;
+  }
+
+  function shouldShowInlineCode(lang) {
+    if (!inlineCode) return false;
+    if (inlineCode.languages === true) return true;
+    if (Array.isArray(inlineCode.languages)) return inlineCode.languages.includes(lang);
     return false;
   }
   
@@ -688,6 +698,12 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
       if (code.trim().startsWith('<svg')) {
         langLower = 'svg';
       }
+    }
+
+    // inlineCode: highest priority — skip extraction, leave code block as-is
+    if (shouldShowInlineCode(langLower)) {
+      blockIndex++;
+      return match;
     }
 
     // Artifact extraction logic
@@ -712,6 +728,8 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
 
     if (shouldExtract) {
       const artifact = createArtifact(code, langLower, messageId, blockIndex);
+      if (tabs) artifact.tabs = tabs;
+      if (viewMode) artifact.viewMode = viewMode;
       blockIndex++;
       artifacts.push(artifact);
 

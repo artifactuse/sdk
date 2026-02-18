@@ -113,6 +113,10 @@ export default function ArtifactuseAgentMessage({
   inlineCards = true,
   typing = false,
   isLastMessage = false, // Whether this is the last/most recent message
+  inlinePreview = null,
+  inlineCode = null,
+  tabs = null,
+  viewMode = null,
   onArtifactDetected,
   onArtifactOpen,
   onArtifactCopy,
@@ -157,7 +161,10 @@ export default function ArtifactuseAgentMessage({
   
   // Get active artifact ID from state
   const activeArtifactId = state?.activeArtifactId || null;
-  
+
+  // Resolve inlineCards: component prop → global config → default (true)
+  const effectiveInlineCards = inlineCards ?? instance?.config?.inlineCards ?? true;
+
   // Parse content segments
   const contentSegments = useMemo(() => {
     return parseContentSegments(processedHtml);
@@ -416,7 +423,9 @@ export default function ArtifactuseAgentMessage({
   // Process message when content changes
   useEffect(() => {
     if (content) {
-      const result = processMessage(content, messageId);
+      const result = processMessage(content, messageId, {
+        inlinePreview, inlineCode, tabs, viewMode,
+      });
       setProcessedHtml(result.html);
       setMessageArtifacts(result.artifacts);
       
@@ -560,7 +569,7 @@ export default function ArtifactuseAgentMessage({
         );
       
       case 'panel':
-        if (inlineCards) {
+        if (effectiveInlineCards) {
           return (
             <ArtifactuseCard
               key={`panel-${segment.artifact.id}`}
@@ -631,6 +640,30 @@ ArtifactuseAgentMessage.propTypes = {
   isLastMessage: (props, propName) => {
     if (props[propName] !== undefined && typeof props[propName] !== 'boolean') {
       return new Error(`${propName} must be a boolean`);
+    }
+  },
+  /** Override global inlinePreview config for this message */
+  inlinePreview: (props, propName) => {
+    if (props[propName] !== undefined && props[propName] !== null && typeof props[propName] !== 'object') {
+      return new Error(`${propName} must be an object or null`);
+    }
+  },
+  /** Show full inline code (no extraction) for listed languages */
+  inlineCode: (props, propName) => {
+    if (props[propName] !== undefined && props[propName] !== null && typeof props[propName] !== 'object') {
+      return new Error(`${propName} must be an object or null`);
+    }
+  },
+  /** Override visible panel tabs for artifacts from this message */
+  tabs: (props, propName) => {
+    if (props[propName] !== undefined && props[propName] !== null && !Array.isArray(props[propName])) {
+      return new Error(`${propName} must be an array or null`);
+    }
+  },
+  /** Override initial panel view mode for artifacts from this message */
+  viewMode: (props, propName) => {
+    if (props[propName] !== undefined && props[propName] !== null && typeof props[propName] !== 'string') {
+      return new Error(`${propName} must be a string or null`);
     }
   },
 };
