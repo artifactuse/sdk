@@ -272,10 +272,20 @@ export default {
 
     // Per-message config overrides demo
     function getMessageOverrides(id) {
-      if (id === 'config-override-demo') {
-        return { tabs: ['code'], viewMode: 'code' }
+      switch (id) {
+        case 'props-inline-preview-override':
+          return { inlinePreview: { maxLines: 5, languages: ['html'] } }
+        case 'props-inline-code-override':
+          return { inlineCode: { languages: ['javascript', 'python'] } }
+        case 'props-inline-cards-false':
+          return { inlineCards: false }
+        case 'props-tabs-viewmode-split':
+          return { tabs: ['preview', 'code', 'split', 'edit'], viewMode: 'split' }
+        case 'config-override-demo':
+          return { tabs: ['code'], viewMode: 'code' }
+        default:
+          return {}
       }
-      return {}
     }
 
     // Listen for edit:save events

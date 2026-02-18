@@ -649,6 +649,11 @@
   white-space: pre-wrap;
 }
 
+.artifactuse-panel__code-block .language-smartdiff {
+    display: inline-table;
+    width: 100%;
+}
+
 /* Edit pane (CodeMirror) */
 .artifactuse-panel__edit {
   flex: 1;

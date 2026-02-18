@@ -2610,6 +2610,187 @@ The global config has \`inlinePreview\` for HTML, but this message overrides wit
 
 Click the artifact above — it should open with only the Code tab visible, starting in code view.`
   },
+
+  // ============================================================
+  // PER-MESSAGE PROP OVERRIDE DEMOS
+  // ============================================================
+  {
+    id: 'props-inline-preview-override',
+    content: `### Prop: \`inlinePreview\` override
+
+Global config shows inline preview for HTML, JS, Python, etc. at 12 lines.
+This message overrides to **maxLines: 5** and **only HTML**.
+
+**HTML → inline preview (5-line truncation):**
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Short Preview</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; background: #0f172a; color: #e2e8f0; }
+    h1 { color: #818cf8; margin-bottom: 1rem; }
+    .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Preview truncated at 5 lines</h1>
+    <p>This preview is shorter than usual because of the per-message maxLines override.</p>
+  </div>
+</body>
+</html>
+\`\`\`
+
+**JavaScript → artifact card (not in this message's inlinePreview languages):**
+
+\`\`\`javascript
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+console.log(fibonacci(10));
+\`\`\`
+
+Notice: The HTML block shows only ~5 lines before truncation. The JavaScript block renders as a plain artifact card because this message's \`inlinePreview.languages\` only includes \`html\`.`
+  },
+
+  {
+    id: 'props-inline-code-override',
+    content: `### Prop: \`inlineCode\` override
+
+Global config keeps CSS, bash, SQL inline. This message overrides to keep **JavaScript and Python** inline instead.
+
+**JavaScript → stays inline (in this message's inlineCode):**
+
+\`\`\`javascript
+const greet = (name) => \\\`Hello, \\\${name}!\\\`;
+const users = ['Alice', 'Bob', 'Charlie'];
+users.forEach(u => console.log(greet(u)));
+\`\`\`
+
+**Python → stays inline (in this message's inlineCode):**
+
+\`\`\`python
+def greet(name):
+    return f"Hello, {name}!"
+
+users = ["Alice", "Bob", "Charlie"]
+for u in users:
+    print(greet(u))
+\`\`\`
+
+**CSS → artifact card (NOT in this message's inlineCode, NOT in inlinePreview):**
+
+\`\`\`css
+.button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+\`\`\`
+
+Notice: JS and Python render as normal code blocks with Prism highlighting. CSS — which is normally inline via global config — now renders as an artifact card because this message's \`inlineCode\` override replaces the global list.`
+  },
+
+  {
+    id: 'props-inline-cards-false',
+    content: `### Prop: \`inlineCards: false\`
+
+This message has \`inlineCards\` set to \`false\`. Code artifacts are still extracted, but no clickable cards appear in the message. You can still open them from the panel toggle.
+
+**TypeScript block (extracted but no card):**
+
+\`\`\`typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'guest';
+}
+
+function filterByRole(users: User[], role: User['role']): User[] {
+  return users.filter(u => u.role === role);
+}
+
+const admins = filterByRole(users, 'admin');
+console.log(\\\`Found \\\${admins.length} admins\\\`);
+\`\`\`
+
+**React block (extracted but no card):**
+
+\`\`\`jsx
+function Counter() {
+  const [count, setCount] = React.useState(0);
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Count: {count}</h2>
+      <button onClick={() => setCount(c => c + 1)}>+1</button>
+    </div>
+  );
+}
+\`\`\`
+
+If you see no artifact cards above, the prop is working. Use the panel toggle button to access the extracted artifacts.`
+  },
+
+  {
+    id: 'props-tabs-viewmode-split',
+    content: `### Props: \`tabs\` + \`viewMode\` override
+
+This message enables **all 4 tabs** and opens in **split view** by default.
+
+Compare with the \`config-override-demo\` message which restricts to code-only.
+
+\`\`\`html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Split View Demo</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: system-ui;
+    }
+    .card {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    h1 { color: #4f46e5; margin: 0 0 0.5rem; }
+    p { color: #6b7280; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Split View</h1>
+    <p>This artifact opens with preview + code side by side.</p>
+    <p>All 4 tabs (Preview, Code, Split, Edit) are available.</p>
+  </div>
+</body>
+</html>
+\`\`\`
+
+Click the artifact — it should open in split view with all tabs visible, including Edit.`
+  },
 ];
 
 export default messages;
