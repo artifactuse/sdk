@@ -83,7 +83,7 @@ export default {
         theme: 'dark',
       },
       inlinePreview: {
-        maxLines: 10,
+        maxLines: 12,
         languages: ['diff', 'html', 'javascript', 'jsx', 'python', 'vue'],
       },
       // panels: {
