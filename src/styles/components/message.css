@@ -75,6 +75,12 @@
   overflow-x: auto;
 }
 
+/* Let Prism theme style language-tagged code blocks (used by inlineCode) */
+.artifactuse-message-content pre[class*="language-"]:not(.artifactuse-inline-preview__pre) {
+  background: var(--artifactuse-code-bg, #2d2d2d);
+  color: #ccc;
+}
+
 .artifactuse-message-content pre code {
   padding: 0;
   background: none;

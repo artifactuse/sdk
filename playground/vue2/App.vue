@@ -1,5 +1,5 @@
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import {
   ArtifactuseAgentMessage,
   ArtifactusePanel,
@@ -85,6 +85,9 @@ export default {
       inlinePreview: {
         maxLines: 12,
         languages: ['smartdiff', 'html', 'javascript', 'jsx', 'python', 'vue','txt','php'],
+      },
+      inlineCode: {
+        languages: ['css', 'bash', 'sql'],
       },
       // panels: {
       //   // Add new panel type
@@ -256,6 +259,25 @@ export default {
       'utils.py': 'from dataclasses import dataclass\nfrom typing import List, Optional\n\n@dataclass\nclass User:\n    name: str\n    email: str\n    age: Optional[int] = None\n\ndef filter_adults(users: List[User]) -> List[User]:\n    return [u for u in users if u.age and u.age >= 18]\n\nif __name__ == "__main__":\n    users = [User("Alice", "alice@test.com", 25)]\n    print(filter_adults(users))',
     }
 
+    // inlineCards toggle demo
+    const inlineCardsEnabled = ref(true)
+    function toggleInlineCards() {
+      inlineCardsEnabled.value = !inlineCardsEnabled.value
+      artifactuse.config.inlineCards = inlineCardsEnabled.value
+      // Force re-render by cycling messages
+      const current = [...messages.value]
+      messages.value = []
+      nextTick(() => { messages.value = current })
+    }
+
+    // Per-message config overrides demo
+    function getMessageOverrides(id) {
+      if (id === 'config-override-demo') {
+        return { tabs: ['code'], viewMode: 'code' }
+      }
+      return {}
+    }
+
     // Listen for edit:save events
     artifactuse.on('edit:save', (data) => {
       console.log('[edit:save]', data)
@@ -292,6 +314,9 @@ export default {
       langSamples,
       testUpdateFileOpen,
       testUpdateFileUpdate,
+      getMessageOverrides,
+      inlineCardsEnabled,
+      toggleInlineCards,
     }
   },
 }
@@ -391,6 +416,15 @@ export default {
           </button>
         </div>
 
+        <div class="test-panel__field">
+          <label>Config Toggles:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="toggleInlineCards">
+            inlineCards: {{ inlineCardsEnabled ? 'ON' : 'OFF' }}
+          </button>
+        </div>
+
         <div class="test-panel__status">
           Messages: {{ messages.length }} / {{ mockMessages.length }}
           <span v-if="isStreaming" class="streaming-indicator">Streaming...</span>
@@ -410,6 +444,7 @@ export default {
         :content="m.content"
         :message-id="m.id"
         :is-last-message="index === messages.length - 1"
+        v-bind="getMessageOverrides(m.id)"
       />
       <ArtifactusePanelToggle v-if="artifactCount > 0" class="h-8 w-8 flex items-center justify-center cursor-pointer rounded-full disabled:opacity-65 disabled:cursor-default transition-all duration-200 hover:bg-gray-100 hover:text-gray-600" />
     </div>

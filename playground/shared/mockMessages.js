@@ -2528,6 +2528,88 @@ Quick feedback form:
 
 The refactored version adds Bearer prefix stripping, async/await, user lookup with disabled check, and specific error messages for expired tokens.`
   },
+
+  // ============================================================
+  // INLINE CODE DEMO
+  // ============================================================
+  {
+    id: 'inline-code-demo',
+    content: `Here's an example showing different code rendering modes:
+
+**These stay inline (inlineCode: css, bash, sql):**
+
+\`\`\`css
+.card {
+  display: flex;
+  padding: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+\`\`\`
+
+\`\`\`bash
+#!/bin/bash
+echo "Deploying to production..."
+npm run build && docker compose up -d
+echo "Done!"
+\`\`\`
+
+**This gets an inline preview (inlinePreview: javascript):**
+
+\`\`\`javascript
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+const search = debounce((query) => {
+  fetch(\\\`/api/search?q=\\\${query}\\\`)
+    .then(res => res.json())
+    .then(data => renderResults(data));
+}, 300);
+\`\`\`
+
+Notice: CSS and bash blocks render as normal syntax-highlighted code inline. The JavaScript block shows a truncated preview with a click-to-open action.`
+  },
+
+  // ============================================================
+  // CONFIG OVERRIDE DEMO
+  // ============================================================
+  {
+    id: 'config-override-demo',
+    content: `This message demonstrates **per-message config overrides**.
+
+The global config has \`inlinePreview\` for HTML, but this message overrides with \`tabs: ['code']\` and \`viewMode: 'code'\`:
+
+\`\`\`html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Override Demo</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; background: #1a1a2e; color: #e4e4e7; }
+    h1 { color: #818cf8; }
+  </style>
+</head>
+<body>
+  <h1>This artifact opens in code-only mode</h1>
+  <p>The tabs are restricted to just the code view because this message has per-message overrides.</p>
+</body>
+</html>
+\`\`\`
+
+Click the artifact above — it should open with only the Code tab visible, starting in code view.`
+  },
 ];
 
 export default messages;
