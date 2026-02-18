@@ -16,6 +16,15 @@
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
 }
 
+/* Non-clickable inline previews (short code, no panel value) */
+.artifactuse-inline-preview--static {
+  cursor: default;
+}
+
+.artifactuse-inline-preview--static:hover {
+  box-shadow: none;
+}
+
 .artifactuse-inline-preview pre {
   margin: 0 !important;
 }

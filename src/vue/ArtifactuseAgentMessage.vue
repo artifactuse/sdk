@@ -561,6 +561,7 @@ onBeforeUnmount(() => {
 function handleContentClick(e) {
   const preview = e.target.closest('.artifactuse-inline-preview');
   if (preview) {
+    if (preview.dataset.nonClickable) return;
     const artifactId = preview.dataset.artifactId;
     if (artifactId) {
       const artifact = state.artifacts.find(a => a.id === artifactId);

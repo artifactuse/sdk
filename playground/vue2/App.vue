@@ -85,6 +85,16 @@ export default {
       inlinePreview: {
         maxLines: 12,
         languages: ['smartdiff', 'html', 'javascript', 'jsx', 'python', 'vue', 'txt', 'php', 'markdown'],
+        minClickableLines: {
+          lines: 10,
+          ignoreLanguages: ['html', 'markdown', 'jsx', 'vue', 'smartdiff'],
+        },
+        actionLabel: {
+          html: 'Open preview',
+          markdown: 'Open document',
+          smartdiff: 'View full diff',
+          default: 'View full code',
+        },
       },
       inlineCode: {
         languages: ['css', 'bash', 'sql'],

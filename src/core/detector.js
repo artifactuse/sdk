@@ -464,6 +464,33 @@ export function computeSimpleDiff(oldCode, newCode) {
 function createInlinePreview(artifact, code, langLower, inlinePreview) {
   const maxLines = inlinePreview.maxLines || 15;
 
+  // Resolve whether preview should be non-clickable (short code, no panel value)
+  function isNonClickable(lineCount, isTruncated) {
+    if (isTruncated) return false;
+    const minClick = inlinePreview.minClickableLines;
+    if (minClick == null) return false;
+    const minLines = typeof minClick === 'number' ? minClick : (minClick.lines || 0);
+    const ignoreLanguages = (typeof minClick === 'object' && Array.isArray(minClick.ignoreLanguages))
+      ? minClick.ignoreLanguages : [];
+    return lineCount < minLines && !ignoreLanguages.includes(langLower);
+  }
+
+  // Resolve action label for the fade overlay
+  function getActionLabel(lang, lineCount) {
+    const al = inlinePreview.actionLabel;
+    let labelText;
+    if (typeof al === 'string') {
+      labelText = al;
+    } else if (al && typeof al === 'object') {
+      labelText = al[lang] || al.default || null;
+    }
+    if (!labelText) {
+      labelText = (lang === 'diff' || lang === 'patch' || lang === 'smartdiff')
+        ? 'View full diff' : 'View full code';
+    }
+    return `${labelText} (${lineCount} lines)`;
+  }
+
   // Smartdiff: parse JSON, compute diff, use actual language for highlighting
   if (langLower === 'smartdiff') {
     try {
@@ -478,10 +505,14 @@ function createInlinePreview(artifact, code, langLower, inlinePreview) {
       const encoded = encodeHtml(codeLines.join('\n'));
       const isTruncated = allDiffLines.length > maxLines;
       const actualLang = diffData.language || 'plaintext';
+      const nonClickable = isNonClickable(allDiffLines.length, isTruncated);
+      const staticClass = nonClickable ? ' artifactuse-inline-preview--static' : '';
+      const staticAttr = nonClickable ? ' data-non-clickable="true"' : '';
+      const actionText = getActionLabel('smartdiff', allDiffLines.length);
 
-      return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}" data-artifact-id="${artifact.id}" data-smartdiff="true" data-smartdiff-markers="${markers.join(',')}">`
+      return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}${staticClass}" data-artifact-id="${artifact.id}" data-smartdiff="true" data-smartdiff-markers="${markers.join(',')}"${staticAttr}>`
         + `<pre class="artifactuse-inline-preview__pre"><code class="language-${actualLang}">${encoded}</code></pre>`
-        + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">View full diff (${allDiffLines.length} lines)</span></div>` : '')
+        + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">${actionText}</span></div>` : '')
         + `</div>`;
     } catch {
       // Fallback: show raw content as JSON
@@ -496,11 +527,14 @@ function createInlinePreview(artifact, code, langLower, inlinePreview) {
   const truncated = lines.slice(0, maxLines).join('\n');
   const encoded = encodeHtml(truncated);
   const isTruncated = lines.length > maxLines;
-  const label = langLower === 'diff' || langLower === 'patch' ? 'diff' : 'code';
+  const nonClickable = isNonClickable(lines.length, isTruncated);
+  const staticClass = nonClickable ? ' artifactuse-inline-preview--static' : '';
+  const staticAttr = nonClickable ? ' data-non-clickable="true"' : '';
+  const actionText = getActionLabel(langLower, lines.length);
 
-  return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}" data-artifact-id="${artifact.id}">`
+  return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}${staticClass}" data-artifact-id="${artifact.id}"${staticAttr}>`
     + `<pre class="artifactuse-inline-preview__pre"><code class="language-${previewLang}">${encoded}</code></pre>`
-    + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">View full ${label} (${lines.length} lines)</span></div>` : '')
+    + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">${actionText}</span></div>` : '')
     + `</div>`;
 }
 

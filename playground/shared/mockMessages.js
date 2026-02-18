@@ -2855,6 +2855,120 @@ Visit [GitHub](https://github.com) for more info.
 
 Click the artifact to open it in the panel — you should see proper tables, task checkboxes, nested lists, and strikethrough rendering.`
   },
+
+  // Part 12: Demo for minClickableLines + actionLabel
+  {
+    id: 'min-clickable-lines-demo',
+    content: `### Demo: \`minClickableLines\` + \`actionLabel\`
+
+Global config: \`minClickableLines: { lines: 10, ignoreLanguages: ['html', 'markdown', ...] }\`
+
+---
+
+**Short JavaScript (4 lines) → NON-CLICKABLE** (< 10 lines, not in ignoreLanguages):
+
+\`\`\`javascript
+const add = (a, b) => a + b;
+const sub = (a, b) => a - b;
+console.log(add(2, 3));
+console.log(sub(5, 2));
+\`\`\`
+
+**Short Python (5 lines) → NON-CLICKABLE** (< 10 lines, not in ignoreLanguages):
+
+\`\`\`python
+def square(n):
+    return n * n
+
+numbers = [1, 2, 3, 4, 5]
+print([square(n) for n in numbers])
+\`\`\`
+
+**Short HTML (6 lines) → STILL CLICKABLE** (in ignoreLanguages — panel renders preview):
+
+\`\`\`html
+<!DOCTYPE html>
+<html>
+<body>
+  <h1 style="color: #6366f1;">Hello from HTML</h1>
+  <p>Short but still clickable — the panel renders a live preview.</p>
+</body>
+</html>
+\`\`\`
+
+**Long JavaScript (15+ lines) → CLICKABLE** with label "View full code (N lines)":
+
+\`\`\`javascript
+class EventEmitter {
+  constructor() {
+    this.listeners = new Map();
+  }
+
+  on(event, callback) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event).push(callback);
+    return () => this.off(event, callback);
+  }
+
+  off(event, callback) {
+    const cbs = this.listeners.get(event);
+    if (cbs) {
+      this.listeners.set(event, cbs.filter(cb => cb !== callback));
+    }
+  }
+
+  emit(event, ...args) {
+    const cbs = this.listeners.get(event) || [];
+    cbs.forEach(cb => cb(...args));
+  }
+}
+\`\`\`
+
+**Long HTML (15+ lines) → CLICKABLE** with label "Open preview (N lines)":
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Action Label Demo</title>
+  <style>
+    body {
+      font-family: system-ui;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .badge {
+      background: #6366f1;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div style="text-align: center">
+    <h1>Custom Action Labels</h1>
+    <p>This HTML block says <span class="badge">Open preview</span> instead of "View full code"</p>
+  </div>
+</body>
+</html>
+\`\`\`
+
+**Summary:**
+- Short JS/Python (< 10 lines): no hover ring, no pointer cursor, click does nothing
+- Short HTML (< 10 lines): still clickable because HTML is in \`ignoreLanguages\`
+- Long JS: truncated, shows "View full code (N lines)" — the \`default\` actionLabel
+- Long HTML: truncated, shows "Open preview (N lines)" — the \`html\` actionLabel`
+  },
 ];
 
 export default messages;

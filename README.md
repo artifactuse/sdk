@@ -434,13 +434,23 @@ By default, extracted code blocks render as compact artifact cards. With `inline
 - Configurable per language — unlisted languages still render as cards
 - Requires [Prism.js](https://prismjs.com/) for syntax highlighting (see [Syntax Highlighting](#syntax-highlighting))
 - `smartdiff` artifacts use the actual language for full syntax highlighting with deleted/inserted backgrounds
-- Truncated previews show a fade gradient with "View full code (N lines)" label
+- Truncated previews show a fade gradient with customizable action labels
+- Short code can be made non-clickable via `minClickableLines` (languages like HTML/markdown can be exempt)
 
 ```js
 provideArtifactuse({
   inlinePreview: {
     maxLines: 15,
     languages: ['smartdiff', 'html', 'javascript'],
+    minClickableLines: {
+      lines: 10,                              // code < 10 lines is non-clickable
+      ignoreLanguages: ['html', 'markdown'],   // always clickable (panel renders preview)
+    },
+    actionLabel: {
+      html: 'Open preview',
+      markdown: 'Open document',
+      default: 'View full code',               // fallback for unlisted languages
+    },
   },
 });
 ```
@@ -632,6 +642,15 @@ provideArtifactuse({
   inlinePreview: {
     maxLines: 15,                                        // max lines before truncation
     languages: ['smartdiff', 'html', 'javascript', 'jsx'], // or true for all extracted languages
+    minClickableLines: {                                 // disable clicking for short code (optional)
+      lines: 10,                                         // code < N lines is non-clickable
+      ignoreLanguages: ['html', 'markdown'],             // always clickable (panel renders preview)
+    },
+    actionLabel: {                                       // customize fade overlay label (optional)
+      html: 'Open preview',                              // per-language labels
+      markdown: 'Open document',
+      default: 'View full code',                         // fallback for unlisted languages
+    },
   },
 
   // Inline code: show full code inline with Prism highlighting, no extraction (optional)
