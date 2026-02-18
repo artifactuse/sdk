@@ -1,6 +1,6 @@
 {
   "name": "artifactuse",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "type": "module",
   "description": "The Artifact SDK for AI Agents - Turn AI outputs into interactive experiences",
   "author": "Artifactuse",
