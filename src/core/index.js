@@ -173,6 +173,7 @@ const DEFAULT_PANELS = {
   // Diff/patches
   diff: 'diff-panel',
   patch: 'diff-panel',
+  smartdiff: 'diff-panel',
   
   // Plain text
   txt: 'code-panel',
@@ -678,6 +679,25 @@ export function createArtifactuse(userConfig = {}) {
     // Apply syntax highlighting if enabled
     if (config.syntaxHighlight) {
       highlightAll(container);
+
+      // Post-process smartdiff inline previews:
+      // Prism highlighted the code with the actual language grammar.
+      // Now wrap each line in .token.deleted / .token.inserted based on markers.
+      const el = container === document ? document : container;
+      const smartdiffPreviews = el.querySelectorAll('.artifactuse-inline-preview[data-smartdiff]');
+      smartdiffPreviews.forEach(preview => {
+        const codeEl = preview.querySelector('code');
+        if (!codeEl || codeEl.dataset.smartdiffProcessed) return;
+        const markers = preview.dataset.smartdiffMarkers?.split(',') || [];
+        const lines = codeEl.innerHTML.split('\n');
+        codeEl.innerHTML = lines.map((line, i) => {
+          const marker = markers[i];
+          if (marker === '-') return `<span class="token deleted">${line}</span>`;
+          if (marker === '+') return `<span class="token inserted">${line}</span>`;
+          return line;
+        }).join('\n');
+        codeEl.dataset.smartdiffProcessed = 'true';
+      });
     }
     
     await Promise.all(promises);

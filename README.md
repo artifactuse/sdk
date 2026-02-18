@@ -8,6 +8,7 @@ Artifactuse is a lightweight SDK that transforms AI-generated content into rich,
 
 - 🎨 **Rich Content Detection** - Automatically detect and render code blocks, images, videos, maps, embeds, and more
 - 📦 **Artifact Cards** - Beautiful inline cards for code artifacts
+- 👁️ **Inline Code Preview** - Truncated syntax-highlighted code previews with click-to-open panel
 - 🖼️ **Media Lightbox** - Click images and PDFs to view fullscreen with zoom and download
 - 🖥️ **Panel Viewer** - Side panel with preview, code view, and split mode
 - 📝 **Interactive Forms** - Inline and panel forms with 17+ field types, auto-collapse after submission
@@ -421,10 +422,28 @@ Panel artifacts open in a side panel with preview, code view, and editing capabi
 - **HTML/React/Vue** - Live preview with code editing
 - **Mermaid** - Diagrams with live preview
 - **SVG** - SVG graphics with live preview and editing
-- **Diff / Patch** - Code diffs with side-by-side or unified view
+- **Diff / Patch** - Code diffs with side-by-side or unified view (`diff`, `patch`, or `smartdiff` for structured JSON diffs)
 - **Canvas / Whiteboard** - Interactive drawing canvas and whiteboard
 - **Video Editor** - Timeline-based video editing interface
 - **Forms (Panel)** - Complex forms with wizard variant, file uploads, or 4+ fields
+
+#### Inline Code Preview (Optional)
+
+By default, extracted code blocks render as compact artifact cards. With `inlinePreview` enabled, they show a **truncated syntax-highlighted preview** (first N lines) directly in the message. Click the preview to open the full artifact in the panel.
+
+- Configurable per language — unlisted languages still render as cards
+- Requires [Prism.js](https://prismjs.com/) for syntax highlighting (see [Syntax Highlighting](#syntax-highlighting))
+- `smartdiff` artifacts use the actual language for full syntax highlighting with deleted/inserted backgrounds
+- Truncated previews show a fade gradient with "View full code (N lines)" label
+
+```js
+provideArtifactuse({
+  inlinePreview: {
+    maxLines: 15,
+    languages: ['smartdiff', 'html', 'javascript'],
+  },
+});
+```
 
 ### Inline Artifacts
 
@@ -590,6 +609,13 @@ provideArtifactuse({
   codeExtraction: {
     minLines: 3,
     minLength: 50,
+  },
+
+  // Inline preview: show truncated code inline instead of artifact cards (optional)
+  // Default: null (disabled — all extracted code shows as cards)
+  inlinePreview: {
+    maxLines: 15,                                        // max lines before truncation
+    languages: ['smartdiff', 'html', 'javascript', 'jsx'], // or true for all extracted languages
   },
 
   // Code Editor (Optional) — CodeMirror 6 for the edit tab

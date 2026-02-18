@@ -735,7 +735,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useArtifactuse } from './index.js';
-import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
+import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
 import JSZip from 'jszip';
 
@@ -870,29 +870,55 @@ function goBackToList() {
   instance.state.clearActiveArtifact();
 }
 
+// Smartdiff: per-line language-aware highlighting
+function highlightSmartDiff(artifact) {
+  if (artifact.language !== 'smartdiff') return null;
+  try {
+    const data = JSON.parse(artifact.code);
+    if (data.oldCode === undefined || data.newCode === undefined) return null;
+    const lang = data.language || 'plaintext';
+    const grammar = isPrismAvailable() && window.Prism.languages[lang];
+    const diffLines = computeSimpleDiff(data.oldCode, data.newCode).split('\n');
+
+    const highlighted = diffLines.map(line => {
+      const prefix = line[0];
+      const content = line.slice(1);
+      const hl = grammar ? window.Prism.highlight(content, grammar, lang) : content;
+      if (prefix === '-') return `<span class="token deleted">${hl}</span>`;
+      if (prefix === '+') return `<span class="token inserted">${hl}</span>`;
+      return hl;
+    }).join('\n');
+
+    return { html: highlighted, lineCount: diffLines.length };
+  } catch { return null; }
+}
+
 // Line numbers generation
 function generateLineNumbers() {
   if (lineNumbersRef.value && activeArtifact.value?.code) {
-    const lines = activeArtifact.value.code.split('\n');
-    lineNumbersRef.value.innerHTML = lines
-      .map((_, i) => `<div>${i + 1}</div>`)
-      .join('');
+    const sd = highlightSmartDiff(activeArtifact.value);
+    const lines = sd ? sd.lineCount : activeArtifact.value.code.split('\n').length;
+    lineNumbersRef.value.innerHTML = Array.from({ length: lines }, (_, i) => `<div>${i + 1}</div>`).join('');
   }
 }
 
 // Prism highlighting
 function highlightCode() {
   if (codeRef.value && isPrismAvailable() && activeArtifact.value?.code) {
-    const grammar = window.Prism.languages[normalizedLanguage.value];
-    if (grammar) {
-      codeRef.value.innerHTML = window.Prism.highlight(
-        activeArtifact.value.code,
-        grammar,
-        normalizedLanguage.value
-      );
+    const sd = highlightSmartDiff(activeArtifact.value);
+    if (sd) {
+      codeRef.value.innerHTML = sd.html;
     } else {
-      // Fallback: set as text if no grammar available
-      codeRef.value.textContent = activeArtifact.value.code;
+      const grammar = window.Prism.languages[normalizedLanguage.value];
+      if (grammar) {
+        codeRef.value.innerHTML = window.Prism.highlight(
+          activeArtifact.value.code,
+          grammar,
+          normalizedLanguage.value
+        );
+      } else {
+        codeRef.value.textContent = activeArtifact.value.code;
+      }
     }
     codeRef.value.dataset.highlighted = 'true';
 

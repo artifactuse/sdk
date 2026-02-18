@@ -5,7 +5,32 @@ export const messages = [
   // ============================================================
   // FORM ARTIFACTS
   // ============================================================
-  
+    {
+    id: 'txt-message-001',
+    content: `
+    Here's a plain text message:
+
+\`\`\`txt
+This is a plain text message. It can include line breaks,     multiple spaces, and special characters like !@#$%^&*() without any formatting. It's ideal for simple messages or logs that don't require rich formatting.
+\`\`\`
+`
+  },
+  {
+    id: 'php-message-001',
+    content: `
+    Here's a php text message:
+
+\`\`\`php
+<?php
+function greet($name) {
+    return "Hello, " . $name . "!";
+}
+
+echo greet("World");
+?>
+\`\`\`
+`
+  },
   {
     id: 'form-contact',
     content: `
@@ -2493,7 +2518,7 @@ Quick feedback form:
     id: 'diff-code-refactor',
     content: `Here's a diff showing the refactored authentication middleware:
 
-\`\`\`diff
+\`\`\`smartdiff
 {
   "language": "javascript",
   "oldCode": "function authenticate(req, res, next) {\\n  const token = req.headers.authorization;\\n  if (!token) {\\n    res.status(401).json({ error: 'No token' });\\n    return;\\n  }\\n  try {\\n    const decoded = jwt.verify(token, SECRET);\\n    req.user = decoded;\\n    next();\\n  } catch (err) {\\n    res.status(401).json({ error: 'Invalid token' });\\n  }\\n}",

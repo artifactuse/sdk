@@ -636,6 +636,19 @@
   overflow: visible;
 }
 
+/* Smartdiff: deleted/inserted line backgrounds in code pane */
+.artifactuse-panel__code-block .token.deleted {
+  background: #503535;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.artifactuse-panel__code-block .token.inserted {
+  background: #303e11;
+  display: block;
+  white-space: pre-wrap;
+}
+
 /* Edit pane (CodeMirror) */
 .artifactuse-panel__edit {
   flex: 1;

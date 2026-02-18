@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useArtifactuse } from './index.jsx';
-import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
+import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
 import JSZip from 'jszip';
 
@@ -141,28 +141,55 @@ export default function ArtifactusePanel({
     instance.state.clearActiveArtifact();
   }, [instance]);
   
+  // Smartdiff: per-line language-aware highlighting
+  const highlightSmartDiff = useCallback((artifact) => {
+    if (artifact.language !== 'smartdiff') return null;
+    try {
+      const data = JSON.parse(artifact.code);
+      if (data.oldCode === undefined || data.newCode === undefined) return null;
+      const lang = data.language || 'plaintext';
+      const grammar = isPrismAvailable() && window.Prism.languages[lang];
+      const diffLines = computeSimpleDiff(data.oldCode, data.newCode).split('\n');
+
+      const highlighted = diffLines.map(line => {
+        const prefix = line[0];
+        const content = line.slice(1);
+        const hl = grammar ? window.Prism.highlight(content, grammar, lang) : content;
+        if (prefix === '-') return `<span class="token deleted">${hl}</span>`;
+        if (prefix === '+') return `<span class="token inserted">${hl}</span>`;
+        return hl;
+      }).join('\n');
+
+      return { html: highlighted, lineCount: diffLines.length };
+    } catch { return null; }
+  }, []);
+
   // Generate line numbers
   const generateLineNumbers = useCallback(() => {
     if (!lineNumbersRef.current || !activeArtifact?.code) return;
-    
-    const lines = activeArtifact.code.split('\n').length;
+    const sd = highlightSmartDiff(activeArtifact);
+    const lines = sd ? sd.lineCount : activeArtifact.code.split('\n').length;
     const html = Array.from({ length: lines }, (_, i) => `<div>${i + 1}</div>`).join('');
     lineNumbersRef.current.innerHTML = html;
-  }, [activeArtifact]);
-  
+  }, [activeArtifact, highlightSmartDiff]);
+
   // Highlight code with Prism
   const highlightCode = useCallback(() => {
     if (codeRef.current && isPrismAvailable() && activeArtifact?.code) {
-      const grammar = window.Prism.languages[normalizedLanguage];
-      if (grammar) {
-        codeRef.current.innerHTML = window.Prism.highlight(
-          activeArtifact.code,
-          grammar,
-          normalizedLanguage
-        );
+      const sd = highlightSmartDiff(activeArtifact);
+      if (sd) {
+        codeRef.current.innerHTML = sd.html;
       } else {
-        // Fallback: set as text if no grammar available
-        codeRef.current.textContent = activeArtifact.code;
+        const grammar = window.Prism.languages[normalizedLanguage];
+        if (grammar) {
+          codeRef.current.innerHTML = window.Prism.highlight(
+            activeArtifact.code,
+            grammar,
+            normalizedLanguage
+          );
+        } else {
+          codeRef.current.textContent = activeArtifact.code;
+        }
       }
       codeRef.current.dataset.highlighted = 'true';
 
@@ -171,7 +198,7 @@ export default function ArtifactusePanel({
         syncPrismBackground();
       }, 0);
     }
-  }, [activeArtifact?.code, normalizedLanguage]);
+  }, [activeArtifact?.code, normalizedLanguage, highlightSmartDiff]);
   
   // Sync Prism theme background to code containers
   const syncPrismBackground = useCallback(() => {

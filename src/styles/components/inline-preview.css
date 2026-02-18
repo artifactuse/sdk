@@ -49,3 +49,21 @@
   background: rgba(99, 102, 241, 0.25);
   color: #818cf8;
 }
+
+/* Smartdiff: deleted/inserted line backgrounds */
+.artifactuse-inline-preview .token.deleted {
+  background: #503535;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.artifactuse-inline-preview .token.inserted {
+  background: #303e11;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.artifactuse-inline-preview [data-smartdiff-processed] {
+    display: inline-table;
+    width: 100%;
+}

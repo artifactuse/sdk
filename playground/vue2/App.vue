@@ -84,7 +84,7 @@ export default {
       },
       inlinePreview: {
         maxLines: 12,
-        languages: ['diff', 'html', 'javascript', 'jsx', 'python', 'vue'],
+        languages: ['smartdiff', 'html', 'javascript', 'jsx', 'python', 'vue','txt','php'],
       },
       // panels: {
       //   // Add new panel type

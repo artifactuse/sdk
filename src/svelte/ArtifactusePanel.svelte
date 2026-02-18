@@ -2,7 +2,7 @@
   import { onMount, onDestroy, createEventDispatcher, tick } from 'svelte';
   import { fade } from 'svelte/transition';
   import { getArtifactuseContext } from './index.js';
-  import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes } from '../core/detector.js';
+  import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
   import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
   import JSZip from 'jszip';
   
@@ -191,28 +191,55 @@
     instance.state.clearActiveArtifact();
   }
   
+  // Smartdiff: per-line language-aware highlighting
+  function highlightSmartDiff(art) {
+    if (art.language !== 'smartdiff') return null;
+    try {
+      const data = JSON.parse(art.code);
+      if (data.oldCode === undefined || data.newCode === undefined) return null;
+      const lang = data.language || 'plaintext';
+      const grammar = isPrismAvailable() && window.Prism.languages[lang];
+      const diffLines = computeSimpleDiff(data.oldCode, data.newCode).split('\n');
+
+      const highlighted = diffLines.map(line => {
+        const prefix = line[0];
+        const content = line.slice(1);
+        const hl = grammar ? window.Prism.highlight(content, grammar, lang) : content;
+        if (prefix === '-') return `<span class="token deleted">${hl}</span>`;
+        if (prefix === '+') return `<span class="token inserted">${hl}</span>`;
+        return hl;
+      }).join('\n');
+
+      return { html: highlighted, lineCount: diffLines.length };
+    } catch { return null; }
+  }
+
   // Generate line numbers
   function generateLineNumbers() {
     if (!lineNumbersRef || !artifact?.code) return;
-    
-    const lines = artifact.code.split('\n').length;
+    const sd = highlightSmartDiff(artifact);
+    const lines = sd ? sd.lineCount : artifact.code.split('\n').length;
     const html = Array.from({ length: lines }, (_, i) => `<div>${i + 1}</div>`).join('');
     lineNumbersRef.innerHTML = html;
   }
-  
+
   // Highlight code with Prism
   function highlightCode() {
     if (codeRef && isPrismAvailable() && artifact?.code) {
-      const grammar = window.Prism.languages[normalizedLanguage];
-      if (grammar) {
-        codeRef.innerHTML = window.Prism.highlight(
-          artifact.code,
-          grammar,
-          normalizedLanguage
-        );
+      const sd = highlightSmartDiff(artifact);
+      if (sd) {
+        codeRef.innerHTML = sd.html;
       } else {
-        // Fallback: set as text if no grammar available
-        codeRef.textContent = artifact.code;
+        const grammar = window.Prism.languages[normalizedLanguage];
+        if (grammar) {
+          codeRef.innerHTML = window.Prism.highlight(
+            artifact.code,
+            grammar,
+            normalizedLanguage
+          );
+        } else {
+          codeRef.textContent = artifact.code;
+        }
       }
       codeRef.dataset.highlighted = 'true';
 

@@ -145,7 +145,8 @@ artifactuse/
 │       │   ├── toggle.css      # ArtifactusePanelToggle
 │       │   ├── viewer.css      # ArtifactuseViewer
 │       │   ├── form.css        # ArtifactuseInlineForm
-│       │   └── social.css      # ArtifactuseSocialPreview
+│       │   ├── social.css      # ArtifactuseSocialPreview
+│       │   └── inline-preview.css  # Inline code preview
 │       │
 │       ├── processors/         # Processor-specific styles
 │       │   ├── image.css       # Image containers, galleries

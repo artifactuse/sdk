@@ -31,7 +31,7 @@ export const SOCIAL_PLATFORMS = [
 export const PREVIEWABLE_LANGUAGES = [
   // Code languages
   'html', 'htm', 'svg', 'markdown', 'md', 'jsx', 'vue',
-  'diff', 'patch', 'json',
+  'diff', 'patch', 'smartdiff', 'json',
   'javascript', 'js', 'python', 'py',
   // Visual editors
   'canvas', 'whiteboard', 'drawing',
@@ -48,7 +48,7 @@ export const PANEL_LANGUAGES = [
   'video', 'videoeditor', 'timeline',
   'canvas', 'whiteboard', 'drawing',
   // Code (panel for preview)
-  'json', 'svg', 'diff', 'patch',
+  'json', 'svg', 'diff', 'patch', 'smartdiff',
   'javascript', 'js', 'python', 'py',
   'jsx', 'vue', 'html', 'htm',
   // Structured artifacts (form can be panel based on complexity)
@@ -132,6 +132,7 @@ export function getLanguageDisplayName(language) {
     docker: 'Docker',
     diff: 'Diff',
     patch: 'Patch',
+    smartdiff: 'Smart Diff',
     // Visual editors
     canvas: 'Canvas',
     video: 'Video Editor',
@@ -256,6 +257,7 @@ export function getLanguageIcon(language) {
     sql: '<path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2M6 17v-2.7c1.56.84 3.67 1.36 6 1.36s4.44-.52 6-1.36V17c0 .5-2.13 2-6 2s-6-1.5-6-2m0-5v-2.7c1.56.84 3.67 1.36 6 1.36s4.44-.52 6-1.36V12c0 .5-2.13 2-6 2s-6-1.5-6-2z"/>',
     diff: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>',
     patch: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>',
+    smartdiff: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>',
     canvas: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
     whiteboard: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
     drawing: '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/>',
@@ -359,6 +361,16 @@ export function decodeJsonFromAttribute(encoded) {
 export function extractArtifactTitle(code, language) {
   const langLower = language?.toLowerCase();
   
+  // For smartdiff, extract language from JSON
+  if (langLower === 'smartdiff') {
+    try {
+      const json = JSON.parse(code);
+      return json.language ? `${getLanguageDisplayName(json.language)} Diff` : 'Smart Diff';
+    } catch {
+      return 'Smart Diff';
+    }
+  }
+
   // For form/social, try to extract title from JSON
   if (langLower === 'form' || langLower === 'social') {
     try {
@@ -427,7 +439,7 @@ export function extractArtifactTitle(code, language) {
  * Compute a simple line-by-line diff for inline preview display
  * Produces +/- prefixed lines that Prism highlights with language-diff
  */
-function computeSimpleDiff(oldCode, newCode) {
+export function computeSimpleDiff(oldCode, newCode) {
   const oldLines = (oldCode || '').split('\n');
   const newLines = (newCode || '').split('\n');
   const result = [];
@@ -451,23 +463,34 @@ function computeSimpleDiff(oldCode, newCode) {
  */
 function createInlinePreview(artifact, code, langLower, inlinePreview) {
   const maxLines = inlinePreview.maxLines || 15;
-  let previewCode, previewLang;
 
-  if (langLower === 'diff' || langLower === 'patch') {
-    // Diff artifacts store JSON {oldCode, newCode, language}.
-    // Compute a human-readable unified diff for the inline preview.
+  // Smartdiff: parse JSON, compute diff, use actual language for highlighting
+  if (langLower === 'smartdiff') {
     try {
       const diffData = JSON.parse(code);
-      previewCode = computeSimpleDiff(diffData.oldCode, diffData.newCode);
-      previewLang = 'diff';
+      const diffText = computeSimpleDiff(diffData.oldCode, diffData.newCode);
+      const allDiffLines = diffText.split('\n');
+      const truncDiffLines = allDiffLines.slice(0, maxLines);
+
+      // Separate markers (+/-/space) from code content
+      const markers = truncDiffLines.map(l => l[0] || ' ');
+      const codeLines = truncDiffLines.map(l => l.slice(1));
+      const encoded = encodeHtml(codeLines.join('\n'));
+      const isTruncated = allDiffLines.length > maxLines;
+      const actualLang = diffData.language || 'plaintext';
+
+      return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}" data-artifact-id="${artifact.id}" data-smartdiff="true" data-smartdiff-markers="${markers.join(',')}">`
+        + `<pre class="artifactuse-inline-preview__pre"><code class="language-${actualLang}">${encoded}</code></pre>`
+        + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">View full diff (${allDiffLines.length} lines)</span></div>` : '')
+        + `</div>`;
     } catch {
-      previewCode = code;
-      previewLang = langLower;
+      // Fallback: show raw content as JSON
     }
-  } else {
-    previewCode = code;
-    previewLang = langLower;
   }
+
+  // Standard code blocks (and diff/patch)
+  let previewCode = code;
+  let previewLang = langLower;
 
   const lines = previewCode.split('\n');
   const truncated = lines.slice(0, maxLines).join('\n');
@@ -674,7 +697,7 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
     
     if (extractAll) {
       shouldExtract = true;
-    } else if (langLower === 'diff' || langLower === 'patch') {
+    } else if (langLower === 'diff' || langLower === 'patch' || langLower === 'smartdiff') {
       shouldExtract = lineCount > 10;
     } else if (isPreviewableLang) {
       shouldExtract = true;
