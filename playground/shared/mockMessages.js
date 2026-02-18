@@ -2791,6 +2791,70 @@ Compare with the \`config-override-demo\` message which restricts to code-only.
 
 Click the artifact — it should open in split view with all tabs visible, including Edit.`
   },
+
+  // ============================================================
+  // MARKDOWN TEST (html-panel with marked)
+  // ============================================================
+  {
+    id: 'markdown-test',
+    content: `Here's a markdown document to preview in the panel:
+
+\`\`\`markdown
+# Project Status Report
+
+## Overview
+
+This document tests **all GFM markdown features** rendered by the html-panel using \`marked\`.
+
+## Task List
+
+- [x] Replace custom regex parser with marked
+- [x] Add GFM support (tables, strikethrough, task lists)
+- [ ] Add syntax highlighting for code blocks
+- [ ] Add dark mode support
+
+## Feature Comparison
+
+| Feature | Old Parser | Marked |
+|---------|-----------|--------|
+| Tables | No | Yes |
+| Nested Lists | No | Yes |
+| Task Lists | No | Yes |
+| Strikethrough | No | Yes |
+| Ordered Lists | Broken | Yes |
+| GFM Spec | No | Yes |
+
+## Nested Lists
+
+1. First item
+   - Sub-item A
+   - Sub-item B
+     - Deep nested
+     - Another deep item
+2. Second item
+   1. Ordered sub-item
+   2. Another ordered sub-item
+3. Third item
+
+## Text Formatting
+
+This has **bold**, *italic*, ***bold italic***, ~~strikethrough~~, and \`inline code\`.
+
+> This is a blockquote with **bold** text inside.
+>
+> It can span multiple lines.
+
+## Links
+
+Visit [GitHub](https://github.com) for more info.
+
+---
+
+*Last updated: 2025-01-15*
+\`\`\`
+
+Click the artifact to open it in the panel — you should see proper tables, task checkboxes, nested lists, and strikethrough rendering.`
+  },
 ];
 
 export default messages;
