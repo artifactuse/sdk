@@ -19,6 +19,7 @@
 @import './components/viewer.css';
 @import './components/form.css';
 @import './components/social.css';
+@import './components/inline-preview.css';
 
 /* ============================================================
    PROCESSORS

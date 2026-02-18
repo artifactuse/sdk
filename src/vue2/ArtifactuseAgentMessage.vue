@@ -1,6 +1,6 @@
 <template>
   <div class="artifactuse-agent-message" ref="messageRef">
-    <div class="artifactuse-message-content" ref="contentRef">
+    <div class="artifactuse-message-content" ref="contentRef" @click="handleContentClick">
       <template v-for="(segment, index) in contentSegments">
         <!-- Regular HTML content -->
         <div v-if="segment.type === 'html'" :key="'html-' + index" v-html="segment.content"></div>
@@ -507,6 +507,19 @@ export default {
       removeMediaListeners();
     });
 
+    function handleContentClick(e) {
+      const preview = e.target.closest('.artifactuse-inline-preview');
+      if (preview) {
+        const artifactId = preview.dataset.artifactId;
+        if (artifactId) {
+          const artifact = state.artifacts.find(a => a.id === artifactId);
+          if (artifact) {
+            handleOpenArtifact(artifact);
+          }
+        }
+      }
+    }
+
     function handleOpenArtifact(artifact) {
       openArtifact(artifact);
       emit('artifact-open', artifact);
@@ -557,6 +570,7 @@ export default {
       openViewer,
       closeViewer,
       attachMediaListeners,
+      handleContentClick,
       handleOpenArtifact,
       handleArtifactCopy,
       handleArtifactDownload,

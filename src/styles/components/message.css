@@ -64,7 +64,7 @@
   border-radius: 4px;
 }
 
-.artifactuse-message-content pre {
+.artifactuse-message-content pre:not(.artifactuse-inline-preview__pre) {
   margin: 1em 0;
   padding: 1em;
   background: rgb(var(--artifactuse-surface));

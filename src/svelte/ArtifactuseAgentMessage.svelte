@@ -409,6 +409,19 @@
   }
   
   // Event handlers
+  function handleContentClick(e) {
+    const preview = e.target.closest('.artifactuse-inline-preview');
+    if (preview) {
+      const artifactId = preview.dataset.artifactId;
+      if (artifactId) {
+        const artifact = instance?.state?.getArtifact(artifactId);
+        if (artifact) {
+          handleOpenArtifact(artifact);
+        }
+      }
+    }
+  }
+
   function handleOpenArtifact(artifact) {
     openArtifact(artifact);
     dispatch('artifact-open', artifact);
@@ -460,7 +473,7 @@
 </script>
 
 <div class="artifactuse-agent-message" bind:this={messageRef}>
-  <div class="artifactuse-message-content" bind:this={contentRef}>
+  <div class="artifactuse-message-content" bind:this={contentRef} on:click={handleContentClick}>
     {#each contentSegments as segment, index (segment.type === 'html' ? `html-${index}` : `${segment.type}-${segment.artifact?.id}`)}
       {#if segment.type === 'html'}
         <div>{@html segment.content}</div>

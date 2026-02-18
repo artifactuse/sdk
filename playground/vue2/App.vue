@@ -82,6 +82,10 @@ export default {
         },
         theme: 'dark',
       },
+      inlinePreview: {
+        maxLines: 10,
+        languages: ['diff', 'html', 'javascript', 'jsx', 'python', 'vue'],
+      },
       // panels: {
       //   // Add new panel type
       //   'form': 'http://localhost:5181/',
@@ -567,4 +571,20 @@ html, body {
 .test-panel__toggle:hover {
   background: #f5f5f5;
 }
+
+.token.deleted {
+    color: #e2777a;
+    background: #503535;
+    display: -webkit-box;
+    white-space: pre-wrap;
+}
+
+.token.inserted {
+    color: green;
+    background: #303e11;
+    display: -webkit-box;
+    white-space: pre-wrap;
+}
+
+
 </style>

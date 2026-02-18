@@ -1,0 +1,51 @@
+/* artifactuse/styles/components/inline-preview.css
+ * Inline preview for extracted code blocks
+ * Shows truncated code with click-to-open-panel behavior
+ */
+
+.artifactuse-inline-preview {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1em 0;
+  transition: box-shadow 0.2s;
+}
+
+.artifactuse-inline-preview:hover {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+.artifactuse-inline-preview pre {
+  margin: 0 !important;
+}
+
+.artifactuse-inline-preview__fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: linear-gradient(transparent, var(--artifactuse-code-bg, #2d2d2d));
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+  pointer-events: none;
+}
+
+.artifactuse-inline-preview__action {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: system-ui, sans-serif;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.15s;
+}
+
+.artifactuse-inline-preview:hover .artifactuse-inline-preview__action {
+  background: rgba(99, 102, 241, 0.25);
+  color: #818cf8;
+}

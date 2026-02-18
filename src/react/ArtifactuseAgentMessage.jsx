@@ -463,6 +463,22 @@ export default function ArtifactuseAgentMessage({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Event handlers
+  const handleContentClick = useCallback((e) => {
+    const preview = e.target.closest('.artifactuse-inline-preview');
+    if (preview) {
+      const artifactId = preview.dataset.artifactId;
+      if (artifactId) {
+        const artifact = state.artifacts.find(a => a.id === artifactId);
+        if (artifact) {
+          openArtifact(artifact);
+          if (onArtifactOpen) {
+            onArtifactOpen(artifact);
+          }
+        }
+      }
+    }
+  }, [state, openArtifact, onArtifactOpen]);
+
   const handleOpenArtifact = useCallback((artifact) => {
     openArtifact(artifact);
     if (onArtifactOpen) {
@@ -568,7 +584,7 @@ export default function ArtifactuseAgentMessage({
       ref={messageRef}
       className={`artifactuse-agent-message ${className}`.trim()}
     >
-      <div ref={contentRef} className="artifactuse-message-content">
+      <div ref={contentRef} className="artifactuse-message-content" onClick={handleContentClick}>
         {contentSegments.map(renderSegment)}
       </div>
       

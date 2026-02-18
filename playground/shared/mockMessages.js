@@ -2485,6 +2485,24 @@ Quick feedback form:
 \`\`\`
 `
   },
+
+  // ============================================================
+  // DIFF DEMO
+  // ============================================================
+  {
+    id: 'diff-code-refactor',
+    content: `Here's a diff showing the refactored authentication middleware:
+
+\`\`\`diff
+{
+  "language": "javascript",
+  "oldCode": "function authenticate(req, res, next) {\\n  const token = req.headers.authorization;\\n  if (!token) {\\n    res.status(401).json({ error: 'No token' });\\n    return;\\n  }\\n  try {\\n    const decoded = jwt.verify(token, SECRET);\\n    req.user = decoded;\\n    next();\\n  } catch (err) {\\n    res.status(401).json({ error: 'Invalid token' });\\n  }\\n}",
+  "newCode": "async function authenticate(req, res, next) {\\n  const token = req.headers.authorization?.replace('Bearer ', '');\\n  if (!token) {\\n    return res.status(401).json({ error: 'Missing authentication token' });\\n  }\\n  try {\\n    const decoded = await jwt.verify(token, process.env.JWT_SECRET);\\n    const user = await User.findById(decoded.sub);\\n    if (!user || user.disabled) {\\n      return res.status(401).json({ error: 'User not found or disabled' });\\n    }\\n    req.user = user;\\n    req.token = token;\\n    next();\\n  } catch (err) {\\n    const message = err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token';\\n    res.status(401).json({ error: message });\\n  }\\n}"
+}
+\`\`\`
+
+The refactored version adds Bearer prefix stripping, async/await, user lookup with disabled check, and specific error messages for expired tokens.`
+  },
 ];
 
 export default messages;

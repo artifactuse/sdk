@@ -564,7 +564,10 @@ export function createArtifactuse(userConfig = {}) {
     
     // Extract all code block artifacts (code, form, social)
     if (config.processors.codeBlocks) {
-      const result = extractCodeBlockArtifacts(html, messageId, config.codeExtraction);
+      const result = extractCodeBlockArtifacts(html, messageId, {
+        ...config.codeExtraction,
+        inlinePreview: config.inlinePreview || null,
+      });
       html = result.html;
       artifacts.push(...result.artifacts);
     }

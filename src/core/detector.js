@@ -424,6 +424,64 @@ export function extractArtifactTitle(code, language) {
 }
 
 /**
+ * Compute a simple line-by-line diff for inline preview display
+ * Produces +/- prefixed lines that Prism highlights with language-diff
+ */
+function computeSimpleDiff(oldCode, newCode) {
+  const oldLines = (oldCode || '').split('\n');
+  const newLines = (newCode || '').split('\n');
+  const result = [];
+  const max = Math.max(oldLines.length, newLines.length);
+  for (let i = 0; i < max; i++) {
+    const oldLine = i < oldLines.length ? oldLines[i] : undefined;
+    const newLine = i < newLines.length ? newLines[i] : undefined;
+    if (oldLine === newLine) {
+      result.push(' ' + oldLine);
+    } else {
+      if (oldLine !== undefined) result.push('-' + oldLine);
+      if (newLine !== undefined) result.push('+' + newLine);
+    }
+  }
+  return result.join('\n');
+}
+
+/**
+ * Create inline preview HTML for an artifact
+ * Shows truncated code with fade overlay for long content
+ */
+function createInlinePreview(artifact, code, langLower, inlinePreview) {
+  const maxLines = inlinePreview.maxLines || 15;
+  let previewCode, previewLang;
+
+  if (langLower === 'diff' || langLower === 'patch') {
+    // Diff artifacts store JSON {oldCode, newCode, language}.
+    // Compute a human-readable unified diff for the inline preview.
+    try {
+      const diffData = JSON.parse(code);
+      previewCode = computeSimpleDiff(diffData.oldCode, diffData.newCode);
+      previewLang = 'diff';
+    } catch {
+      previewCode = code;
+      previewLang = langLower;
+    }
+  } else {
+    previewCode = code;
+    previewLang = langLower;
+  }
+
+  const lines = previewCode.split('\n');
+  const truncated = lines.slice(0, maxLines).join('\n');
+  const encoded = encodeHtml(truncated);
+  const isTruncated = lines.length > maxLines;
+  const label = langLower === 'diff' || langLower === 'patch' ? 'diff' : 'code';
+
+  return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}" data-artifact-id="${artifact.id}">`
+    + `<pre class="artifactuse-inline-preview__pre"><code class="language-${previewLang}">${encoded}</code></pre>`
+    + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">View full ${label} (${lines.length} lines)</span></div>` : '')
+    + `</div>`;
+}
+
+/**
  * Create artifact placeholder HTML
  */
 function createArtifactPlaceholder(artifact, placeholderType = 'panel') {
@@ -582,7 +640,15 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
     minLines = 3,
     minLength = 50,
     extractAll = false,
+    inlinePreview = null,
   } = options;
+
+  function shouldShowPreview(lang) {
+    if (!inlinePreview) return false;
+    if (inlinePreview.languages === true) return true;
+    if (Array.isArray(inlinePreview.languages)) return inlinePreview.languages.includes(lang);
+    return false;
+  }
   
   const artifacts = [];
   const codeBlockRegex = /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/gi;
@@ -615,18 +681,28 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
     } else {
       shouldExtract = code.length >= minLength && lineCount >= minLines;
     }
-    
+
+    // Force extraction when inline preview is configured for this language
+    if (!shouldExtract && shouldShowPreview(langLower)) {
+      shouldExtract = true;
+    }
+
     if (shouldExtract) {
       const artifact = createArtifact(code, langLower, messageId, blockIndex);
       blockIndex++;
       artifacts.push(artifact);
-      
+
+      // Inline preview mode: show truncated code instead of card
+      if (shouldShowPreview(langLower)) {
+        return createInlinePreview(artifact, code, langLower, inlinePreview);
+      }
+
       // Determine placeholder type based on artifact
       let placeholderType = 'panel';
       if (artifact.isInline) {
         placeholderType = artifact.type === 'social' ? 'inline-social' : 'inline-form';
       }
-      
+
       return createArtifactPlaceholder(artifact, placeholderType);
     }
     
