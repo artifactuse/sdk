@@ -84,7 +84,8 @@ export default {
       },
       inlinePreview: {
         maxLines: 12,
-        languages: ['smartdiff', 'html', 'javascript', 'jsx', 'python', 'vue', 'txt', 'php', 'markdown'],
+        languages: true,
+        excludeLanguages: ['typescript', 'go'],
         minClickableLines: {
           lines: 10,
           ignoreLanguages: ['html', 'markdown', 'jsx', 'vue', 'smartdiff'],

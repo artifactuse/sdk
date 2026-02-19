@@ -441,7 +441,8 @@ By default, extracted code blocks render as compact artifact cards. With `inline
 provideArtifactuse({
   inlinePreview: {
     maxLines: 15,
-    languages: ['smartdiff', 'html', 'javascript'],
+    languages: true,                              // all languages, or ['html', 'javascript', ...]
+    excludeLanguages: ['typescript', 'go'],        // exclude from preview when languages: true
     minClickableLines: {
       lines: 10,                              // code < 10 lines is non-clickable
       ignoreLanguages: ['html', 'markdown'],   // always clickable (panel renders preview)
@@ -641,7 +642,8 @@ provideArtifactuse({
   // Default: null (disabled — all extracted code shows as cards)
   inlinePreview: {
     maxLines: 15,                                        // max lines before truncation
-    languages: ['smartdiff', 'html', 'javascript', 'jsx'], // or true for all extracted languages
+    languages: true,                                        // or ['smartdiff', 'html', 'javascript', 'jsx']
+    excludeLanguages: ['typescript', 'go'],                  // exclude from preview when languages: true
     minClickableLines: {                                 // disable clicking for short code (optional)
       lines: 10,                                         // code < N lines is non-clickable
       ignoreLanguages: ['html', 'markdown'],             // always clickable (panel renders preview)

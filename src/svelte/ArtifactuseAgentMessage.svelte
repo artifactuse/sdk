@@ -1,5 +1,5 @@
 <script>
-  import { onMount, onDestroy, afterUpdate } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getArtifactuseContext } from './index.js';
   import ArtifactuseCard from './ArtifactuseCard.svelte';
   import ArtifactuseInlineForm from './ArtifactuseInlineForm.svelte';
@@ -483,7 +483,8 @@
 </script>
 
 <div class="artifactuse-agent-message" bind:this={messageRef}>
-  <div class="artifactuse-message-content" bind:this={contentRef} on:click={handleContentClick}>
+  <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+  <div class="artifactuse-message-content" bind:this={contentRef} on:click={handleContentClick} on:keydown={handleContentClick} role="presentation">
     {#each contentSegments as segment, index (segment.type === 'html' ? `html-${index}` : `${segment.type}-${segment.artifact?.id}`)}
       {#if segment.type === 'html'}
         <div>{@html segment.content}</div>

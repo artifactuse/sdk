@@ -705,7 +705,12 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
 
   function shouldShowPreview(lang) {
     if (!inlinePreview) return false;
-    if (inlinePreview.languages === true) return true;
+    if (inlinePreview.languages === true) {
+      if (Array.isArray(inlinePreview.excludeLanguages) && inlinePreview.excludeLanguages.includes(lang)) {
+        return false;
+      }
+      return true;
+    }
     if (Array.isArray(inlinePreview.languages)) return inlinePreview.languages.includes(lang);
     return false;
   }

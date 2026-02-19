@@ -2969,6 +2969,70 @@ class EventEmitter {
 - Long JS: truncated, shows "View full code (N lines)" — the \`default\` actionLabel
 - Long HTML: truncated, shows "Open preview (N lines)" — the \`html\` actionLabel`
   },
+  {
+    id: 'exclude-languages-demo',
+    content: `### Demo: \`excludeLanguages\`
+
+Global config: \`languages: true, excludeLanguages: ['typescript', 'go']\`
+
+**JavaScript → inline preview** (not excluded):
+
+\`\`\`javascript
+function fibonacci(n) {
+  const memo = new Map();
+  function fib(n) {
+    if (n <= 1) return n;
+    if (memo.has(n)) return memo.get(n);
+    const result = fib(n - 1) + fib(n - 2);
+    memo.set(n, result);
+    return result;
+  }
+  return fib(n);
+}
+console.log(fibonacci(50));
+\`\`\`
+
+**TypeScript → artifact card** (excluded):
+
+\`\`\`typescript
+interface Config {
+  maxLines: number;
+  languages: string[] | true;
+  excludeLanguages?: string[];
+}
+
+function createConfig(overrides: Partial<Config>): Config {
+  return {
+    maxLines: 15,
+    languages: true,
+    ...overrides,
+  };
+}
+\`\`\`
+
+**Go → artifact card** (excluded):
+
+\`\`\`go
+package main
+
+import "fmt"
+
+func main() {
+    ch := make(chan int)
+    go func() {
+        for i := 0; i < 5; i++ {
+            ch <- i
+        }
+        close(ch)
+    }()
+    for v := range ch {
+        fmt.Println(v)
+    }
+}
+\`\`\`
+
+Notice: JavaScript gets an inline preview (truncated, clickable). TypeScript and Go render as artifact cards because they're in \`excludeLanguages\`.`
+  },
 ];
 
 export default messages;
