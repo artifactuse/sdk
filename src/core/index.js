@@ -166,6 +166,8 @@ const DEFAULT_PANELS = {
   
   // Data/config formats
   json: 'json-panel',
+  csv: 'sheet-panel',
+  tsv: 'sheet-panel',
   
   // Graphics
   svg: 'svg-panel',
@@ -958,7 +960,13 @@ export function createArtifactuse(userConfig = {}) {
   bridge.on('form:cancel', (data) => emit('form:cancel', data));
   bridge.on('form:step', (data) => emit('form:step', data));
   bridge.on('social:copy', (data) => emit('social:copy', data));
-  
+  bridge.on('edit:save', (data) => {
+    if (data?.artifactId && data?.code !== undefined) {
+      updateFile(data.artifactId, data.code);
+    }
+    emit('edit:save', data);
+  });
+
   /**
    * Apply theme to document
    */

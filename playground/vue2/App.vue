@@ -85,7 +85,7 @@ export default {
       inlinePreview: {
         maxLines: 12,
         languages: true,
-        excludeLanguages: ['typescript', 'go'],
+        excludeLanguages: ['typescript', 'go','canvas','video','svg','form','social'],
         minClickableLines: {
           lines: 10,
           ignoreLanguages: ['html', 'markdown', 'jsx', 'vue', 'smartdiff'],
@@ -302,7 +302,7 @@ export default {
     // Listen for edit:save events
     artifactuse.on('edit:save', (data) => {
       console.log('[edit:save]', data)
-      alert('Code saved! Check console for data.')
+      //alert('Code saved! Check console for data.')
     })
 
     return {

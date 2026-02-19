@@ -31,7 +31,7 @@ export const SOCIAL_PLATFORMS = [
 export const PREVIEWABLE_LANGUAGES = [
   // Code languages
   'html', 'htm', 'svg', 'markdown', 'md', 'jsx', 'vue',
-  'diff', 'patch', 'smartdiff', 'json',
+  'diff', 'patch', 'smartdiff', 'json', 'csv', 'tsv',
   'javascript', 'js', 'python', 'py',
   // Visual editors
   'canvas', 'whiteboard', 'drawing',
@@ -48,7 +48,7 @@ export const PANEL_LANGUAGES = [
   'video', 'videoeditor', 'timeline',
   'canvas', 'whiteboard', 'drawing',
   // Code (panel for preview)
-  'json', 'svg', 'diff', 'patch', 'smartdiff',
+  'json', 'csv', 'tsv', 'svg', 'diff', 'patch', 'smartdiff',
   'javascript', 'js', 'python', 'py',
   'jsx', 'vue', 'html', 'htm',
   // Structured artifacts (form can be panel based on complexity)
@@ -121,6 +121,8 @@ export function getLanguageDisplayName(language) {
     powershell: 'PowerShell',
     ps1: 'PowerShell',
     json: 'JSON',
+    csv: 'CSV',
+    tsv: 'TSV',
     xml: 'XML',
     yaml: 'YAML',
     yml: 'YAML',
@@ -183,6 +185,8 @@ export function getFileExtension(language) {
     shell: 'sh',
     sh: 'sh',
     json: 'json',
+    csv: 'csv',
+    tsv: 'tsv',
     xml: 'xml',
     yaml: 'yml',
     yml: 'yml',
@@ -220,6 +224,8 @@ export function getLanguageFromExtension(ext) {
     sql: 'sql',
     sh: 'bash',
     json: 'json',
+    csv: 'csv',
+    tsv: 'tsv',
     xml: 'xml',
     yaml: 'yaml', yml: 'yaml',
     md: 'markdown',
@@ -248,6 +254,8 @@ export function getLanguageIcon(language) {
     jsx: '<circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(120 12 12)"/>',
     tsx: '<circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" stroke-width="1" transform="rotate(120 12 12)"/>',
     json: '<path d="M5 3h2v2H5v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5h2v2H5c-1.07-.27-2-.9-2-2v-4a2 2 0 0 0-2-2H0v-2h1a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2m14 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3h2m-7 12a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-4 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m8 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1z"/>',
+    csv: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+    tsv: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
     markdown: '<path d="M2 4h20v16H2V4m2 2v12h16V6H4m2 2h3l1.5 3 1.5-3h3v8h-2v-5l-2.5 4-2.5-4v5H6V8m11 0h2v4h2l-3 4-3-4h2V8z"/>',
     md: '<path d="M2 4h20v16H2V4m2 2v12h16V6H4m2 2h3l1.5 3 1.5-3h3v8h-2v-5l-2.5 4-2.5-4v5H6V8m11 0h2v4h2l-3 4-3-4h2V8z"/>',
     svg: '<path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m0 2v14h14V5H5m3 4a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2m8 0l3 8h-2l-.5-1.5h-3L13 17h-2l3-8h2m-.5 2.5l-1 3h2l-1-3z"/>',

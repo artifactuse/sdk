@@ -3033,6 +3033,36 @@ func main() {
 
 Notice: JavaScript gets an inline preview (truncated, clickable). TypeScript and Go render as artifact cards because they're in \`excludeLanguages\`.`
   },
+  {
+    id: 'csv-sheet-demo',
+    content: `Here's a CSV dataset for the sheet panel:
+
+\`\`\`csv
+Name,Department,Salary,Start Date,City,Rating
+Alice Johnson,Engineering,125000,2021-03-15,San Francisco,4.8
+Bob Smith,Marketing,95000,2020-07-01,New York,4.2
+Carol Williams,Engineering,132000,2019-11-20,Seattle,4.9
+David Brown,Sales,88000,2022-01-10,Chicago,3.8
+Eva Martinez,Design,105000,2021-06-25,Austin,4.5
+Frank Lee,Engineering,140000,2018-09-12,San Francisco,4.7
+Grace Kim,Marketing,92000,2023-02-28,New York,4.1
+Henry Davis,Sales,91000,2020-04-18,Chicago,4.0
+Iris Patel,Design,108000,2021-08-30,Austin,4.6
+Jack Wilson,Engineering,128000,2019-05-22,Seattle,4.4
+Karen Thompson,Marketing,97000,2022-11-05,New York,3.9
+Leo Garcia,Sales,85000,2023-07-14,Chicago,4.3
+Mia Anderson,Design,112000,2020-12-01,Austin,4.7
+Noah Taylor,Engineering,135000,2018-03-27,San Francisco,4.8
+Olivia Moore,Marketing,99000,2021-09-08,New York,4.0
+Peter Jackson,Sales,93000,2022-05-19,Chicago,4.2
+Quinn White,Engineering,142000,2017-11-30,Seattle,4.9
+Rachel Harris,Design,110000,2023-01-15,Austin,4.4
+Sam Martin,Sales,87000,2022-08-22,Chicago,3.7
+Tina Robinson,Engineering,138000,2019-02-14,San Francisco,4.6
+\`\`\`
+
+Click the artifact to open it in the sheet panel — you'll get a full spreadsheet with sorting, search, editing, and CSV export.`
+  },
 ];
 
 export default messages;
