@@ -4,6 +4,8 @@
 
 Artifactuse is a lightweight SDK that transforms AI-generated content into rich, interactive artifacts. Support for code previews, video editors, canvas/whiteboards, forms, social media previews, and more.
 
+**[Live Demo](https://demo.artifactuse.com)**
+
 ## Features
 
 - 🎨 **Rich Content Detection** - Automatically detect and render code blocks, images, videos, maps, embeds, and more
