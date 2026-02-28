@@ -218,7 +218,15 @@ const DEFAULT_CONFIG = {
   // Show "Powered by Artifactuse" branding in panel footer
   // Set to false to hide (requires paid license)
   branding: true,
-  
+
+  // Initial panel width as percentage (25-75)
+  // Can be overridden per-component via props
+  panelWidth: 65,
+
+  // Initial split view position as percentage (20-80)
+  // Can be overridden per-component via props
+  splitPosition: 50,
+
   // Panel configuration
   // Users can add/override/disable panels here
   // 

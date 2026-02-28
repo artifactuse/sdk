@@ -18,6 +18,8 @@ export default function ArtifactusePanel({
   onSave,
   onExport,
   className = '',
+  panelWidth: panelWidthProp,
+  splitPosition: splitPositionProp,
 }) {
   const { 
     state, 
@@ -62,8 +64,12 @@ export default function ArtifactusePanel({
   const [updatedArtifactName, setUpdatedArtifactName] = useState('');
 
   // Panel/split resize state
-  const [panelWidth, setPanelWidth] = useState(65);
-  const [splitPosition, setSplitPosition] = useState(50);
+  const [panelWidth, setPanelWidth] = useState(
+    () => Math.min(Math.max(panelWidthProp ?? instance?.config?.panelWidth ?? 65, 25), 75)
+  );
+  const [splitPosition, setSplitPosition] = useState(
+    () => Math.min(Math.max(splitPositionProp ?? instance?.config?.splitPosition ?? 50, 20), 80)
+  );
   const panelResizeStateRef = useRef(null);
   const splitResizeStateRef = useRef(null);
 

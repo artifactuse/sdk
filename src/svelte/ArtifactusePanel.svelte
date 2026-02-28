@@ -9,7 +9,9 @@
   const dispatch = createEventDispatcher();
   
   export let className = '';
-  
+  export let initialPanelWidth = undefined;
+  export let initialSplitPosition = undefined;
+
   const { 
     state,
     activeArtifact, 
@@ -51,9 +53,9 @@
   let savedArtifactsLoading = false;
   let updatedArtifactName = '';
 
-  // Panel/split resize state
-  let panelWidth = 65;
-  let splitPosition = 50;
+  // Panel/split resize state — prop > global config > default
+  let panelWidth = Math.min(Math.max(initialPanelWidth ?? instance.config?.panelWidth ?? 65, 25), 75);
+  let splitPosition = Math.min(Math.max(initialSplitPosition ?? instance.config?.splitPosition ?? 50, 20), 80);
   let panelResizeState = null;
   let splitResizeState = null;
 

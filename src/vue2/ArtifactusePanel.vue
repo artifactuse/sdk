@@ -702,6 +702,14 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    panelWidth: {
+      type: Number,
+      default: undefined,
+    },
+    splitPosition: {
+      type: Number,
+      default: undefined,
+    },
   },
   
   setup(props, { emit }) {
@@ -746,9 +754,13 @@ export default defineComponent({
     const savedArtifactsLoading = ref(false);
     const updatedArtifactName = ref('');
 
-    // Panel/split resize state
-    const panelWidth = ref(65);
-    const splitPosition = ref(50);
+    // Panel/split resize state — prop > global config > default
+    const panelWidth = ref(
+      Math.min(Math.max(props.panelWidth ?? instance.config?.panelWidth ?? 65, 25), 75)
+    );
+    const splitPosition = ref(
+      Math.min(Math.max(props.splitPosition ?? instance.config?.splitPosition ?? 50, 20), 80)
+    );
     const panelResizeState = ref(null);
     const splitResizeState = ref(null);
 

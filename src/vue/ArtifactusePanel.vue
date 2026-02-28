@@ -742,6 +742,11 @@ import JSZip from 'jszip';
 // Emits
 const emit = defineEmits(['close', 'ai-request', 'save', 'export', 'resize']);
 
+const props = defineProps({
+  panelWidth: { type: Number, default: undefined },
+  splitPosition: { type: Number, default: undefined },
+});
+
 // Composable
 const { 
   state, 
@@ -790,9 +795,13 @@ let iframeLoadTimer = null;
 let editorInstance = null;
 const isEditorAvailable = computed(() => instance.editor?.isAvailable() || false);
 
-// Panel width (percentage)
-const panelWidth = ref(65);
-const splitPosition = ref(50);
+// Panel width (percentage) — prop > global config > default
+const panelWidth = ref(
+  Math.min(Math.max(props.panelWidth ?? instance.config?.panelWidth ?? 65, 25), 75)
+);
+const splitPosition = ref(
+  Math.min(Math.max(props.splitPosition ?? instance.config?.splitPosition ?? 50, 20), 80)
+);
 
 // Computed
 const languageDisplay = computed(() => {
