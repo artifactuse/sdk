@@ -48,6 +48,8 @@ export default {
       theme: 'light',
       cdnUrl: 'http://localhost:8787/',
       //cdnUrl: 'https://cdn.artifactuse.com/',
+      panelWidth: 50,
+      splitPosition: 60,
       sharing: {
         apiUrl: 'http://api.artifactuse.test',
         appUrl: 'http://app.artifactuse.test',
@@ -270,6 +272,10 @@ export default {
       'utils.py': 'from dataclasses import dataclass\nfrom typing import List, Optional\n\n@dataclass\nclass User:\n    name: str\n    email: str\n    age: Optional[int] = None\n\ndef filter_adults(users: List[User]) -> List[User]:\n    return [u for u in users if u.age and u.age >= 18]\n\nif __name__ == "__main__":\n    users = [User("Alice", "alice@test.com", 25)]\n    print(filter_adults(users))',
     }
 
+    // Layout props demo
+    const demoPanelWidth = ref(65)
+    const demoSplitPosition = ref(50)
+
     // inlineCards toggle demo
     const inlineCardsEnabled = ref(true)
     function toggleInlineCards() {
@@ -338,6 +344,8 @@ export default {
       getMessageOverrides,
       inlineCardsEnabled,
       toggleInlineCards,
+      demoPanelWidth,
+      demoSplitPosition,
     }
   },
 }
@@ -446,6 +454,18 @@ export default {
           </button>
         </div>
 
+        <div class="test-panel__field">
+          <label>Layout Props:</label>
+        </div>
+        <div class="test-panel__field">
+          <label>panelWidth: {{ demoPanelWidth }}%</label>
+          <input type="range" min="25" max="75" v-model.number="demoPanelWidth" style="width:100%" />
+        </div>
+        <div class="test-panel__field">
+          <label>splitPosition: {{ demoSplitPosition }}%</label>
+          <input type="range" min="20" max="80" v-model.number="demoSplitPosition" style="width:100%" />
+        </div>
+
         <div class="test-panel__status">
           Messages: {{ messages.length }} / {{ mockMessages.length }}
           <span v-if="isStreaming" class="streaming-indicator">Streaming...</span>
@@ -469,7 +489,7 @@ export default {
       />
       <ArtifactusePanelToggle v-if="artifactCount > 0" class="h-8 w-8 flex items-center justify-center cursor-pointer rounded-full disabled:opacity-65 disabled:cursor-default transition-all duration-200 hover:bg-gray-100 hover:text-gray-600" />
     </div>
-    <ArtifactusePanel />
+    <ArtifactusePanel :panel-width="demoPanelWidth" :split-position="demoSplitPosition" />
 
     <!-- Required: Portal target for fullscreen/mobile backdrop -->
     <portal-target name="artifactuse" />
@@ -505,7 +525,7 @@ html, body {
 .test-panel {
   position: fixed;
   top: 10px;
-  right: 10px;
+  left: 10px;
   width: 280px;
   background: #fff;
   border: 1px solid #ddd;

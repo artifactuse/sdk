@@ -1401,6 +1401,19 @@ export default defineComponent({
       }
     });
 
+    // Watch prop changes for panelWidth/splitPosition
+    watch(() => props.panelWidth, (val) => {
+      if (val !== undefined) {
+        panelWidth.value = Math.min(Math.max(val, 25), 75);
+      }
+    });
+
+    watch(() => props.splitPosition, (val) => {
+      if (val !== undefined) {
+        splitPosition.value = Math.min(Math.max(val, 20), 80);
+      }
+    });
+
     onMounted(() => {
       instance.on('ai:request', (data) => emit('ai-request', data));
       instance.on('save:request', (data) => emit('save', data));

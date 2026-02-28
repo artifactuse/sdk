@@ -59,6 +59,14 @@
   let panelResizeState = null;
   let splitResizeState = null;
 
+  // Sync prop changes
+  $: if (initialPanelWidth !== undefined) {
+    panelWidth = Math.min(Math.max(initialPanelWidth, 25), 75);
+  }
+  $: if (initialSplitPosition !== undefined) {
+    splitPosition = Math.min(Math.max(initialSplitPosition, 20), 80);
+  }
+
   // Timers
   let streamEndTimer = null;
   let iframeLoadTimer = null;

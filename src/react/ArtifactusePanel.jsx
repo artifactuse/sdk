@@ -73,6 +73,19 @@ export default function ArtifactusePanel({
   const panelResizeStateRef = useRef(null);
   const splitResizeStateRef = useRef(null);
 
+  // Sync prop changes
+  useEffect(() => {
+    if (panelWidthProp !== undefined) {
+      setPanelWidth(Math.min(Math.max(panelWidthProp, 25), 75));
+    }
+  }, [panelWidthProp]);
+
+  useEffect(() => {
+    if (splitPositionProp !== undefined) {
+      setSplitPosition(Math.min(Math.max(splitPositionProp, 20), 80));
+    }
+  }, [splitPositionProp]);
+
   // Timers
   const streamEndTimerRef = useRef(null);
   const iframeLoadTimerRef = useRef(null);
