@@ -280,7 +280,7 @@ export default {
     const inlineCardsEnabled = ref(true)
     function toggleInlineCards() {
       inlineCardsEnabled.value = !inlineCardsEnabled.value
-      artifactuse.config.inlineCards = inlineCardsEnabled.value
+      artifactuse.instance.config.inlineCards = inlineCardsEnabled.value
       // Force re-render by cycling messages
       const current = [...messages.value]
       messages.value = []
