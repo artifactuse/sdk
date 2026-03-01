@@ -757,6 +757,17 @@ export function createArtifactuse(userConfig = {}) {
     const ext = filename.split('.').pop();
     const language = options.language || getLanguageFromExtension(ext) || ext;
     const title = options.title || filename;
+
+    // Deduplicate: if an artifact with the same title already exists, update + focus it
+    const existing = state.getState().artifacts.find(a => a.title === title && !a.isInline);
+    if (existing) {
+      updateFile(existing.id, code, { ...options, title });
+      openArtifact(existing);
+      if (options.viewMode) state.setViewMode(options.viewMode);
+      else if (options.tabs) state.setViewMode(options.tabs[0]);
+      return state.getArtifact(existing.id);
+    }
+
     return openCode(code, language, { ...options, title });
   }
 
