@@ -135,11 +135,16 @@ export function createArtifactuseStores(config = {}) {
     registerPanel,
     unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
-    
+
+    // Multi-tab
+    closeTab: instance.closeTab,
+    closeOtherTabs: instance.closeOtherTabs,
+    closeAllTabs: instance.closeAllTabs,
+
     // Events
     on: instance.on,
     off: instance.off,
-    
+
     // State management
     clearArtifacts: () => instance.state.clear(),
 

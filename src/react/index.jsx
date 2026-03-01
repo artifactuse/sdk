@@ -63,6 +63,8 @@ export function ArtifactuseProvider({ children, config = {} }) {
     isPanelOpen: false,
     viewMode: 'preview',
     isFullscreen: false,
+    openTabs: [],
+    tabViewModes: {},
   });
   
   // Panel types state (for reactivity when registering/unregistering)
@@ -77,6 +79,8 @@ export function ArtifactuseProvider({ children, config = {} }) {
         isPanelOpen: newState.isPanelOpen,
         viewMode: newState.viewMode,
         isFullscreen: newState.isFullscreen,
+        openTabs: newState.openTabs,
+        tabViewModes: newState.tabViewModes,
       });
     });
     
@@ -153,11 +157,16 @@ export function ArtifactuseProvider({ children, config = {} }) {
     registerPanel,
     unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
-    
+
+    // Multi-tab
+    closeTab: instance.closeTab,
+    closeOtherTabs: instance.closeOtherTabs,
+    closeAllTabs: instance.closeAllTabs,
+
     // Events
     on: instance.on,
     off: instance.off,
-    
+
     // State management
     clearArtifacts: () => instance.state.clear(),
 

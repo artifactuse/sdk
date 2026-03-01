@@ -42,8 +42,10 @@ export function provideArtifactuse(config = {}) {
     isPanelOpen: false,
     viewMode: 'preview',
     isFullscreen: false,
+    openTabs: [],
+    tabViewModes: {},
   });
-  
+
   // Subscribe to state changes
   instance.state.subscribe((newState) => {
     state.artifacts = newState.artifacts;
@@ -51,14 +53,16 @@ export function provideArtifactuse(config = {}) {
     state.isPanelOpen = newState.isPanelOpen;
     state.viewMode = newState.viewMode;
     state.isFullscreen = newState.isFullscreen;
+    state.openTabs = newState.openTabs;
+    state.tabViewModes = newState.tabViewModes;
   });
-  
+
   // Computed
   const activeArtifact = computed(() => {
     if (!state.activeArtifactId) return null;
     return state.artifacts.find(a => a.id === state.activeArtifactId) || null;
   });
-  
+
   // Only count non-inline artifacts (inline artifacts render in message content)
   const artifactCount = computed(() => state.artifacts.filter(a => !a.isInline).length);
 
@@ -74,7 +78,7 @@ export function provideArtifactuse(config = {}) {
 
   // Apply theme immediately on initialization
   instance.applyTheme();
-  
+
   // Watch for system theme changes if theme is 'auto'
   if (config.theme === 'auto' || !config.theme) {
     const theme = instance.bridge?.theme || instance.theme;
@@ -84,7 +88,7 @@ export function provideArtifactuse(config = {}) {
       });
     }
   }
-  
+
   // Provide value
   const provided = {
     instance,
@@ -92,11 +96,11 @@ export function provideArtifactuse(config = {}) {
     activeArtifact,
     artifactCount,
     hasArtifacts,
-    
+
     // Panel computed
     panelTypes,
     activePanelUrl,
-    
+
     // Methods
     processMessage: instance.processMessage,
     initializeContent: instance.initializeContent,
@@ -110,13 +114,18 @@ export function provideArtifactuse(config = {}) {
     setViewMode: instance.setViewMode,
     getPanelUrl: instance.getPanelUrl,
     sendToPanel: instance.sendToPanel,
-    
+
     // Panel management
     hasPanel: instance.hasPanel,
     registerPanel: instance.registerPanel,
     unregisterPanel: instance.unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
-    
+
+    // Multi-tab
+    closeTab: instance.closeTab,
+    closeOtherTabs: instance.closeOtherTabs,
+    closeAllTabs: instance.closeAllTabs,
+
     // Events
     on: instance.on,
     off: instance.off,
@@ -165,11 +174,13 @@ export function createArtifactuseComposable(config = {}) {
     isPanelOpen: false,
     viewMode: 'preview',
     isFullscreen: false,
+    openTabs: [],
+    tabViewModes: {},
   });
-  
+
   // Subscribe to state changes
   let unsubscribe;
-  
+
   onMounted(() => {
     unsubscribe = instance.state.subscribe((newState) => {
       state.artifacts = newState.artifacts;
@@ -177,6 +188,8 @@ export function createArtifactuseComposable(config = {}) {
       state.isPanelOpen = newState.isPanelOpen;
       state.viewMode = newState.viewMode;
       state.isFullscreen = newState.isFullscreen;
+      state.openTabs = newState.openTabs;
+      state.tabViewModes = newState.tabViewModes;
     });
     
     // Apply theme
@@ -237,7 +250,12 @@ export function createArtifactuseComposable(config = {}) {
     registerPanel: instance.registerPanel,
     unregisterPanel: instance.unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
-    
+
+    // Multi-tab
+    closeTab: instance.closeTab,
+    closeOtherTabs: instance.closeOtherTabs,
+    closeAllTabs: instance.closeAllTabs,
+
     // Events
     on: instance.on,
     off: instance.off,

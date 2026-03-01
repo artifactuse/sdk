@@ -146,7 +146,17 @@ export default function ArtifactusePanel({
     }
     return panelWidth;
   }, [activeArtifact, panelWidth]);
-  
+
+  // Multi-tab
+  const isMultiTab = useMemo(() => instance?.config?.multiTab === true, [instance]);
+
+  const openTabArtifacts = useMemo(() => {
+    if (!isMultiTab) return [];
+    return state.openTabs
+      .map(id => state.artifacts.find(a => a.id === id))
+      .filter(Boolean);
+  }, [isMultiTab, state.openTabs, state.artifacts]);
+
   // Helper function to get artifact icon HTML
   const getArtifactIconHtml = useCallback((language) => {
     const iconPath = getLanguageIcon(language);
@@ -545,6 +555,18 @@ export default function ArtifactusePanel({
     }
   }, [shareUrl]);
 
+  // Multi-tab methods
+  const selectTab = useCallback((artifact) => {
+    openArtifact(artifact);
+  }, [openArtifact]);
+
+  const handleCloseTab = useCallback((artifactId) => {
+    instance.closeTab(artifactId);
+    if (state.openTabs.length === 0) {
+      setCameFromList(false);
+    }
+  }, [instance, state.openTabs]);
+
   // Navigate artifacts
   const navigatePrev = useCallback(() => {
     if (currentNonInlineIndex > 0) {
@@ -924,10 +946,10 @@ export default function ArtifactusePanel({
         {/* Header */}
         <header className="artifactuse-panel__header">
           {/* Back button (only when navigated from list view) */}
-          {cameFromList && (
-            <button 
+          {(isMultiTab || cameFromList) && (
+            <button
               className="artifactuse-panel__back"
-              title="Back to list"
+              title={isMultiTab ? "Browse artifacts" : "Back to list"}
               onClick={goBackToList}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

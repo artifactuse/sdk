@@ -185,10 +185,10 @@
         <!-- Panel header -->
         <header class="artifactuse-panel__header">
           <!-- Back button (only when navigated from list view) -->
-          <button 
-            v-if="cameFromList"
+          <button
+            v-if="isMultiTab || cameFromList"
             class="artifactuse-panel__back"
-            title="Back to list"
+            :title="isMultiTab ? 'Browse artifacts' : 'Back to list'"
             @click="goBackToList"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -314,7 +314,33 @@
             </button>
           </div>
         </header>
-        
+
+        <!-- File tabs (multi-tab mode) -->
+        <div v-if="isMultiTab && openTabArtifacts.length > 0" class="artifactuse-panel__file-tabs">
+          <div class="artifactuse-panel__file-tabs-scroll">
+            <button
+              v-for="tab in openTabArtifacts"
+              :key="tab.id"
+              class="artifactuse-panel__file-tab"
+              :class="{ 'artifactuse-panel__file-tab--active': tab.id === activeArtifact?.id }"
+              @click="selectTab(tab)"
+            >
+              <span class="artifactuse-panel__file-tab-icon" v-html="getArtifactIcon(tab.language)"></span>
+              <span class="artifactuse-panel__file-tab-title">{{ tab.title || 'Untitled' }}</span>
+              <button
+                class="artifactuse-panel__file-tab-close"
+                title="Close tab"
+                @click.stop="handleCloseTab(tab.id)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </button>
+          </div>
+        </div>
+
         <!-- Panel content -->
         <div
           ref="contentRef"
@@ -637,8 +663,8 @@
             </button>
             
             <!-- Artifact navigation (if multiple non-inline) -->
-            <div 
-              v-if="nonInlineArtifacts.length > 1"
+            <div
+              v-if="!isMultiTab && nonInlineArtifacts.length > 1"
               class="artifactuse-panel__nav"
             >
               <button 
@@ -866,11 +892,33 @@ const effectivePanelWidth = computed(() => {
   return panelWidth.value;
 });
 
+// Multi-tab computed
+const isMultiTab = computed(() => instance.config?.multiTab === true);
+
+const openTabArtifacts = computed(() => {
+  if (!isMultiTab.value) return [];
+  return state.openTabs
+    .map(id => state.artifacts.find(a => a.id === id))
+    .filter(Boolean);
+});
+
 // Helper function to get artifact icon
 function getArtifactIcon(language) {
   const iconPath = getLanguageIcon(language);
   if (!iconPath) return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
   return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
+}
+
+// Multi-tab methods
+function selectTab(artifact) {
+  openArtifact(artifact);
+}
+
+function handleCloseTab(artifactId) {
+  instance.closeTab(artifactId);
+  if (state.openTabs.length === 0) {
+    cameFromList.value = false;
+  }
 }
 
 // Go back to list view

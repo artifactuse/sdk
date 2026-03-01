@@ -175,11 +175,11 @@
         <template v-else>
           <!-- Header -->
           <header class="artifactuse-panel__header">
-            <!-- Back button (only when navigated from list view) -->
-            <button 
-              v-if="cameFromList"
+            <!-- Back button (list navigation or multi-tab browse) -->
+            <button
+              v-if="isMultiTab || cameFromList"
               class="artifactuse-panel__back"
-              title="Back to list"
+              :title="isMultiTab ? 'Browse artifacts' : 'Back to list'"
               @click="goBackToList"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -296,7 +296,33 @@
               </button>
             </div>
           </header>
-          
+
+          <!-- File tabs (multi-tab mode) -->
+          <div v-if="isMultiTab && openTabArtifacts.length > 0" class="artifactuse-panel__file-tabs">
+            <div class="artifactuse-panel__file-tabs-scroll">
+              <button
+                v-for="tab in openTabArtifacts"
+                :key="tab.id"
+                class="artifactuse-panel__file-tab"
+                :class="{ 'artifactuse-panel__file-tab--active': activeArtifact && tab.id === activeArtifact.id }"
+                @click="selectTab(tab)"
+              >
+                <span class="artifactuse-panel__file-tab-icon" v-html="getArtifactIconHtml(tab)"></span>
+                <span class="artifactuse-panel__file-tab-title">{{ tab.title || 'Untitled' }}</span>
+                <button
+                  class="artifactuse-panel__file-tab-close"
+                  title="Close tab"
+                  @click.stop="handleCloseTab(tab.id)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </button>
+            </div>
+          </div>
+
           <!-- Content -->
           <div
             ref="contentRef"
@@ -607,7 +633,7 @@
               </div>
 
               <!-- Navigation -->
-              <div v-if="nonInlineArtifacts.length > 1" class="artifactuse-panel__nav">
+              <div v-if="!isMultiTab && nonInlineArtifacts.length > 1" class="artifactuse-panel__nav">
                 <button 
                   class="artifactuse-panel__nav-btn"
                   :disabled="currentNonInlineIndex <= 0"
@@ -813,6 +839,16 @@ export default defineComponent({
     
     const showBranding = computed(() => {
       return instance.config?.branding !== false;
+    });
+
+    // Multi-tab computed
+    const isMultiTab = computed(() => instance.config?.multiTab === true);
+
+    const openTabArtifacts = computed(() => {
+      if (!isMultiTab.value) return [];
+      return state.openTabs
+        .map(id => state.artifacts.find(a => a.id === id))
+        .filter(Boolean);
     });
 
     const sharingEnabled = computed(() => {
@@ -1219,6 +1255,18 @@ export default defineComponent({
       }
     }
 
+    // Multi-tab methods
+    function selectTab(artifact) {
+      openArtifact(artifact);
+    }
+
+    function handleCloseTab(artifactId) {
+      instance.closeTab(artifactId);
+      if (state.openTabs.length === 0) {
+        cameFromList.value = false;
+      }
+    }
+
     function goBackToList() {
       cameFromList.value = false;
       instance.state.clearActiveArtifact();
@@ -1489,6 +1537,8 @@ export default defineComponent({
       sharingEnabled,
       isAuthenticated,
       isEditorAvailable,
+      isMultiTab,
+      openTabArtifacts,
 
       // Methods
       handleIframeLoad,
@@ -1505,6 +1555,10 @@ export default defineComponent({
       startPanelResize,
       startSplitResize,
       handleEditorSave,
+
+      // Multi-tab methods
+      selectTab,
+      handleCloseTab,
 
       // Share methods
       toggleSharePopup,

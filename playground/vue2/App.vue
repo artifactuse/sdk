@@ -50,6 +50,7 @@ export default {
       //cdnUrl: 'https://cdn.artifactuse.com/',
       panelWidth: 50,
       splitPosition: 60,
+      multiTab: true,
       sharing: {
         apiUrl: 'http://api.artifactuse.test',
         appUrl: 'http://app.artifactuse.test',

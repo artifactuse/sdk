@@ -227,6 +227,9 @@ const DEFAULT_CONFIG = {
   // Can be overridden per-component via props
   splitPosition: 50,
 
+  // Enable multi-tab mode (open multiple artifacts as tabs)
+  multiTab: false,
+
   // Panel configuration
   // Users can add/override/disable panels here
   // 
@@ -732,7 +735,12 @@ export function createArtifactuse(userConfig = {}) {
       return;
     }
     
-    state.setActiveArtifact(artifact.id);
+    if (config.multiTab) {
+      state.openTab(artifact.id);
+    } else {
+      state.setActiveArtifact(artifact.id);
+    }
+
     state.setPanelOpen(true);
     if (artifact.viewMode) {
       state.setViewMode(artifact.viewMode);
@@ -1032,6 +1040,11 @@ export function createArtifactuse(userConfig = {}) {
     getPanelUrl,
     sendToPanel,
     
+    // Multi-tab
+    closeTab: (artifactId) => state.closeTab(artifactId),
+    closeOtherTabs: (artifactId) => state.closeOtherTabs(artifactId),
+    closeAllTabs: () => state.closeAllTabs(),
+
     // Panel management (new)
     hasPanel,
     registerPanel,

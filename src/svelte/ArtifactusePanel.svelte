@@ -108,7 +108,16 @@
 
   // Effective panel width - smaller for list/empty views
   $: effectivePanelWidth = !artifact ? Math.min(panelWidth, 30) : panelWidth;
-  
+
+  // Multi-tab
+  $: isMultiTab = instance.config?.multiTab === true;
+  $: openTabArtifacts = (() => {
+    if (!isMultiTab) return [];
+    return $state.openTabs
+      .map(id => artifacts.find(a => a.id === id))
+      .filter(Boolean);
+  })();
+
   $: panelClass = [
     'artifactuse-panel',
     isFullscreen && 'artifactuse-panel--fullscreen',
@@ -195,6 +204,18 @@
     return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
   }
   
+  // Multi-tab methods
+  function selectTab(art) {
+    openArtifact(art);
+  }
+
+  function handleCloseTab(artifactId) {
+    instance.closeTab(artifactId);
+    if ($state.openTabs.length === 0) {
+      cameFromList = false;
+    }
+  }
+
   // Go back to list view
   function goBackToList() {
     cameFromList = false;
@@ -920,10 +941,10 @@
       <!-- Header -->
       <header class="artifactuse-panel__header">
         <!-- Back button (only when navigated from list view) -->
-        {#if cameFromList}
-          <button 
+        {#if isMultiTab || cameFromList}
+          <button
             class="artifactuse-panel__back"
-            title="Back to list"
+            title={isMultiTab ? "Browse artifacts" : "Back to list"}
             on:click={goBackToList}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1055,7 +1076,40 @@
           </button>
         </div>
       </header>
-      
+
+      <!-- File tabs (multi-tab mode) -->
+      {#if isMultiTab && openTabArtifacts.length > 0}
+        <div class="artifactuse-panel__file-tabs">
+          <div class="artifactuse-panel__file-tabs-scroll">
+            {#each openTabArtifacts as tab (tab.id)}
+              <button
+                class="artifactuse-panel__file-tab"
+                class:artifactuse-panel__file-tab--active={tab.id === artifact?.id}
+                on:click={() => selectTab(tab)}
+              >
+                <span class="artifactuse-panel__file-tab-icon">
+                  {@html getArtifactIconHtml(tab.language)}
+                </span>
+                <span class="artifactuse-panel__file-tab-title">{tab.title || 'Untitled'}</span>
+                <span
+                  class="artifactuse-panel__file-tab-close"
+                  role="button"
+                  tabindex="0"
+                  title="Close tab"
+                  on:click|stopPropagation={() => handleCloseTab(tab.id)}
+                  on:keydown|stopPropagation={(e) => e.key === 'Enter' && handleCloseTab(tab.id)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </span>
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Content -->
       <div class={contentClass} bind:this={contentRef}>
         <!-- Transition overlay -->
@@ -1390,7 +1444,7 @@
           {/if}
 
           <!-- Navigation -->
-          {#if nonInlineArtifacts.length > 1}
+          {#if !isMultiTab && nonInlineArtifacts.length > 1}
             <div class="artifactuse-panel__nav">
               <button 
                 class="artifactuse-panel__nav-btn"

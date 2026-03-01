@@ -772,6 +772,112 @@
   background: rgba(var(--artifactuse-success), 0.1);
 }
 
+/* File tabs (multi-tab mode) */
+.artifactuse-panel__file-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(var(--artifactuse-border), 1);
+  background: rgba(var(--artifactuse-bg-secondary), 1);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.artifactuse-panel__file-tabs-scroll {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.artifactuse-panel__file-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.artifactuse-panel__file-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  border: none;
+  border-right: 1px solid rgba(var(--artifactuse-border), 0.5);
+  background: transparent;
+  color: rgba(var(--artifactuse-text-secondary), 1);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: auto;
+  max-width: 160px;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.artifactuse-panel__file-tab:hover {
+  background: rgba(var(--artifactuse-bg-tertiary), 1);
+  color: rgba(var(--artifactuse-text), 1);
+}
+
+.artifactuse-panel__file-tab--active {
+  background: rgba(var(--artifactuse-bg), 1);
+  color: rgba(var(--artifactuse-text), 1);
+}
+
+.artifactuse-panel__file-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(var(--artifactuse-primary), 1);
+}
+
+.artifactuse-panel__file-tab-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.artifactuse-panel__file-tab-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.artifactuse-panel__file-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artifactuse-panel__file-tab-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: rgba(var(--artifactuse-text-muted), 1);
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.artifactuse-panel__file-tab:hover .artifactuse-panel__file-tab-close,
+.artifactuse-panel__file-tab--active .artifactuse-panel__file-tab-close {
+  opacity: 1;
+}
+
+.artifactuse-panel__file-tab-close:hover {
+  background: rgba(var(--artifactuse-border), 1);
+  color: rgba(var(--artifactuse-text), 1);
+}
+
+.artifactuse-panel__file-tab-close svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* Navigation */
 .artifactuse-panel__nav {
   position: relative;
