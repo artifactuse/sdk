@@ -1,6 +1,8 @@
 // artifactuse/core/detector.js
 // Artifact detection and extraction from AI responses
 
+import { highlightCode, isPrismAvailable, normalizeLanguage } from './highlight.js';
+
 /**
  * Artifact type definitions
  */
@@ -665,16 +667,18 @@ function createInlinePreview(artifact, code, langLower, inlinePreview) {
       // Separate markers (+/-/space) from code content
       const markers = truncDiffLines.map(l => l[0] || ' ');
       const codeLines = truncDiffLines.map(l => l.slice(1));
-      const encoded = encodeHtml(codeLines.join('\n'));
-      const isTruncated = allDiffLines.length > maxLines;
       const actualLang = diffData.language || 'plaintext';
+      const normalizedActualLang = normalizeLanguage(actualLang);
+      const encoded = highlightCode(codeLines.join('\n'), normalizedActualLang);
+      const isPreHighlighted = isPrismAvailable() && window.Prism.languages[normalizedActualLang];
+      const isTruncated = allDiffLines.length > maxLines;
       const nonClickable = isNonClickable(allDiffLines.length, isTruncated);
       const staticClass = nonClickable ? ' artifactuse-inline-preview--static' : '';
       const staticAttr = nonClickable ? ' data-non-clickable="true"' : '';
       const actionText = getActionLabel('smartdiff', allDiffLines.length);
 
       return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}${staticClass}" data-artifact-id="${artifact.id}" data-smartdiff="true" data-smartdiff-markers="${markers.join(',')}"${staticAttr}>`
-        + `<pre class="artifactuse-inline-preview__pre"><code class="language-${actualLang}">${encoded}</code></pre>`
+        + `<pre class="artifactuse-inline-preview__pre${isPreHighlighted ? ' language-' + actualLang : ''}"><code class="language-${actualLang}${isPreHighlighted ? ' prism-highlighted' : ''}">${encoded}</code></pre>`
         + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">${actionText}</span></div>` : '')
         + `</div>`;
     } catch {
@@ -688,7 +692,9 @@ function createInlinePreview(artifact, code, langLower, inlinePreview) {
 
   const lines = previewCode.split('\n');
   const truncated = lines.slice(0, maxLines).join('\n');
-  const encoded = encodeHtml(truncated);
+  const normalizedLang = normalizeLanguage(previewLang);
+  const encoded = highlightCode(truncated, normalizedLang);
+  const isPreHighlighted = isPrismAvailable() && window.Prism.languages[normalizedLang];
   const isTruncated = lines.length > maxLines;
   const nonClickable = isNonClickable(lines.length, isTruncated);
   const staticClass = nonClickable ? ' artifactuse-inline-preview--static' : '';
@@ -696,7 +702,7 @@ function createInlinePreview(artifact, code, langLower, inlinePreview) {
   const actionText = getActionLabel(langLower, lines.length);
 
   return `<div class="artifactuse-inline-preview${isTruncated ? ' artifactuse-inline-preview--truncated' : ''}${staticClass}" data-artifact-id="${artifact.id}"${staticAttr}>`
-    + `<pre class="artifactuse-inline-preview__pre"><code class="language-${previewLang}">${encoded}</code></pre>`
+    + `<pre class="artifactuse-inline-preview__pre${isPreHighlighted ? ' language-' + previewLang : ''}"><code class="language-${previewLang}${isPreHighlighted ? ' prism-highlighted' : ''}">${encoded}</code></pre>`
     + (isTruncated ? `<div class="artifactuse-inline-preview__fade"><span class="artifactuse-inline-preview__action">${actionText}</span></div>` : '')
     + `</div>`;
 }
