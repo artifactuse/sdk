@@ -15,6 +15,8 @@ export function createState() {
     // Multi-tab support
     openTabs: [],        // Array of artifact IDs open as tabs (ordered)
     tabViewModes: {},    // { [artifactId]: 'preview' | 'code' | 'split' | 'edit' }
+    // Panel empty view
+    forceEmptyView: false, // When true, panel shows empty state regardless of artifacts
   };
 
   // Subscribers
@@ -139,6 +141,7 @@ export function createState() {
       ...state,
       activeArtifactId: artifactId,
       viewMode,
+      forceEmptyView: false,
     };
 
     notify();
@@ -201,6 +204,17 @@ export function createState() {
       isFullscreen,
     };
 
+    notify();
+  }
+
+  /**
+   * Set force empty view state
+   */
+  function setForceEmptyView(value) {
+    state = {
+      ...state,
+      forceEmptyView: !!value,
+    };
     notify();
   }
 
@@ -336,6 +350,7 @@ export function createState() {
       isFullscreen: false,
       openTabs: [],
       tabViewModes: {},
+      forceEmptyView: false,
     };
 
     notify();
@@ -393,6 +408,7 @@ export function createState() {
     setPanelOpen,
     setViewMode,
     setFullscreen,
+    setForceEmptyView,
 
     // Multi-tab
     openTab,

@@ -65,11 +65,12 @@ export function ArtifactuseProvider({ children, config = {} }) {
     isFullscreen: false,
     openTabs: [],
     tabViewModes: {},
+    forceEmptyView: false,
   });
-  
+
   // Panel types state (for reactivity when registering/unregistering)
   const [panelTypes, setPanelTypes] = useState(() => instance.getPanelTypes());
-  
+
   // Subscribe to state changes
   useEffect(() => {
     const unsubscribe = instance.state.subscribe((newState) => {
@@ -81,6 +82,7 @@ export function ArtifactuseProvider({ children, config = {} }) {
         isFullscreen: newState.isFullscreen,
         openTabs: newState.openTabs,
         tabViewModes: newState.tabViewModes,
+        forceEmptyView: newState.forceEmptyView,
       });
     });
     
@@ -145,6 +147,7 @@ export function ArtifactuseProvider({ children, config = {} }) {
     openFile: instance.openFile,
     openCode: instance.openCode,
     updateFile: instance.updateFile,
+    openPanel: instance.openPanel,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
     toggleFullscreen: instance.toggleFullscreen,

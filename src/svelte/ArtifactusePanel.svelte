@@ -107,7 +107,7 @@
   $: isAuthenticated = instance?.share?.isAuthenticated() || false;
 
   // Effective panel width - smaller for list/empty views
-  $: effectivePanelWidth = !artifact ? Math.min(panelWidth, 30) : panelWidth;
+  $: effectivePanelWidth = (!artifact && !$state.forceEmptyView) ? Math.min(panelWidth, 30) : panelWidth;
 
   // Multi-tab
   $: isMultiTab = instance.config?.multiTab === true;
@@ -121,8 +121,8 @@
   $: panelClass = [
     'artifactuse-panel',
     isFullscreen && 'artifactuse-panel--fullscreen',
-    !artifact && hasArtifactsValue && 'artifactuse-panel--list',
-    !hasArtifactsValue && 'artifactuse-panel--empty',
+    !artifact && hasArtifactsValue && !$state.forceEmptyView && 'artifactuse-panel--list',
+    (!hasArtifactsValue && !$state.forceEmptyView) && 'artifactuse-panel--empty',
     className,
   ].filter(Boolean).join(' ');
   
@@ -731,7 +731,7 @@
   <!-- ============================================ -->
   <!-- EMPTY STATE: No artifacts -->
   <!-- ============================================ -->
-  {#if !hasArtifactsValue}
+  {#if !hasArtifactsValue || $state.forceEmptyView}
     <div 
       class={panelClass}
       style={!isFullscreen ? `width: ${effectivePanelWidth}%` : undefined}
@@ -749,17 +749,24 @@
       <header class="artifactuse-panel__header artifactuse-panel__header--simple">
         <div class="artifactuse-panel__title">
           <span class="artifactuse-panel__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
+            {#if $state.forceEmptyView}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            {/if}
           </span>
           <div class="artifactuse-panel__title-content">
-            <span class="artifactuse-panel__name">Artifacts</span>
+            <span class="artifactuse-panel__name">{$state.forceEmptyView ? 'Artifact Viewer' : 'Artifacts'}</span>
           </div>
         </div>
         <div class="artifactuse-panel__actions">
-          <button 
+          <button
             class="artifactuse-panel__action artifactuse-panel__action--close"
             title="Close panel"
             on:click={closePanel}
@@ -771,7 +778,7 @@
           </button>
         </div>
       </header>
-      
+
       <div class="artifactuse-panel__empty">
         <div class="artifactuse-panel__empty-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -779,9 +786,9 @@
             <polyline points="14 2 14 8 20 8"></polyline>
           </svg>
         </div>
-        <h3 class="artifactuse-panel__empty-title">No artifacts yet</h3>
+        <h3 class="artifactuse-panel__empty-title">{$state.forceEmptyView ? 'No artifact selected' : 'No artifacts yet'}</h3>
         <p class="artifactuse-panel__empty-text">
-          Code blocks, forms, and other interactive content will appear here as the AI generates them.
+          {$state.forceEmptyView ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.'}
         </p>
       </div>
       
@@ -806,7 +813,7 @@
   <!-- ============================================ -->
   <!-- LIST VIEW: Has artifacts but none selected -->
   <!-- ============================================ -->
-  {:else if !artifact}
+  {:else if !artifact && !$state.forceEmptyView}
     <div 
       class={panelClass}
       style={!isFullscreen ? `width: ${effectivePanelWidth}%` : undefined}

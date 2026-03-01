@@ -21,21 +21,25 @@
         <!-- ============================================ -->
         <!-- EMPTY STATE: No artifacts -->
         <!-- ============================================ -->
-        <template v-if="!hasArtifacts">
+        <template v-if="!hasArtifacts || forceEmptyView">
           <header class="artifactuse-panel__header artifactuse-panel__header--simple">
             <div class="artifactuse-panel__title">
               <span class="artifactuse-panel__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg v-if="forceEmptyView" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="16 18 22 12 16 6"></polyline>
                   <polyline points="8 6 2 12 8 18"></polyline>
                 </svg>
               </span>
               <div class="artifactuse-panel__title-content">
-                <span class="artifactuse-panel__name">Artifacts</span>
+                <span class="artifactuse-panel__name">{{ forceEmptyView ? 'Artifact Viewer' : 'Artifacts' }}</span>
               </div>
             </div>
             <div class="artifactuse-panel__actions">
-              <button 
+              <button
                 class="artifactuse-panel__action artifactuse-panel__action--close"
                 title="Close panel"
                 @click="closePanel"
@@ -47,7 +51,7 @@
               </button>
             </div>
           </header>
-          
+
           <div class="artifactuse-panel__empty">
             <div class="artifactuse-panel__empty-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -55,9 +59,9 @@
                 <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
             </div>
-            <h3 class="artifactuse-panel__empty-title">No artifacts yet</h3>
+            <h3 class="artifactuse-panel__empty-title">{{ forceEmptyView ? 'No artifact selected' : 'No artifacts yet' }}</h3>
             <p class="artifactuse-panel__empty-text">
-              Code blocks, forms, and other interactive content will appear here as the AI generates them.
+              {{ forceEmptyView ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.' }}
             </p>
           </div>
           
@@ -81,7 +85,7 @@
         <!-- ============================================ -->
         <!-- LIST VIEW: Has artifacts but none selected -->
         <!-- ============================================ -->
-        <template v-else-if="!activeArtifact">
+        <template v-else-if="!activeArtifact && !forceEmptyView">
           <header class="artifactuse-panel__header artifactuse-panel__header--simple">
             <div class="artifactuse-panel__title">
               <span class="artifactuse-panel__icon">
@@ -861,7 +865,7 @@ export default defineComponent({
     
     // Effective panel width - smaller for list/empty views
     const effectivePanelWidth = computed(() => {
-      if (!activeArtifact.value) {
+      if (!activeArtifact.value && !state.forceEmptyView) {
         return Math.min(panelWidth.value, 30);
       }
       return panelWidth.value;
@@ -870,11 +874,13 @@ export default defineComponent({
     const panelClasses = computed(() => {
       return {
         'artifactuse-panel--fullscreen': state.isFullscreen,
-        'artifactuse-panel--list': !activeArtifact.value && hasArtifacts.value,
-        'artifactuse-panel--empty': !hasArtifacts.value,
+        'artifactuse-panel--list': !activeArtifact.value && hasArtifacts.value && !state.forceEmptyView,
+        'artifactuse-panel--empty': !hasArtifacts.value && !state.forceEmptyView,
       };
     });
-    
+
+    const forceEmptyView = computed(() => state.forceEmptyView);
+
     // Smartdiff: per-line language-aware highlighting
     function highlightSmartDiff(artifact) {
       if (artifact.language !== 'smartdiff') return null;
@@ -1534,6 +1540,7 @@ export default defineComponent({
       showBranding,
       effectivePanelWidth,
       panelClasses,
+      forceEmptyView,
       sharingEnabled,
       isAuthenticated,
       isEditorAvailable,

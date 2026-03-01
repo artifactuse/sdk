@@ -570,6 +570,7 @@ const {
   
   processMessage,     // Process AI content
   openArtifact,       // Open artifact in panel
+  openPanel,          // Open panel in empty viewer state
   closePanel,         // Close panel
   togglePanel,        // Toggle panel visibility
   toggleFullscreen,   // Toggle fullscreen mode

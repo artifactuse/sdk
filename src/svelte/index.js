@@ -123,6 +123,7 @@ export function createArtifactuseStores(config = {}) {
     openFile: instance.openFile,
     openCode: instance.openCode,
     updateFile: instance.updateFile,
+    openPanel: instance.openPanel,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
     toggleFullscreen: instance.toggleFullscreen,

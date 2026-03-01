@@ -141,11 +141,11 @@ export default function ArtifactusePanel({
 
   // Effective panel width - smaller for list/empty views
   const effectivePanelWidth = useMemo(() => {
-    if (!activeArtifact) {
+    if (!activeArtifact && !state.forceEmptyView) {
       return Math.min(panelWidth, 30);
     }
     return panelWidth;
-  }, [activeArtifact, panelWidth]);
+  }, [activeArtifact, panelWidth, state.forceEmptyView]);
 
   // Multi-tab
   const isMultiTab = useMemo(() => instance?.config?.multiTab === true, [instance]);
@@ -732,8 +732,8 @@ export default function ArtifactusePanel({
   const panelClasses = [
     'artifactuse-panel',
     state.isFullscreen && 'artifactuse-panel--fullscreen',
-    !activeArtifact && hasArtifacts && 'artifactuse-panel--list',
-    !hasArtifacts && 'artifactuse-panel--empty',
+    !activeArtifact && hasArtifacts && !state.forceEmptyView && 'artifactuse-panel--list',
+    (!hasArtifacts && !state.forceEmptyView) && 'artifactuse-panel--empty',
     className,
   ].filter(Boolean).join(' ');
   
@@ -746,7 +746,7 @@ export default function ArtifactusePanel({
   // ============================================
   // EMPTY STATE: No artifacts
   // ============================================
-  if (!hasArtifacts) {
+  if (!hasArtifacts || state.forceEmptyView) {
     return (
       <div className={panelClasses} style={!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined}>
         {!state.isFullscreen && (
@@ -758,17 +758,24 @@ export default function ArtifactusePanel({
         <header className="artifactuse-panel__header artifactuse-panel__header--simple">
           <div className="artifactuse-panel__title">
             <span className="artifactuse-panel__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
+              {state.forceEmptyView ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              )}
             </span>
             <div className="artifactuse-panel__title-content">
-              <span className="artifactuse-panel__name">Artifacts</span>
+              <span className="artifactuse-panel__name">{state.forceEmptyView ? 'Artifact Viewer' : 'Artifacts'}</span>
             </div>
           </div>
           <div className="artifactuse-panel__actions">
-            <button 
+            <button
               className="artifactuse-panel__action artifactuse-panel__action--close"
               title="Close panel"
               onClick={closePanel}
@@ -780,7 +787,7 @@ export default function ArtifactusePanel({
             </button>
           </div>
         </header>
-        
+
         <div className="artifactuse-panel__empty">
           <div className="artifactuse-panel__empty-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -788,9 +795,9 @@ export default function ArtifactusePanel({
               <polyline points="14 2 14 8 20 8" />
             </svg>
           </div>
-          <h3 className="artifactuse-panel__empty-title">No artifacts yet</h3>
+          <h3 className="artifactuse-panel__empty-title">{state.forceEmptyView ? 'No artifact selected' : 'No artifacts yet'}</h3>
           <p className="artifactuse-panel__empty-text">
-            Code blocks, forms, and other interactive content will appear here as the AI generates them.
+            {state.forceEmptyView ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.'}
           </p>
         </div>
         

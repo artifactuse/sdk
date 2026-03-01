@@ -52,6 +52,7 @@ export function provideArtifactuse(config = {}) {
     isFullscreen: false,
     openTabs: [],
     tabViewModes: {},
+    forceEmptyView: false,
   });
 
   // Subscribe to state changes
@@ -63,6 +64,7 @@ export function provideArtifactuse(config = {}) {
     state.isFullscreen = newState.isFullscreen;
     state.openTabs = newState.openTabs;
     state.tabViewModes = newState.tabViewModes;
+    state.forceEmptyView = newState.forceEmptyView;
   });
 
   // Computed
@@ -106,6 +108,7 @@ export function provideArtifactuse(config = {}) {
     openFile: instance.openFile,
     openCode: instance.openCode,
     updateFile: instance.updateFile,
+    openPanel: instance.openPanel,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
     toggleFullscreen: instance.toggleFullscreen,
@@ -174,6 +177,7 @@ export function createArtifactuseComposable(config = {}) {
     isFullscreen: false,
     openTabs: [],
     tabViewModes: {},
+    forceEmptyView: false,
   });
 
   // Subscribe to state changes
@@ -188,6 +192,7 @@ export function createArtifactuseComposable(config = {}) {
       state.isFullscreen = newState.isFullscreen;
       state.openTabs = newState.openTabs;
       state.tabViewModes = newState.tabViewModes;
+      state.forceEmptyView = newState.forceEmptyView;
     });
     
     // Apply theme
@@ -236,6 +241,7 @@ export function createArtifactuseComposable(config = {}) {
     openFile: instance.openFile,
     openCode: instance.openCode,
     updateFile: instance.updateFile,
+    openPanel: instance.openPanel,
     closePanel: instance.closePanel,
     togglePanel: instance.togglePanel,
     toggleFullscreen: instance.toggleFullscreen,

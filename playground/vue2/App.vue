@@ -273,6 +273,35 @@ export default {
       'utils.py': 'from dataclasses import dataclass\nfrom typing import List, Optional\n\n@dataclass\nclass User:\n    name: str\n    email: str\n    age: Optional[int] = None\n\ndef filter_adults(users: List[User]) -> List[User]:\n    return [u for u in users if u.age and u.age >= 18]\n\nif __name__ == "__main__":\n    users = [User("Alice", "alice@test.com", 25)]\n    print(filter_adults(users))',
     }
 
+    // Panel methods demo
+    function testOpenPanel() {
+      artifactuse.instance.openPanel()
+    }
+    function testClosePanel() {
+      artifactuse.instance.closePanel()
+    }
+    function testTogglePanel() {
+      artifactuse.instance.togglePanel()
+    }
+
+    // Panel event log
+    const panelEventLog = ref([])
+
+    artifactuse.on('panel:opened', () => {
+      panelEventLog.value.unshift({ event: 'panel:opened', time: new Date().toLocaleTimeString() })
+      if (panelEventLog.value.length > 5) panelEventLog.value.pop()
+    })
+
+    artifactuse.on('panel:closed', () => {
+      panelEventLog.value.unshift({ event: 'panel:closed', time: new Date().toLocaleTimeString() })
+      if (panelEventLog.value.length > 5) panelEventLog.value.pop()
+    })
+
+    artifactuse.on('panel:toggled', ({ isOpen }) => {
+      panelEventLog.value.unshift({ event: `panel:toggled (${isOpen ? 'open' : 'closed'})`, time: new Date().toLocaleTimeString() })
+      if (panelEventLog.value.length > 5) panelEventLog.value.pop()
+    })
+
     // Layout props demo
     const demoPanelWidth = ref(65)
     const demoSplitPosition = ref(50)
@@ -345,6 +374,9 @@ export default {
       getMessageOverrides,
       inlineCardsEnabled,
       toggleInlineCards,
+      testOpenPanel,
+      testClosePanel,
+      testTogglePanel,
       demoPanelWidth,
       demoSplitPosition,
     }
@@ -453,6 +485,15 @@ export default {
           <button @click="toggleInlineCards">
             inlineCards: {{ inlineCardsEnabled ? 'ON' : 'OFF' }}
           </button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>Panel Methods:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testOpenPanel">openPanel()</button>
+          <button @click="testClosePanel">closePanel()</button>
+          <button @click="testTogglePanel">togglePanel()</button>
         </div>
 
         <div class="test-panel__field">

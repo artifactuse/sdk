@@ -741,6 +741,7 @@ export function createArtifactuse(userConfig = {}) {
       state.setActiveArtifact(artifact.id);
     }
 
+    state.setForceEmptyView(false);
     state.setPanelOpen(true);
     if (artifact.viewMode) {
       state.setViewMode(artifact.viewMode);
@@ -794,6 +795,17 @@ export function createArtifactuse(userConfig = {}) {
     state.addArtifact(updates);
     emit('artifact:updated', { artifactId: id, artifact: state.getArtifact(id) });
     return state.getArtifact(id);
+  }
+
+  /**
+   * Open panel in empty state
+   */
+  function openPanel() {
+    state.clearActiveArtifact();
+    state.setForceEmptyView(true);
+    state.setPanelOpen(true);
+
+    emit('panel:opened');
   }
 
   /**
@@ -1033,6 +1045,7 @@ export function createArtifactuse(userConfig = {}) {
     openFile,
     openCode,
     updateFile,
+    openPanel,
     closePanel,
     togglePanel,
     toggleFullscreen,
