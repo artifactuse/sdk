@@ -271,6 +271,18 @@
                 </svg>
               </button>
               <button
+                v-if="showExternalPreview"
+                class="artifactuse-panel__action"
+                title="Open in new tab"
+                @click="handleExternalPreview"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </button>
+              <button
                 class="artifactuse-panel__action"
                 :title="state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
                 @click="toggleFullscreen"
@@ -288,7 +300,7 @@
                   <line x1="3" y1="21" x2="10" y2="14"></line>
                 </svg>
               </button>
-              <button 
+              <button
                 class="artifactuse-panel__action artifactuse-panel__action--close"
                 title="Close"
                 @click="closePanel"
@@ -740,6 +752,10 @@ export default defineComponent({
       type: Number,
       default: undefined,
     },
+    externalPreview: {
+      type: Boolean,
+      default: undefined,
+    },
   },
   
   setup(props, { emit }) {
@@ -843,6 +859,13 @@ export default defineComponent({
     
     const showBranding = computed(() => {
       return instance.config?.branding !== false;
+    });
+
+    const showExternalPreview = computed(() => {
+      if (!panelUrl.value) return false;
+      if (activeArtifact.value?.externalPreview !== undefined) return activeArtifact.value.externalPreview;
+      if (props.externalPreview !== undefined) return props.externalPreview;
+      return instance.config?.externalPreview ?? false;
     });
 
     // Multi-tab computed
@@ -992,6 +1015,10 @@ export default defineComponent({
         artifact: activeArtifact.value,
         code,
       });
+    }
+
+    function handleExternalPreview() {
+      if (panelUrl.value) window.open(panelUrl.value, '_blank', 'noopener,noreferrer');
     }
 
     function handleIframeLoad() {
@@ -1538,6 +1565,7 @@ export default defineComponent({
       nonInlineArtifacts,
       currentNonInlineIndex,
       showBranding,
+      showExternalPreview,
       effectivePanelWidth,
       panelClasses,
       forceEmptyView,
@@ -1562,6 +1590,7 @@ export default defineComponent({
       startPanelResize,
       startSplitResize,
       handleEditorSave,
+      handleExternalPreview,
 
       // Multi-tab methods
       selectTab,

@@ -20,6 +20,7 @@ export default function ArtifactusePanel({
   className = '',
   panelWidth: panelWidthProp,
   splitPosition: splitPositionProp,
+  externalPreview: externalPreviewProp,
 }) {
   const { 
     state, 
@@ -130,6 +131,13 @@ export default function ArtifactusePanel({
   const showBranding = useMemo(() => {
     return instance?.config?.branding !== false;
   }, [instance]);
+
+  const showExternalPreview = useMemo(() => {
+    if (!panelUrl) return false;
+    if (activeArtifact?.externalPreview !== undefined) return activeArtifact.externalPreview;
+    if (externalPreviewProp !== undefined) return externalPreviewProp;
+    return instance?.config?.externalPreview ?? false;
+  }, [activeArtifact, externalPreviewProp, instance, panelUrl]);
 
   const sharingEnabled = useMemo(() => {
     return instance?.share?.enabled !== false;
@@ -284,6 +292,10 @@ export default function ArtifactusePanel({
       code,
     });
   }, [activeArtifact, instance]);
+
+  const handleExternalPreview = useCallback(() => {
+    if (panelUrl) window.open(panelUrl, '_blank', 'noopener,noreferrer');
+  }, [panelUrl]);
 
   // Handle iframe load
   const handleIframeLoad = useCallback(() => {
@@ -1045,6 +1057,19 @@ export default function ArtifactusePanel({
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
+              </svg>
+            </button>
+            )}
+            {showExternalPreview && (
+            <button
+              className="artifactuse-panel__action"
+              title="Open in new tab"
+              onClick={handleExternalPreview}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
             </button>
             )}

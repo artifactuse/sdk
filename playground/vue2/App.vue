@@ -226,6 +226,10 @@ export default {
       })
     }
 
+    function testExternalPreview() {
+      artifactuse.openFile('preview.html', '<!DOCTYPE html>\n<html>\n<body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f0f0f0">\n  <div style="text-align:center">\n    <h1>External Preview Test</h1>\n    <p>Click the ↗ button in the panel header to open this in a new tab.</p>\n  </div>\n</body>\n</html>', { externalPreview: true })
+    }
+
     // updateFile test
     const updateFileArtifact = ref(null)
     let updateFileCounter = 0
@@ -367,6 +371,7 @@ export default {
       testTxtFallback,
       testEditTab,
       testPanelUrl,
+      testExternalPreview,
       testEditLang,
       langSamples,
       testUpdateFileOpen,
@@ -464,6 +469,7 @@ export default {
         <div class="test-panel__actions">
           <button @click="testEditTab">Edit Tab</button>
           <button @click="testPanelUrl">panelUrl</button>
+          <button @click="testExternalPreview">externalPreview</button>
         </div>
         <div class="test-panel__actions">
           <button @click="testUpdateFileOpen">updateFile: Open</button>

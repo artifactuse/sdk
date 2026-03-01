@@ -11,6 +11,7 @@
   export let className = '';
   export let initialPanelWidth = undefined;
   export let initialSplitPosition = undefined;
+  export let externalPreview = undefined;
 
   const { 
     state,
@@ -103,6 +104,12 @@
     : -1;
   
   $: showBranding = instance?.config?.branding !== false;
+  $: showExternalPreview = (() => {
+    if (!panelUrl) return false;
+    if (artifact?.externalPreview !== undefined) return artifact.externalPreview;
+    if (externalPreview !== undefined) return externalPreview;
+    return instance?.config?.externalPreview ?? false;
+  })();
   $: sharingEnabled = instance?.share?.enabled !== false;
   $: isAuthenticated = instance?.share?.isAuthenticated() || false;
 
@@ -335,6 +342,10 @@
       artifact: artifact,
       code,
     });
+  }
+
+  function handleExternalPreview() {
+    if (panelUrl) window.open(panelUrl, '_blank', 'noopener,noreferrer');
   }
 
   // Handle iframe load
@@ -1047,6 +1058,19 @@
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
               <polyline points="17 21 17 13 7 13 7 21"></polyline>
               <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+          </button>
+          {/if}
+          {#if showExternalPreview}
+          <button
+            class="artifactuse-panel__action"
+            title="Open in new tab"
+            on:click={handleExternalPreview}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
           </button>
           {/if}

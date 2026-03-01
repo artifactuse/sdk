@@ -664,6 +664,9 @@ provideArtifactuse({
     languages: ['css', 'bash', 'sql'],                   // or true for all
   },
 
+  // Show "Open in new tab" button in panel header (default: false)
+  externalPreview: false,
+
   // Show clickable artifact cards inline (default: true)
   inlineCards: true,
 
@@ -822,6 +825,7 @@ openFile('utils.py', code, {
 | `options.viewMode` | `string` | No | Initial view mode |
 | `options.language` | `string` | No | Override auto-detected language |
 | `options.panelUrl` | `string` | No | Custom iframe URL (bypasses panel registry) |
+| `options.externalPreview` | `boolean` | No | Show "Open in new tab" button in panel header |
 
 ### openCode
 
@@ -838,7 +842,7 @@ openCode(pythonCode, 'python', { title: 'My Script', tabs: ['code', 'edit'] });
 |-----------|------|----------|-------------|
 | `code` | `string` | Yes | The code content |
 | `language` | `string` | Yes | Language identifier (e.g. `'javascript'`, `'python'`, `'html'`) |
-| `options` | `object` | No | Same options as `openFile` |
+| `options` | `object` | No | Same options as `openFile` (including `externalPreview`) |
 
 > **Note:** If the language has no registered panel, it falls back to `txt` (plain text) in the code panel.
 

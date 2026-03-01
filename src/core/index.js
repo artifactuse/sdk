@@ -227,6 +227,10 @@ const DEFAULT_CONFIG = {
   // Can be overridden per-component via props
   splitPosition: 50,
 
+  // Show "Open in new tab" button in panel header to open preview URL externally
+  // Can be overridden per-artifact via openFile/openCode options or per-component via props
+  externalPreview: false,
+
   // Enable multi-tab mode (open multiple artifacts as tabs)
   multiTab: false,
 
@@ -783,6 +787,7 @@ export function createArtifactuse(userConfig = {}) {
     artifact.editorLanguage = language;
     if (options.tabs) artifact.tabs = options.tabs;
     if (options.panelUrl) artifact.panelUrl = options.panelUrl;
+    if (options.externalPreview !== undefined) artifact.externalPreview = options.externalPreview;
     state.addArtifact(artifact);
     openArtifact(artifact);
     if (options.viewMode) state.setViewMode(options.viewMode);
@@ -802,6 +807,7 @@ export function createArtifactuse(userConfig = {}) {
     if (options.title !== undefined) updates.title = options.title;
     if (options.tabs !== undefined) updates.tabs = options.tabs;
     if (options.panelUrl !== undefined) updates.panelUrl = options.panelUrl;
+    if (options.externalPreview !== undefined) updates.externalPreview = options.externalPreview;
 
     state.addArtifact(updates);
     emit('artifact:updated', { artifactId: id, artifact: state.getArtifact(id) });
