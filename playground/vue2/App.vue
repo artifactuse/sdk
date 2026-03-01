@@ -379,6 +379,7 @@ export default {
       testTogglePanel,
       demoPanelWidth,
       demoSplitPosition,
+      panelEventLog,
     }
   },
 }
@@ -494,6 +495,15 @@ export default {
           <button @click="testOpenPanel">openPanel()</button>
           <button @click="testClosePanel">closePanel()</button>
           <button @click="testTogglePanel">togglePanel()</button>
+        </div>
+        <div v-if="panelEventLog.length" class="test-panel__field">
+          <label>Panel Events:</label>
+          <div class="test-panel__event-log">
+            <div v-for="(entry, i) in panelEventLog" :key="i" class="test-panel__event-entry">
+              <span class="test-panel__event-time">{{ entry.time }}</span>
+              <span>{{ entry.event }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="test-panel__field">
@@ -688,6 +698,27 @@ html, body {
 
 .test-panel__toggle:hover {
   background: #f5f5f5;
+}
+
+.test-panel__event-log {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.test-panel__event-entry {
+  padding: 2px 0;
+  color: #333;
+}
+
+.test-panel__event-time {
+  color: #999;
+  margin-right: 6px;
 }
 
 .token.deleted {
