@@ -371,7 +371,7 @@
                 class="artifactuse-panel__iframe"
                 :class="{ 'artifactuse-panel__iframe--loading': iframeLoading }"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
-                allow="camera; microphone; fullscreen; geolocation; display-capture; autoplay; clipboard-write"
+                allow="camera; microphone; fullscreen; geolocation; display-capture; autoplay; clipboard-write; encrypted-media; gyroscope; accelerometer; picture-in-picture"
                 @load="handleIframeLoad"
                 @error="handleIframeError"
               ></iframe>
