@@ -231,6 +231,10 @@ const DEFAULT_CONFIG = {
   // Can be overridden per-artifact via openFile/openCode options or per-component via props
   externalPreview: false,
 
+  // Show console panel footer for runtime logs/errors from HTML artifacts
+  // When false, footer UI is hidden but console:log events still emit
+  consolePanel: true,
+
   // Enable multi-tab mode (open multiple artifacts as tabs)
   multiTab: false,
 
@@ -1010,6 +1014,10 @@ export function createArtifactuse(userConfig = {}) {
       updateFile(data.artifactId, data.code);
     }
     emit('edit:save', data);
+  });
+  bridge.on('console:log', (data) => {
+    const artifactId = state.getState().activeArtifactId;
+    emit('console:log', { artifactId, ...data });
   });
 
   /**

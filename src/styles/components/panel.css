@@ -1790,3 +1790,155 @@
   width: 14px;
   height: 14px;
 }
+
+/* ============================================================
+   CONSOLE FOOTER
+   ============================================================ */
+
+.artifactuse-panel__console {
+  border-top: 1px solid rgb(var(--artifactuse-border));
+  background: rgb(var(--artifactuse-surface));
+  flex-shrink: 0;
+  max-height: 40%;
+  display: flex;
+  flex-direction: column;
+}
+
+.artifactuse-panel__console-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-panel__console-header:hover {
+  background: rgba(var(--artifactuse-text), 0.04);
+}
+
+.artifactuse-panel__console-chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.artifactuse-panel__console--expanded .artifactuse-panel__console-chevron {
+  transform: rotate(180deg);
+}
+
+.artifactuse-panel__console-filters {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.artifactuse-panel__console-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border: none;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  min-height: 18px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.artifactuse-panel__console-filter--inactive {
+  opacity: 0.3;
+}
+
+.artifactuse-panel__console-filter--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+
+.artifactuse-panel__console-filter--warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: rgb(245, 158, 11);
+}
+
+.artifactuse-panel__console-filter--info {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(59, 130, 246);
+}
+
+.artifactuse-panel__console-filter--log {
+  background: rgba(var(--artifactuse-text), 0.08);
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-panel__console-clear {
+  margin-left: auto;
+  padding: 2px 6px;
+  border: none;
+  background: none;
+  color: rgb(var(--artifactuse-text-muted));
+  cursor: pointer;
+  font-size: 11px;
+  border-radius: 3px;
+}
+
+.artifactuse-panel__console-clear:hover {
+  background: rgba(var(--artifactuse-text), 0.08);
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-panel__console-entries {
+  overflow-y: auto;
+  max-height: 200px;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.artifactuse-panel__console-entry {
+  padding: 3px 12px;
+  border-bottom: 1px solid rgba(var(--artifactuse-border), 0.5);
+  display: flex;
+  gap: 8px;
+}
+
+.artifactuse-panel__console-entry--error {
+  background: rgba(239, 68, 68, 0.06);
+  color: rgb(239, 68, 68);
+}
+
+.artifactuse-panel__console-entry--warn {
+  background: rgba(245, 158, 11, 0.06);
+  color: rgb(245, 158, 11);
+}
+
+.artifactuse-panel__console-entry--log,
+.artifactuse-panel__console-entry--info {
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-panel__console-type {
+  flex-shrink: 0;
+  width: 36px;
+  color: rgb(var(--artifactuse-text-muted));
+  text-align: right;
+}
+
+.artifactuse-panel__console-content {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.artifactuse-panel__console-timestamp {
+  flex-shrink: 0;
+  color: rgb(var(--artifactuse-text-muted));
+  font-size: 10px;
+  opacity: 0.7;
+}

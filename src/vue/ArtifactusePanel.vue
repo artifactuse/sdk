@@ -437,6 +437,30 @@
           </div>
         </div>
 
+        <!-- Console footer -->
+        <div v-if="showConsolePanel" :class="['artifactuse-panel__console', { 'artifactuse-panel__console--expanded': consoleExpanded }]">
+          <div class="artifactuse-panel__console-header" @click="consoleExpanded = !consoleExpanded">
+            <svg class="artifactuse-panel__console-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
+            <span>Console</span>
+            <div class="artifactuse-panel__console-filters" @click.stop>
+              <button v-if="consoleErrorCount > 0" :class="['artifactuse-panel__console-filter', 'artifactuse-panel__console-filter--error', { 'artifactuse-panel__console-filter--inactive': !consoleFilter.has('error') }]" @click="toggleConsoleFilter('error')">{{ consoleErrorCount }} error{{ consoleErrorCount !== 1 ? 's' : '' }}</button>
+              <button v-if="consoleWarnCount > 0" :class="['artifactuse-panel__console-filter', 'artifactuse-panel__console-filter--warn', { 'artifactuse-panel__console-filter--inactive': !consoleFilter.has('warn') }]" @click="toggleConsoleFilter('warn')">{{ consoleWarnCount }} warn</button>
+              <button v-if="consoleInfoCount > 0" :class="['artifactuse-panel__console-filter', 'artifactuse-panel__console-filter--info', { 'artifactuse-panel__console-filter--inactive': !consoleFilter.has('info') }]" @click="toggleConsoleFilter('info')">{{ consoleInfoCount }} info</button>
+              <button v-if="consoleLogCount > 0" :class="['artifactuse-panel__console-filter', 'artifactuse-panel__console-filter--log', { 'artifactuse-panel__console-filter--inactive': !consoleFilter.has('log') }]" @click="toggleConsoleFilter('log')">{{ consoleLogCount }} log</button>
+            </div>
+            <button class="artifactuse-panel__console-clear" @click.stop="consoleEntries = []">Clear</button>
+          </div>
+          <div v-if="consoleExpanded" ref="consoleEntriesEl" class="artifactuse-panel__console-entries">
+            <div v-for="(entry, i) in filteredConsoleEntries" :key="i" :class="'artifactuse-panel__console-entry artifactuse-panel__console-entry--' + entry.type">
+              <span class="artifactuse-panel__console-type">[{{ entry.type }}]</span>
+              <span class="artifactuse-panel__console-content">{{ entry.content }}</span>
+              <span class="artifactuse-panel__console-timestamp">{{ new Date(entry.timestamp).toLocaleTimeString() }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Panel footer -->
         <footer class="artifactuse-panel__footer">
           <div class="artifactuse-panel__footer-left">
@@ -788,6 +812,7 @@ const props = defineProps({
   panelWidth: { type: Number, default: undefined },
   splitPosition: { type: Number, default: undefined },
   externalPreview: { type: Boolean, default: undefined },
+	consolePanel: { type: Boolean, default: undefined },
 });
 
 // Composable
@@ -818,6 +843,12 @@ const isTransitioning = ref(false);
 const cameFromList = ref(false); // Track if user navigated from list view
 const isDownloadingAll = ref(false); // Track download all progress
 
+// Console state
+const consoleEntries = ref([]);
+const consoleExpanded = ref(false);
+const consoleEntriesEl = ref(null);
+const consoleFilter = ref(new Set(['log', 'warn', 'error', 'info']));
+
 // Share modal state
 const showShareModal = ref(false);
 const shareModalState = ref('options'); // 'options' | 'email' | 'loading' | 'success' | 'verify' | 'error'
@@ -829,6 +860,9 @@ const shareIsSaved = ref(false);
 const savedArtifacts = ref([]);
 const savedArtifactsLoading = ref(false);
 const updatedArtifactName = ref('');
+
+// Console event subscription
+let unsubConsole = null;
 
 // Timers
 let streamEndTimer = null;
@@ -897,6 +931,23 @@ const showExternalPreview = computed(() => {
   if (activeArtifact.value?.externalPreview !== undefined) return activeArtifact.value.externalPreview;
   if (props.externalPreview !== undefined) return props.externalPreview;
   return instance.config?.externalPreview ?? false;
+});
+
+const consoleErrorCount = computed(() => consoleEntries.value.filter(e => e.type === 'error').length);
+const consoleWarnCount = computed(() => consoleEntries.value.filter(e => e.type === 'warn').length);
+const consoleInfoCount = computed(() => consoleEntries.value.filter(e => e.type === 'info').length);
+const consoleLogCount = computed(() => consoleEntries.value.filter(e => e.type === 'log').length);
+const filteredConsoleEntries = computed(() => consoleEntries.value.filter(e => consoleFilter.value.has(e.type)));
+
+function toggleConsoleFilter(type) {
+	const next = new Set(consoleFilter.value);
+	if (next.has(type)) next.delete(type);
+	else next.add(type);
+	consoleFilter.value = next;
+}
+
+const showConsolePanel = computed(() => {
+	return (props.consolePanel ?? instance?.config?.consolePanel) !== false && consoleEntries.value.length > 0;
 });
 
 const sharingEnabled = computed(() => {
@@ -1553,6 +1604,21 @@ watch(() => state.isPanelOpen, (isOpen) => {
   }
 });
 
+// Clear console on artifact change
+watch(() => activeArtifact.value?.id, () => {
+	consoleEntries.value = [];
+	consoleExpanded.value = false;
+});
+
+// Auto-scroll console
+watch([consoleEntries, consoleExpanded], () => {
+	if (consoleEntriesEl.value && consoleExpanded.value) {
+		nextTick(() => {
+			consoleEntriesEl.value.scrollTop = consoleEntriesEl.value.scrollHeight;
+		});
+	}
+});
+
 // Watch prop changes for panelWidth/splitPosition
 watch(() => props.panelWidth, (val) => {
   if (val !== undefined) {
@@ -1571,6 +1637,14 @@ onMounted(() => {
   instance.on('ai:request', (data) => emit('ai-request', data));
   instance.on('save:request', (data) => emit('save', data));
   instance.on('export:complete', (data) => emit('export', data));
+
+  // Subscribe to console events
+  if (instance) {
+    unsubConsole = instance.on('console:log', ({ entry }) => {
+      consoleEntries.value = [...consoleEntries.value, entry].slice(-500);
+      if (entry.type === 'error') consoleExpanded.value = true;
+    });
+  }
   
   // Close artifact list when clicking outside
   document.addEventListener('click', handleClickOutside);
@@ -1588,5 +1662,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   clearTimeout(streamEndTimer);
   clearTimeout(iframeLoadTimer);
+  if (unsubConsole) unsubConsole();
 });
 </script>

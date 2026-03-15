@@ -230,6 +230,10 @@ export default {
       artifactuse.openFile('preview.html', '<!DOCTYPE html>\n<html>\n<body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f0f0f0">\n  <div style="text-align:center">\n    <h1>External Preview Test</h1>\n    <p>Click the ↗ button in the panel header to open this in a new tab.</p>\n  </div>\n</body>\n</html>', { externalPreview: true })
     }
 
+    function testConsole() {
+      artifactuse.openFile('console-test.html', '<!DOCTYPE html>\n<html>\n<head><title>Console Test</title></head>\n<body>\n  <h1>Console Test Page</h1>\n  <scr' + 'ipt>\n    console.log("Hello from HTML artifact");\n    console.warn("This is a warning");\n    console.error("This is an error");\n    console.info("This is info");\n    setTimeout(function() { throw new Error("Uncaught test error"); }, 1000);\n  </scr' + 'ipt>\n</body>\n</html>', { title: 'Console Test' })
+    }
+
     // updateFile test
     const updateFileArtifact = ref(null)
     let updateFileCounter = 0
@@ -372,6 +376,7 @@ export default {
       testEditTab,
       testPanelUrl,
       testExternalPreview,
+      testConsole,
       testEditLang,
       langSamples,
       testUpdateFileOpen,
@@ -470,6 +475,7 @@ export default {
           <button @click="testEditTab">Edit Tab</button>
           <button @click="testPanelUrl">panelUrl</button>
           <button @click="testExternalPreview">externalPreview</button>
+          <button @click="testConsole">Console Test</button>
         </div>
         <div class="test-panel__actions">
           <button @click="testUpdateFileOpen">updateFile: Open</button>

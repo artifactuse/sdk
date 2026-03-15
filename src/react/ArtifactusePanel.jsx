@@ -21,6 +21,7 @@ export default function ArtifactusePanel({
   panelWidth: panelWidthProp,
   splitPosition: splitPositionProp,
   externalPreview: externalPreviewProp,
+  consolePanel: consolePanelProp,
 }) {
   const { 
     state, 
@@ -63,6 +64,12 @@ export default function ArtifactusePanel({
   const [savedArtifacts, setSavedArtifacts] = useState([]);
   const [savedArtifactsLoading, setSavedArtifactsLoading] = useState(false);
   const [updatedArtifactName, setUpdatedArtifactName] = useState('');
+
+  // Console state
+  const [consoleEntries, setConsoleEntries] = useState([]);
+  const [consoleExpanded, setConsoleExpanded] = useState(false);
+  const [consoleFilter, setConsoleFilter] = useState(new Set(['log', 'warn', 'error', 'info']));
+  const consoleEntriesRef = useRef(null);
 
   // Panel/split resize state
   const [panelWidth, setPanelWidth] = useState(
@@ -138,6 +145,67 @@ export default function ArtifactusePanel({
     if (externalPreviewProp !== undefined) return externalPreviewProp;
     return instance?.config?.externalPreview ?? false;
   }, [activeArtifact, externalPreviewProp, instance, panelUrl]);
+
+  // Console computed values
+  const consoleErrorCount = useMemo(
+    () => consoleEntries.filter(e => e.type === 'error').length,
+    [consoleEntries]
+  );
+  const consoleWarnCount = useMemo(
+    () => consoleEntries.filter(e => e.type === 'warn').length,
+    [consoleEntries]
+  );
+  const consoleInfoCount = useMemo(
+    () => consoleEntries.filter(e => e.type === 'info').length,
+    [consoleEntries]
+  );
+  const consoleLogCount = useMemo(
+    () => consoleEntries.filter(e => e.type === 'log').length,
+    [consoleEntries]
+  );
+  const filteredConsoleEntries = useMemo(
+    () => consoleEntries.filter(e => consoleFilter.has(e.type)),
+    [consoleEntries, consoleFilter]
+  );
+  const showConsolePanel = (consolePanelProp ?? instance?.config?.consolePanel) !== false
+    && consoleEntries.length > 0;
+
+  function toggleConsoleFilter(type) {
+    setConsoleFilter(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+  }
+
+  // Subscribe to console:log events from bridge
+  useEffect(() => {
+    if (!instance) return;
+    const unsub = instance.on('console:log', ({ entry }) => {
+      setConsoleEntries(prev => {
+        const next = [...prev, entry];
+        return next.length > 500 ? next.slice(-500) : next;
+      });
+      if (entry.type === 'error') {
+        setConsoleExpanded(true);
+      }
+    });
+    return unsub;
+  }, [instance]);
+
+  // Clear console when artifact changes
+  useEffect(() => {
+    setConsoleEntries([]);
+    setConsoleExpanded(false);
+  }, [activeArtifact?.id]);
+
+  // Auto-scroll console to bottom
+  useEffect(() => {
+    if (consoleEntriesRef.current && consoleExpanded) {
+      consoleEntriesRef.current.scrollTop = consoleEntriesRef.current.scrollHeight;
+    }
+  }, [consoleEntries, consoleExpanded]);
 
   const sharingEnabled = useMemo(() => {
     return instance?.share?.enabled !== false;
@@ -1189,6 +1257,62 @@ export default function ArtifactusePanel({
             <div ref={editorContainerRef} className="artifactuse-panel__editor-container" />
           </div>
         </div>
+
+        {/* Console footer */}
+        {showConsolePanel && (
+          <div className={`artifactuse-panel__console ${consoleExpanded ? 'artifactuse-panel__console--expanded' : ''}`}>
+            <div
+              className="artifactuse-panel__console-header"
+              onClick={() => setConsoleExpanded(e => !e)}
+            >
+              <svg className="artifactuse-panel__console-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+              <span>Console</span>
+              <div className="artifactuse-panel__console-filters" onClick={(e) => e.stopPropagation()}>
+                {consoleErrorCount > 0 && (
+                  <button className={`artifactuse-panel__console-filter artifactuse-panel__console-filter--error${consoleFilter.has('error') ? '' : ' artifactuse-panel__console-filter--inactive'}`} onClick={() => toggleConsoleFilter('error')}>
+                    {consoleErrorCount} error{consoleErrorCount !== 1 ? 's' : ''}
+                  </button>
+                )}
+                {consoleWarnCount > 0 && (
+                  <button className={`artifactuse-panel__console-filter artifactuse-panel__console-filter--warn${consoleFilter.has('warn') ? '' : ' artifactuse-panel__console-filter--inactive'}`} onClick={() => toggleConsoleFilter('warn')}>
+                    {consoleWarnCount} warn
+                  </button>
+                )}
+                {consoleInfoCount > 0 && (
+                  <button className={`artifactuse-panel__console-filter artifactuse-panel__console-filter--info${consoleFilter.has('info') ? '' : ' artifactuse-panel__console-filter--inactive'}`} onClick={() => toggleConsoleFilter('info')}>
+                    {consoleInfoCount} info
+                  </button>
+                )}
+                {consoleLogCount > 0 && (
+                  <button className={`artifactuse-panel__console-filter artifactuse-panel__console-filter--log${consoleFilter.has('log') ? '' : ' artifactuse-panel__console-filter--inactive'}`} onClick={() => toggleConsoleFilter('log')}>
+                    {consoleLogCount} log
+                  </button>
+                )}
+              </div>
+              <button
+                className="artifactuse-panel__console-clear"
+                onClick={(e) => { e.stopPropagation(); setConsoleEntries([]); }}
+              >
+                Clear
+              </button>
+            </div>
+            {consoleExpanded && (
+              <div className="artifactuse-panel__console-entries" ref={consoleEntriesRef}>
+                {filteredConsoleEntries.map((entry, i) => (
+                  <div key={i} className={`artifactuse-panel__console-entry artifactuse-panel__console-entry--${entry.type}`}>
+                    <span className="artifactuse-panel__console-type">[{entry.type}]</span>
+                    <span className="artifactuse-panel__console-content">{entry.content}</span>
+                    <span className="artifactuse-panel__console-timestamp">
+                      {new Date(entry.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <footer className="artifactuse-panel__footer">

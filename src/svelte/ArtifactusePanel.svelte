@@ -12,8 +12,9 @@
   export let initialPanelWidth = undefined;
   export let initialSplitPosition = undefined;
   export let externalPreview = undefined;
+  export let consolePanel = undefined;
 
-  const { 
+  const {
     state,
     activeArtifact, 
     artifactCount,
@@ -41,6 +42,12 @@
   let cameFromList = false;
   let isDownloadingAll = false;
   let isTransitioning = false;
+
+  // Console state
+  let consoleEntries = [];
+  let consoleExpanded = false;
+  let consoleEntriesEl = null;
+  let consoleFilter = new Set(['log', 'warn', 'error', 'info']);
 
   // Share modal state
   let showShareModal = false;
@@ -113,6 +120,13 @@
   $: sharingEnabled = instance?.share?.enabled !== false;
   $: isAuthenticated = instance?.share?.isAuthenticated() || false;
 
+  $: consoleErrorCount = consoleEntries.filter(e => e.type === 'error').length;
+  $: consoleWarnCount = consoleEntries.filter(e => e.type === 'warn').length;
+  $: consoleInfoCount = consoleEntries.filter(e => e.type === 'info').length;
+  $: consoleLogCount = consoleEntries.filter(e => e.type === 'log').length;
+  $: filteredConsoleEntries = consoleEntries.filter(e => consoleFilter.has(e.type));
+  $: showConsolePanel = (consolePanel ?? instance?.config?.consolePanel) !== false && consoleEntries.length > 0;
+
   // Effective panel width - smaller for list/empty views
   $: effectivePanelWidth = (!artifact && !$state.forceEmptyView) ? Math.min(panelWidth, 30) : panelWidth;
 
@@ -157,6 +171,17 @@
   let prevArtifactId = null;
   let prevArtifactCode = null;
   let prevIsPreviewable = null;
+
+  // Clear console on artifact change
+  let prevArtifactIdForConsole = null;
+  $: {
+    const currentId = activeArtifact?.id;
+    if (currentId !== prevArtifactIdForConsole) {
+      prevArtifactIdForConsole = currentId;
+      consoleEntries = [];
+      consoleExpanded = false;
+    }
+  }
 
   function handleArtifactChange(newArtifact) {
     if (!newArtifact) return;
@@ -723,19 +748,42 @@
     });
   }
   
+  let unsubConsole;
+
   onMount(() => {
     instance.on('ai:request', (data) => dispatch('ai-request', data));
     instance.on('save:request', (data) => dispatch('save', data));
     instance.on('export:complete', (data) => dispatch('export', data));
+
+    if (instance) {
+      unsubConsole = instance.on('console:log', ({ entry }) => {
+        consoleEntries = [...consoleEntries, entry].slice(-500);
+        if (entry.type === 'error') consoleExpanded = true;
+        // tick() for auto-scroll
+        tick().then(() => {
+          if (consoleEntriesEl && consoleExpanded) {
+            consoleEntriesEl.scrollTop = consoleEntriesEl.scrollHeight;
+          }
+        });
+      });
+    }
   });
-  
+
   onDestroy(() => {
     stopPanelResize();
     stopSplitResize();
     destroyEditor();
     clearTimeout(streamEndTimer);
     clearTimeout(iframeLoadTimer);
+    if (unsubConsole) unsubConsole();
   });
+
+  function toggleConsoleFilter(type) {
+    const next = new Set(consoleFilter);
+    if (next.has(type)) next.delete(type);
+    else next.add(type);
+    consoleFilter = next;
+  }
 </script>
 
 {#if panelOpen}
@@ -1221,6 +1269,44 @@
           <div bind:this={editorContainerRef} class="artifactuse-panel__editor-container"></div>
         </div>
       </div>
+
+      {#if showConsolePanel}
+        <div class="artifactuse-panel__console {consoleExpanded ? 'artifactuse-panel__console--expanded' : ''}">
+          <div class="artifactuse-panel__console-header" role="button" tabindex="0" on:click={() => consoleExpanded = !consoleExpanded} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') consoleExpanded = !consoleExpanded; }}>
+            <svg class="artifactuse-panel__console-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
+            <span>Console</span>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div class="artifactuse-panel__console-filters" on:click|stopPropagation>
+              {#if consoleErrorCount > 0}
+                <button class="artifactuse-panel__console-filter artifactuse-panel__console-filter--error {consoleFilter.has('error') ? '' : 'artifactuse-panel__console-filter--inactive'}" on:click={() => toggleConsoleFilter('error')}>{consoleErrorCount} error{consoleErrorCount !== 1 ? 's' : ''}</button>
+              {/if}
+              {#if consoleWarnCount > 0}
+                <button class="artifactuse-panel__console-filter artifactuse-panel__console-filter--warn {consoleFilter.has('warn') ? '' : 'artifactuse-panel__console-filter--inactive'}" on:click={() => toggleConsoleFilter('warn')}>{consoleWarnCount} warn</button>
+              {/if}
+              {#if consoleInfoCount > 0}
+                <button class="artifactuse-panel__console-filter artifactuse-panel__console-filter--info {consoleFilter.has('info') ? '' : 'artifactuse-panel__console-filter--inactive'}" on:click={() => toggleConsoleFilter('info')}>{consoleInfoCount} info</button>
+              {/if}
+              {#if consoleLogCount > 0}
+                <button class="artifactuse-panel__console-filter artifactuse-panel__console-filter--log {consoleFilter.has('log') ? '' : 'artifactuse-panel__console-filter--inactive'}" on:click={() => toggleConsoleFilter('log')}>{consoleLogCount} log</button>
+              {/if}
+            </div>
+            <button class="artifactuse-panel__console-clear" on:click|stopPropagation={() => consoleEntries = []}>Clear</button>
+          </div>
+          {#if consoleExpanded}
+            <div class="artifactuse-panel__console-entries" bind:this={consoleEntriesEl}>
+              {#each filteredConsoleEntries as entry, i}
+                <div class="artifactuse-panel__console-entry artifactuse-panel__console-entry--{entry.type}">
+                  <span class="artifactuse-panel__console-type">[{entry.type}]</span>
+                  <span class="artifactuse-panel__console-content">{entry.content}</span>
+                  <span class="artifactuse-panel__console-timestamp">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
 
       <!-- Footer -->
       <footer class="artifactuse-panel__footer">

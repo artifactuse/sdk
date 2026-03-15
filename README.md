@@ -792,6 +792,14 @@ on('media:open', ({ type, src, alt, caption }) => {
 on('edit:save', ({ artifactId, artifact, code }) => {
   console.log('Code saved:', code);
 });
+
+// Console output from HTML artifacts
+on('console:log', ({ artifactId, entry }) => {
+  // entry: { type: 'log'|'warn'|'error'|'info', content: string, timestamp: number, stack?: string }
+  if (entry.type === 'error') {
+    // Send error back to AI for auto-fix
+  }
+});
 ```
 
 ## Programmatic API
