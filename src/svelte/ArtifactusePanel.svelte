@@ -1277,7 +1277,7 @@
               <polyline points="18 15 12 9 6 15" />
             </svg>
             <span>Console</span>
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div class="artifactuse-panel__console-filters" on:click|stopPropagation>
               {#if consoleErrorCount > 0}
                 <button class="artifactuse-panel__console-filter artifactuse-panel__console-filter--error {consoleFilter.has('error') ? '' : 'artifactuse-panel__console-filter--inactive'}" on:click={() => toggleConsoleFilter('error')}>{consoleErrorCount} error{consoleErrorCount !== 1 ? 's' : ''}</button>
