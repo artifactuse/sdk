@@ -199,6 +199,14 @@ export default {
       artifactuse.openCode('function greet(name) {\n  console.log(`Hello, ${name}!`);\n}\n\ngreet("World");', 'javascript', { title: 'My Script' })
     }
 
+    function testCustomLangDownload() {
+      artifactuse.openCode(
+        'ROBOT START\n  MOVE FORWARD 100\n  ROTATE LEFT 90\n  MOVE FORWARD 50\n  ROTATE RIGHT 45\n  MOVE FORWARD 75\nROBOT END',
+        'robotscript',
+        { title: 'robot-instructions' }
+      )
+    }
+
     // New feature demos
     function testViewModeCode() {
       artifactuse.openFile('page.html', '<!DOCTYPE html>\n<html>\n<body>\n  <h1>viewMode: code</h1>\n  <p>This opened with the Code tab active instead of Preview.</p>\n</body>\n</html>', { viewMode: 'code' })
@@ -369,6 +377,7 @@ export default {
       testOpenMarkdown,
       testOpenUnknown,
       testOpenCode,
+      testCustomLangDownload,
       testViewModeCode,
       testCodeOnly,
       testNoSplit,
@@ -458,6 +467,7 @@ export default {
         </div>
         <div class="test-panel__actions">
           <button @click="testOpenCode">openCode()</button>
+          <button @click="testCustomLangDownload">Custom Lang (.robotscript)</button>
         </div>
 
         <div class="test-panel__field">

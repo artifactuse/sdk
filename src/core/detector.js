@@ -267,7 +267,8 @@ export function getFileExtension(language) {
     nim: 'nim',
     v: 'v',
   };
-  return extensions[language?.toLowerCase()] || 'txt';
+  const lang = language?.toLowerCase();
+  return extensions[lang] || lang || 'txt';
 }
 
 /**

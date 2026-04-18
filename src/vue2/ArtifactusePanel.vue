@@ -1113,8 +1113,8 @@ export default defineComponent({
     function handleDownload() {
       if (!activeArtifact.value) return;
       
-      const { code, language, title } = activeArtifact.value;
-      const extension = getFileExtension(language);
+      const { code, language, editorLanguage, title } = activeArtifact.value;
+      const extension = getFileExtension(editorLanguage || language);
       const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.${extension}`;
       
       const blob = new Blob([code], { type: 'text/plain' });
@@ -1142,7 +1142,7 @@ export default defineComponent({
         for (const artifact of nonInlineArtifacts.value) {
           if (!artifact.code) continue;
           
-          const extension = getFileExtension(artifact.language);
+          const extension = getFileExtension(artifact.editorLanguage || artifact.language);
           let baseFilename = (artifact.title || 'untitled')
             .toLowerCase()
             .replace(/\s+/g, '-')

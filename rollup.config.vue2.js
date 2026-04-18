@@ -12,7 +12,11 @@ export default {
     file: path.resolve(__dirname, 'dist/vue2/index.js'),
     format: 'es',
   },
-  external: ['vue'],
+  external: ['vue', 'portal-vue'],
+  onwarn(warning, warn) {
+    if (warning.code === 'CIRCULAR_DEPENDENCY' && warning.ids?.some(id => id.includes('node_modules'))) return;
+    warn(warning);
+  },
   plugins: [
     resolve({
       extensions: ['.js', '.vue'],

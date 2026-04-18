@@ -414,8 +414,8 @@
   function handleDownload() {
     if (!artifact) return;
     
-    const { code, language, title } = artifact;
-    const extension = getFileExtension(language);
+    const { code, language, editorLanguage, title } = artifact;
+    const extension = getFileExtension(editorLanguage || language);
     const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.${extension}`;
     
     const blob = new Blob([code], { type: 'text/plain' });
@@ -444,7 +444,7 @@
       for (const art of nonInlineArtifacts) {
         if (!art.code) continue;
         
-        const extension = getFileExtension(art.language);
+        const extension = getFileExtension(art.editorLanguage || art.language);
         let baseFilename = (art.title || 'untitled')
           .toLowerCase()
           .replace(/\s+/g, '-')

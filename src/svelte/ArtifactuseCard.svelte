@@ -57,7 +57,7 @@
     const blob = new Blob([artifact.code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const extension = getFileExtension(artifact.language);
+    const extension = getFileExtension(artifact.editorLanguage || artifact.language);
     const filename = artifact.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'code';
     a.href = url;
     a.download = `${filename}.${extension}`;

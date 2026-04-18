@@ -132,7 +132,7 @@ export default {
       const blob = new Blob([this.artifact.code], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const extension = getFileExtension(this.artifact.language);
+      const extension = getFileExtension(this.artifact.editorLanguage || this.artifact.language);
       const filename = this.artifact.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'code';
       a.href = url;
       a.download = `${filename}.${extension}`;

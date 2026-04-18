@@ -406,8 +406,8 @@ export default function ArtifactusePanel({
   const handleDownload = useCallback(() => {
     if (!activeArtifact) return;
     
-    const { code, language, title } = activeArtifact;
-    const extension = getFileExtension(language);
+    const { code, language, editorLanguage, title } = activeArtifact;
+    const extension = getFileExtension(editorLanguage || language);
     const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.${extension}`;
     
     const blob = new Blob([code], { type: 'text/plain' });
@@ -436,7 +436,7 @@ export default function ArtifactusePanel({
       for (const artifact of nonInlineArtifacts) {
         if (!artifact.code) continue;
         
-        const extension = getFileExtension(artifact.language);
+        const extension = getFileExtension(artifact.editorLanguage || artifact.language);
         let baseFilename = (artifact.title || 'untitled')
           .toLowerCase()
           .replace(/\s+/g, '-')
