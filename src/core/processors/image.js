@@ -45,10 +45,25 @@ export function processImages(html) {
     'gi'
   );
   html = html.replace(imageLinkRegex, (match, imageUrl, linkText) => {
-    const meaningfulText = linkText && !linkText.match(/^(view|see|open|click|image|photo|picture)$/i) 
-      ? linkText 
+    const meaningfulText = linkText &&
+      !linkText.match(/^(view|see|open|click|image|photo|picture)$/i) &&
+      !linkText.match(/^https?:\/\//i)
+      ? linkText
       : '';
     return renderImageHtml(imageUrl, meaningfulText, meaningfulText);
+  });
+
+  // Re-protect any new <img> tags and containers created by the linkified URL step above,
+  // so the raw URL regex below cannot double-process URLs inside caption divs.
+  html = html.replace(/<img[^>]*>/gi, (match) => {
+    const placeholder = `__IMG_PROTECTED_${protectedContent.length}__`;
+    protectedContent.push(match);
+    return placeholder;
+  });
+  html = html.replace(/<div class="artifactuse-image-container">[\s\S]*?<\/div>\s*<\/div>/gi, (match) => {
+    const placeholder = `__IMG_PROTECTED_${protectedContent.length}__`;
+    protectedContent.push(match);
+    return placeholder;
   });
 
   // Process raw image URLs (not already in tags)

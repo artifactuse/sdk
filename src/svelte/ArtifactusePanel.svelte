@@ -1288,6 +1288,7 @@
                 </div>
               {:else if binaryCategory === 'video'}
                 <div class="artifactuse-panel__binary artifactuse-panel__binary--video">
+                  <!-- svelte-ignore a11y_media_has_caption -->
                   <video controls src={getBlobUrl(artifact)}></video>
                 </div>
               {:else if binaryCategory === 'pdf'}
