@@ -5,7 +5,10 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useArtifactuse } from './index.jsx';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+import { base64ToObjectUrl, getMimeType, revokeBlobUrl } from '../core/binaryPreview.js';
 import JSZip from 'jszip';
+
+const BINARY_CATEGORIES = ['image', 'audio', 'video', 'pdf', 'font', 'binary'];
 
 /**
  * ArtifactusePanel Component
@@ -98,7 +101,11 @@ export default function ArtifactusePanel({
   const streamEndTimerRef = useRef(null);
   const iframeLoadTimerRef = useRef(null);
   const prevArtifactRef = useRef(null);
-  
+
+  // Binary preview
+  const blobUrlCache = useRef({});
+  const fontStyleEl = useRef(null);
+
   // Computed values
   const languageDisplay = useMemo(() => {
     if (!activeArtifact) return '';
@@ -125,7 +132,37 @@ export default function ArtifactusePanel({
     if (!activeArtifact) return 'plaintext';
     return normalizeLang(activeArtifact.language);
   }, [activeArtifact]);
-  
+
+  const isBinaryArtifact = useMemo(() => {
+    return BINARY_CATEGORIES.includes(activeArtifact?.language);
+  }, [activeArtifact]);
+
+  const binaryCategory = useMemo(() => {
+    return isBinaryArtifact ? activeArtifact.language : null;
+  }, [isBinaryArtifact, activeArtifact]);
+
+  const fontPreviewName = useMemo(() => {
+    if (binaryCategory !== 'font' || !activeArtifact) return null;
+    return 'apfont_' + activeArtifact.id;
+  }, [binaryCategory, activeArtifact]);
+
+  const hexDump = useMemo(() => {
+    if (binaryCategory !== 'binary' || !activeArtifact?.code) return '';
+    try {
+      const raw = atob(activeArtifact.code.slice(0, 684));
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      const lines = [];
+      for (let i = 0; i < Math.min(bytes.length, 512); i += 16) {
+        const chunk = bytes.slice(i, i + 16);
+        const hex = Array.from(chunk).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        const ascii = Array.from(chunk).map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : '.').join('');
+        lines.push(`${i.toString(16).padStart(8, '0')}  ${hex.padEnd(47)}  |${ascii}|`);
+      }
+      return lines.join('\n');
+    } catch { return ''; }
+  }, [binaryCategory, activeArtifact]);
+
   const nonInlineArtifacts = useMemo(() => {
     return state.artifacts.filter(a => !a.isInline);
   }, [state.artifacts]);
@@ -169,6 +206,21 @@ export default function ArtifactusePanel({
   );
   const showConsolePanel = (consolePanelProp ?? instance?.config?.consolePanel) !== false
     && consoleEntries.length > 0;
+
+  const getBlobUrl = useCallback((artifact) => {
+    if (!artifact || !artifact.code) return null;
+    if (blobUrlCache.current[artifact.id]) return blobUrlCache.current[artifact.id];
+    const url = base64ToObjectUrl(artifact.code, getMimeType(artifact.fileExtension || artifact.language));
+    blobUrlCache.current[artifact.id] = url;
+    return url;
+  }, []);
+
+  const releaseBlobUrl = useCallback((artifactId) => {
+    if (blobUrlCache.current[artifactId]) {
+      revokeBlobUrl(blobUrlCache.current[artifactId]);
+      delete blobUrlCache.current[artifactId];
+    }
+  }, []);
 
   function toggleConsoleFilter(type) {
     setConsoleFilter(prev => {
@@ -641,11 +693,12 @@ export default function ArtifactusePanel({
   }, [openArtifact]);
 
   const handleCloseTab = useCallback((artifactId) => {
+    releaseBlobUrl(artifactId);
     instance.closeTab(artifactId);
     if (state.openTabs.length === 0) {
       setCameFromList(false);
     }
-  }, [instance, state.openTabs]);
+  }, [instance, state.openTabs, releaseBlobUrl]);
 
   // Navigate artifacts
   const navigatePrev = useCallback(() => {
@@ -762,12 +815,30 @@ export default function ArtifactusePanel({
       }
       prevArtifactRef.current = activeArtifact;
 
+      if (BINARY_CATEGORIES.includes(activeArtifact.language)) {
+        setViewMode('preview');
+      }
+
       resetCodeContainerStyles();
       setIframeLoading(true);
       startIframeLoadTimeout();
       updateCodeView();
     }
   }, [activeArtifact?.id, resetCodeContainerStyles]);
+
+  // Effect: Font face injection for font binary artifacts
+  useEffect(() => {
+    if (binaryCategory === 'font' && fontPreviewName && activeArtifact?.code) {
+      const css = `@font-face { font-family: "${fontPreviewName}"; src: url("data:${getMimeType(activeArtifact.fileExtension || 'woff2')};base64,${activeArtifact.code}"); }`;
+      if (!fontStyleEl.current) {
+        fontStyleEl.current = document.createElement('style');
+        document.head.appendChild(fontStyleEl.current);
+      }
+      fontStyleEl.current.textContent = css;
+    } else if (fontStyleEl.current) {
+      fontStyleEl.current.textContent = '';
+    }
+  }, [binaryCategory, fontPreviewName, activeArtifact]);
   
   // Effect: Update code view when viewMode changes
   useEffect(() => {
@@ -803,6 +874,12 @@ export default function ArtifactusePanel({
       }
       clearTimeout(streamEndTimerRef.current);
       clearTimeout(iframeLoadTimerRef.current);
+      Object.keys(blobUrlCache.current).forEach(id => revokeBlobUrl(blobUrlCache.current[id]));
+      blobUrlCache.current = {};
+      if (fontStyleEl.current) {
+        fontStyleEl.current.remove();
+        fontStyleEl.current = null;
+      }
     };
   }, [stopPanelResize, stopSplitResize]);
   
@@ -1074,7 +1151,7 @@ export default function ArtifactusePanel({
               </svg>
             </button>
             )}
-            {(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && (
+            {(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && !isBinaryArtifact && (
             <button
               className={`artifactuse-panel__tab ${state.viewMode === 'code' ? 'artifactuse-panel__tab--active' : ''}`}
               title="Code"
@@ -1086,7 +1163,7 @@ export default function ArtifactusePanel({
               </svg>
             </button>
             )}
-            {(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && (
+            {(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && !isBinaryArtifact && (
             <button
               className={`artifactuse-panel__tab ${state.viewMode === 'split' ? 'artifactuse-panel__tab--active' : ''}`}
               disabled={!activeArtifact.isPreviewable}
@@ -1191,13 +1268,51 @@ export default function ArtifactusePanel({
               style={state.viewMode === 'split' ? { width: `${splitPosition}%` } : undefined}
             >
               {/* Loading spinner */}
-              {iframeLoading && panelUrl && (
+              {iframeLoading && panelUrl && !isBinaryArtifact && (
                 <div className="artifactuse-panel__loading">
                   <div className="artifactuse-panel__spinner" />
                 </div>
               )}
-              
-              {panelUrl ? (
+
+              {isBinaryArtifact ? (
+                <>
+                  {binaryCategory === 'image' && (
+                    <div className="artifactuse-panel__binary artifactuse-panel__binary--image">
+                      <img src={getBlobUrl(activeArtifact)} alt={activeArtifact.title || 'image'} />
+                    </div>
+                  )}
+                  {binaryCategory === 'audio' && (
+                    <div className="artifactuse-panel__binary artifactuse-panel__binary--audio">
+                      <audio controls src={getBlobUrl(activeArtifact)} />
+                    </div>
+                  )}
+                  {binaryCategory === 'video' && (
+                    <div className="artifactuse-panel__binary artifactuse-panel__binary--video">
+                      <video controls src={getBlobUrl(activeArtifact)} />
+                    </div>
+                  )}
+                  {binaryCategory === 'pdf' && (
+                    <div className="artifactuse-panel__binary artifactuse-panel__binary--pdf">
+                      <iframe src={getBlobUrl(activeArtifact) + '#toolbar=1'} title={activeArtifact.title || 'PDF'} />
+                    </div>
+                  )}
+                  {binaryCategory === 'font' && (
+                    <div className="artifactuse-panel__binary artifactuse-panel__binary--font">
+                      <div className="artifactuse-panel__font-sample" style={{ fontFamily: fontPreviewName }}>
+                        AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz
+                      </div>
+                      <div className="artifactuse-panel__font-sample artifactuse-panel__font-sample--sm" style={{ fontFamily: fontPreviewName }}>
+                        0123456789 !@#$%^&*()
+                      </div>
+                    </div>
+                  )}
+                  {binaryCategory === 'binary' && (
+                    <div className="artifactuse-panel__binary artifactuse-panel__binary--hex">
+                      <pre className="artifactuse-panel__hex-dump">{hexDump}</pre>
+                    </div>
+                  )}
+                </>
+              ) : panelUrl ? (
                 <iframe
                   ref={iframeRef}
                   src={panelUrl}

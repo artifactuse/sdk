@@ -289,6 +289,42 @@ export default {
       'utils.py': 'from dataclasses import dataclass\nfrom typing import List, Optional\n\n@dataclass\nclass User:\n    name: str\n    email: str\n    age: Optional[int] = None\n\ndef filter_adults(users: List[User]) -> List[User]:\n    return [u for u in users if u.age and u.age >= 18]\n\nif __name__ == "__main__":\n    users = [User("Alice", "alice@test.com", 25)]\n    print(filter_adults(users))',
     }
 
+    // Binary file preview test data
+    const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8BQDwAEgAF/QualIQAAAABJRU5ErkJggg==';
+    const WAV_B64 = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+    const PDF_B64 = 'JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmoKMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+';
+    const BIN_B64 = btoa('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f' + 'Hello, binary! \xff');
+
+    async function fetchAsBase64(url) {
+      const res = await fetch(url);
+      const buf = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin = '';
+      for (const b of bytes) bin += String.fromCharCode(b);
+      return btoa(bin);
+    }
+
+    function testBinaryImage() {
+      artifactuse.openFile('red-pixel.png', PNG_B64);
+    }
+    function testBinaryAudio() {
+      artifactuse.openFile('silent.wav', WAV_B64);
+    }
+    async function testBinaryVideo() {
+      const b64 = await fetchAsBase64('https://www.w3schools.com/html/mov_bbb.mp4');
+      artifactuse.openFile('test.mp4', b64);
+    }
+    function testBinaryPdf() {
+      artifactuse.openFile('minimal.pdf', PDF_B64);
+    }
+    async function testBinaryFont() {
+      const b64 = await fetchAsBase64('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.woff2');
+      artifactuse.openFile('Roboto.woff2', b64);
+    }
+    function testBinaryHex() {
+      artifactuse.openFile('data.bin', BIN_B64);
+    }
+
     // Panel methods demo
     function testOpenPanel() {
       artifactuse.instance.openPanel()
@@ -393,6 +429,12 @@ export default {
       getMessageOverrides,
       inlineCardsEnabled,
       toggleInlineCards,
+      testBinaryImage,
+      testBinaryAudio,
+      testBinaryVideo,
+      testBinaryPdf,
+      testBinaryFont,
+      testBinaryHex,
       testOpenPanel,
       testClosePanel,
       testTogglePanel,
@@ -490,6 +532,20 @@ export default {
         <div class="test-panel__actions">
           <button @click="testUpdateFileOpen">updateFile: Open</button>
           <button @click="testUpdateFileUpdate">updateFile: Update</button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>Binary File Preview:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testBinaryImage">PNG</button>
+          <button @click="testBinaryAudio">WAV</button>
+          <button @click="testBinaryVideo">MP4</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testBinaryPdf">PDF</button>
+          <button @click="testBinaryFont">WOFF2</button>
+          <button @click="testBinaryHex">BIN</button>
         </div>
 
         <div class="test-panel__field">

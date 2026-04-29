@@ -233,7 +233,7 @@
               </svg>
             </button>
             <button
-              v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('code')"
+              v-if="(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && !isBinaryArtifact"
               class="artifactuse-panel__tab"
               :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
               title="Code"
@@ -246,7 +246,7 @@
               </svg>
             </button>
             <button
-              v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('split')"
+              v-if="(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && !isBinaryArtifact"
               class="artifactuse-panel__tab"
               :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
               :disabled="!activeArtifact.isPreviewable"
@@ -377,30 +377,60 @@
             class="artifactuse-panel__preview"
             :style="state.viewMode === 'split' ? { width: `${splitPosition}%` } : undefined"
           >
-            <!-- Loading spinner -->
-            <div v-if="iframeLoading && panelUrl" class="artifactuse-panel__loading">
+            <!-- Loading spinner (non-binary only) -->
+            <div v-if="iframeLoading && panelUrl && !isBinaryArtifact" class="artifactuse-panel__loading">
               <div class="artifactuse-panel__spinner"></div>
             </div>
-            
-            <iframe
-              v-if="panelUrl"
-              ref="iframeRef"
-              :src="panelUrl"
-              class="artifactuse-panel__iframe"
-              :class="{ 'artifactuse-panel__iframe--loading': iframeLoading }"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
-              allow="camera; microphone; fullscreen; geolocation; display-capture; autoplay; clipboard-write; encrypted-media; gyroscope; accelerometer; picture-in-picture"
-              @load="handleIframeLoad"
-              @error="handleIframeError"
-            ></iframe>
-            <div v-else class="artifactuse-panel__no-preview">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
-                <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-              </svg>
-              <p>Preview not available for {{ languageDisplay }}</p>
-            </div>
+
+            <!-- Binary file preview -->
+            <template v-if="isBinaryArtifact">
+              <div v-if="binaryCategory === 'image'" class="artifactuse-panel__binary artifactuse-panel__binary--image">
+                <img :src="getBlobUrl(activeArtifact)" :alt="activeArtifact.title" />
+              </div>
+              <div v-else-if="binaryCategory === 'audio'" class="artifactuse-panel__binary artifactuse-panel__binary--audio">
+                <audio controls :src="getBlobUrl(activeArtifact)"></audio>
+              </div>
+              <div v-else-if="binaryCategory === 'video'" class="artifactuse-panel__binary artifactuse-panel__binary--video">
+                <video controls :src="getBlobUrl(activeArtifact)"></video>
+              </div>
+              <div v-else-if="binaryCategory === 'pdf'" class="artifactuse-panel__binary artifactuse-panel__binary--pdf">
+                <iframe :src="getBlobUrl(activeArtifact) + '#toolbar=1'" frameborder="0"></iframe>
+              </div>
+              <div v-else-if="binaryCategory === 'font'" class="artifactuse-panel__binary artifactuse-panel__binary--font">
+                <div class="artifactuse-panel__font-sample" :style="{ fontFamily: fontPreviewName }">
+                  AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz
+                </div>
+                <div class="artifactuse-panel__font-sample artifactuse-panel__font-sample--sm" :style="{ fontFamily: fontPreviewName }">
+                  0123456789 !@#$%^&amp;*()
+                </div>
+              </div>
+              <div v-else class="artifactuse-panel__binary artifactuse-panel__binary--hex">
+                <pre class="artifactuse-panel__hex-dump">{{ hexDump }}</pre>
+              </div>
+            </template>
+
+            <!-- Regular iframe preview (non-binary) -->
+            <template v-else>
+              <iframe
+                v-if="panelUrl"
+                ref="iframeRef"
+                :src="panelUrl"
+                class="artifactuse-panel__iframe"
+                :class="{ 'artifactuse-panel__iframe--loading': iframeLoading }"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
+                allow="camera; microphone; fullscreen; geolocation; display-capture; autoplay; clipboard-write; encrypted-media; gyroscope; accelerometer; picture-in-picture"
+                @load="handleIframeLoad"
+                @error="handleIframeError"
+              ></iframe>
+              <div v-else class="artifactuse-panel__no-preview">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
+                  <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                <p>Preview not available for {{ languageDisplay }}</p>
+              </div>
+            </template>
           </div>
           
           <!-- Code pane - always mounted, shown/hidden via v-show -->
@@ -802,6 +832,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useArtifactuse } from './index.js';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
+import { base64ToObjectUrl, getMimeType, revokeBlobUrl } from '../core/binaryPreview.js';
 import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
 import JSZip from 'jszip';
 
@@ -842,6 +873,8 @@ const iframeLoading = ref(true);
 const isTransitioning = ref(false);
 const cameFromList = ref(false); // Track if user navigated from list view
 const isDownloadingAll = ref(false); // Track download all progress
+const blobUrlCache = ref({}); // artifactId → blob URL for binary artifacts
+let fontStyleEl = null; // injected <style> for font @font-face preview
 
 // Console state
 const consoleEntries = ref([]);
@@ -926,6 +959,43 @@ const showBranding = computed(() => {
   return instance.config?.branding !== false;
 });
 
+const BINARY_CATEGORIES = ['image', 'audio', 'video', 'pdf', 'font', 'binary'];
+
+const isBinaryArtifact = computed(() => {
+  return BINARY_CATEGORIES.includes(activeArtifact.value?.language);
+});
+
+const binaryCategory = computed(() => {
+  return isBinaryArtifact.value ? activeArtifact.value.language : null;
+});
+
+const fontPreviewName = computed(() => {
+  if (binaryCategory.value !== 'font' || !activeArtifact.value) return '';
+  return `apfont_${activeArtifact.value.id.replace(/[^a-zA-Z0-9]/g, '_')}`;
+});
+
+const hexDump = computed(() => {
+  if (binaryCategory.value !== 'binary' || !activeArtifact.value?.code) return '';
+  try {
+    const raw = atob(activeArtifact.value.code.slice(0, 684)); // ~512 bytes of base64
+    const bytes = Math.min(raw.length, 512);
+    const lines = [];
+    for (let i = 0; i < bytes; i += 16) {
+      const chunk = raw.slice(i, i + 16);
+      const hex = Array.from(chunk).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(' ');
+      const ascii = Array.from(chunk).map(c => {
+        const code = c.charCodeAt(0);
+        return code >= 32 && code < 127 ? c : '.';
+      }).join('');
+      lines.push(`${i.toString(16).padStart(8, '0')}  ${hex.padEnd(47, ' ')}  ${ascii}`);
+    }
+    if (bytes < raw.length || activeArtifact.value.code.length > 684) lines.push('...');
+    return lines.join('\n');
+  } catch {
+    return '(unable to decode)';
+  }
+});
+
 const showExternalPreview = computed(() => {
   if (!panelUrl.value) return false;
   if (activeArtifact.value?.externalPreview !== undefined) return activeArtifact.value.externalPreview;
@@ -990,7 +1060,24 @@ function selectTab(artifact) {
   openArtifact(artifact);
 }
 
+function getBlobUrl(artifact) {
+  if (!artifact?.code) return null;
+  if (blobUrlCache.value[artifact.id]) return blobUrlCache.value[artifact.id];
+  const ext = artifact.fileExtension || artifact.language;
+  const url = base64ToObjectUrl(artifact.code, getMimeType(ext));
+  blobUrlCache.value[artifact.id] = url;
+  return url;
+}
+
+function releaseBlobUrl(artifactId) {
+  if (blobUrlCache.value[artifactId]) {
+    revokeBlobUrl(blobUrlCache.value[artifactId]);
+    delete blobUrlCache.value[artifactId];
+  }
+}
+
 function handleCloseTab(artifactId) {
+  releaseBlobUrl(artifactId);
   instance.closeTab(artifactId);
   if (state.openTabs.length === 0) {
     cameFromList.value = false;
@@ -1557,6 +1644,10 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
       resetCodeContainerStyles();
       iframeLoading.value = true;
       startIframeLoadTimeout();
+      // Binary artifacts only support preview mode
+      if (BINARY_CATEGORIES.includes(newArtifact.language) && state.viewMode !== 'preview') {
+        setViewMode('preview');
+      }
     }
 
     // Check if code changed
@@ -1655,6 +1746,21 @@ onMounted(() => {
   }
 });
 
+// Inject/remove @font-face style tag when a font artifact is active
+watch([binaryCategory, fontPreviewName], ([cat, name]) => {
+  if (fontStyleEl) {
+    fontStyleEl.remove();
+    fontStyleEl = null;
+  }
+  if (cat === 'font' && name && activeArtifact.value?.code) {
+    const ext = activeArtifact.value.fileExtension || 'ttf';
+    const mime = getMimeType(ext);
+    fontStyleEl = document.createElement('style');
+    fontStyleEl.textContent = `@font-face { font-family: "${name}"; src: url("data:${mime};base64,${activeArtifact.value.code}"); }`;
+    document.head.appendChild(fontStyleEl);
+  }
+});
+
 onUnmounted(() => {
   stopPanelResize();
   stopSplitResize();
@@ -1663,5 +1769,7 @@ onUnmounted(() => {
   clearTimeout(streamEndTimer);
   clearTimeout(iframeLoadTimer);
   if (unsubConsole) unsubConsole();
+  if (fontStyleEl) { fontStyleEl.remove(); fontStyleEl = null; }
+  Object.keys(blobUrlCache.value).forEach(releaseBlobUrl);
 });
 </script>

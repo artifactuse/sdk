@@ -530,6 +530,81 @@
   font-size: 14px;
 }
 
+/* ─── Binary file preview ─────────────────────────────────────────────────── */
+
+.artifactuse-panel__binary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.artifactuse-panel__binary--image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.artifactuse-panel__binary--audio audio {
+  width: 80%;
+  max-width: 480px;
+}
+
+.artifactuse-panel__binary--video video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.artifactuse-panel__binary--pdf {
+  align-items: stretch;
+}
+
+.artifactuse-panel__binary--pdf iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.artifactuse-panel__binary--font {
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  overflow-y: auto;
+  text-align: center;
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-panel__font-sample {
+  line-height: 1.8;
+  word-break: break-word;
+  font-size: 2rem;
+}
+
+.artifactuse-panel__font-sample--sm {
+  font-size: 1.25rem;
+  color: rgb(var(--artifactuse-text-muted));
+}
+
+.artifactuse-panel__binary--hex {
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+}
+
+.artifactuse-panel__hex-dump {
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  padding: 1rem;
+  margin: 0;
+  white-space: pre;
+  color: rgb(var(--artifactuse-text));
+}
+
 /* Split handle */
 .artifactuse-panel__split-handle {
   position: absolute;

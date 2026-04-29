@@ -55,7 +55,33 @@ export const PANEL_LANGUAGES = [
   'jsx', 'vue', 'html', 'htm',
   // Structured artifacts (form can be panel based on complexity)
   'form',
+  // Binary workspace files
+  'image', 'audio', 'pdf', 'font', 'binary',
 ];
+
+/**
+ * File extensions stored as base64-encoded binary in the workspace DB.
+ * Used by SandboxExecutionService (_pushFiles) and WorkspaceController (ZIP download).
+ */
+export const BINARY_EXTS = new Set([
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'bmp', 'tiff', 'tif', 'svg',
+  'mp3', 'mp4', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'webm',
+  'pdf', 'bin', 'woff', 'woff2', 'ttf', 'eot', 'otf',
+]);
+
+/**
+ * Maps each binary extension to its panel language group.
+ * Note: mp4/m4a/webm map to 'video'; svg maps to 'image' (not 'svg') for binary preview.
+ */
+export const BINARY_EXT_LANGUAGE = {
+  png: 'image', jpg: 'image', jpeg: 'image', gif: 'image', webp: 'image',
+  ico: 'image', bmp: 'image', tiff: 'image', tif: 'image', svg: 'image',
+  mp3: 'audio', wav: 'audio', ogg: 'audio', flac: 'audio', aac: 'audio',
+  mp4: 'video', m4a: 'video', webm: 'video',
+  pdf: 'pdf',
+  woff: 'font', woff2: 'font', ttf: 'font', eot: 'font', otf: 'font',
+  bin: 'binary',
+};
 
 /**
  * Generate unique artifact ID
@@ -147,6 +173,12 @@ export function getLanguageDisplayName(language) {
     // Structured artifacts
     form: 'Form',
     social: 'Social Preview',
+    // Binary workspace file types
+    image: 'Image',
+    audio: 'Audio',
+    pdf: 'PDF',
+    font: 'Font',
+    binary: 'Binary',
     txt: 'Plain Text',
     plaintext: 'Plain Text',
     text: 'Plain Text',
@@ -329,7 +361,8 @@ export function getLanguageFromExtension(ext) {
     nim: 'nim',
     v: 'v',
   };
-  return map[ext?.toLowerCase()] || null;
+  const lower = ext?.toLowerCase();
+  return map[lower] || BINARY_EXT_LANGUAGE[lower] || null;
 }
 
 /**
@@ -427,6 +460,12 @@ export function getLanguageIcon(language) {
     zig: '<path d="M2 6h7l-5 12h7l5-12h7l-5 12h7" fill="none" stroke="currentColor" stroke-width="1.5"/>',
     nim: '<path d="M12 2l3 5h5l-3 5 3 5h-5l-3 5-3-5H4l3-5-3-5h5l3-5z" fill="none" stroke="currentColor" stroke-width="1.2"/>',
     v: '<path d="M4 4l8 16 8-16" fill="none" stroke="currentColor" stroke-width="2"/>',
+    // Binary workspace file types
+    image: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+    audio: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    pdf: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 11h4M10 14h4M10 17h2"/>',
+    font: '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+    binary: '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M7 8v8M10 8v8M14 8h2v3h-2v2h2v3h-2M7.5 12h3"/>',
     // Text/document icon
     txt: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>',
     plaintext: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>',

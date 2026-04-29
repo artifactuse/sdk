@@ -8,7 +8,34 @@
   import { messages as mockMessages } from '../shared/mockMessages'
   import { createStreamSimulator } from '../shared/streamSimulator'
 
-  const { clearArtifacts } = setArtifactuseContext({ theme: 'dark' })
+  const { clearArtifacts, openFile } = setArtifactuseContext({ theme: 'dark' })
+
+  const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8BQDwAEgAF/QualIQAAAABJRU5ErkJggg==';
+  const WAV_B64 = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  const PDF_B64 = 'JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmoKMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+';
+  const BIN_B64 = btoa('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f' + 'Hello, binary! \xff');
+
+  async function fetchAsBase64(url) {
+    const res = await fetch(url);
+    const buf = await res.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+
+  function testBinaryImage() { openFile('red-pixel.png', PNG_B64); }
+  function testBinaryAudio() { openFile('silent.wav', WAV_B64); }
+  async function testBinaryVideo() {
+    const b64 = await fetchAsBase64('https://www.w3schools.com/html/mov_bbb.mp4');
+    openFile('test.mp4', b64);
+  }
+  function testBinaryPdf() { openFile('minimal.pdf', PDF_B64); }
+  async function testBinaryFont() {
+    const b64 = await fetchAsBase64('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.woff2');
+    openFile('Roboto.woff2', b64);
+  }
+  function testBinaryHex() { openFile('data.bin', BIN_B64); }
 
   let messages = []
   let selectedMessageId = mockMessages[0]?.id || ''
@@ -111,6 +138,20 @@
           {#if isStreaming}
             <span class="streaming-indicator">Streaming...</span>
           {/if}
+        </div>
+
+        <div class="test-panel__field">
+          <span>Binary File Preview:</span>
+        </div>
+        <div class="test-panel__actions">
+          <button on:click={testBinaryImage}>PNG</button>
+          <button on:click={testBinaryAudio}>WAV</button>
+          <button on:click={testBinaryVideo}>MP4</button>
+        </div>
+        <div class="test-panel__actions">
+          <button on:click={testBinaryPdf}>PDF</button>
+          <button on:click={testBinaryFont}>WOFF2</button>
+          <button on:click={testBinaryHex}>BIN</button>
         </div>
       </div>
     </div>

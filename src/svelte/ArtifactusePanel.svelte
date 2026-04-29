@@ -4,7 +4,10 @@
   import { getArtifactuseContext } from './index.js';
   import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
   import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+  import { base64ToObjectUrl, getMimeType, revokeBlobUrl } from '../core/binaryPreview.js';
   import JSZip from 'jszip';
+
+  const BINARY_CATEGORIES = ['image', 'audio', 'video', 'pdf', 'font', 'binary'];
   
   const dispatch = createEventDispatcher();
   
@@ -61,6 +64,10 @@
   let savedArtifactsLoading = false;
   let updatedArtifactName = '';
 
+  // Binary preview
+  let blobUrlCache = {};
+  let fontStyleEl = null;
+
   // Panel/split resize state — prop > global config > default
   let panelWidth = Math.min(Math.max(initialPanelWidth ?? instance.config?.panelWidth ?? 65, 25), 75);
   let splitPosition = Math.min(Math.max(initialSplitPosition ?? instance.config?.splitPosition ?? 50, 20), 80);
@@ -103,7 +110,27 @@
     return url;
   })();
   $: normalizedLanguage = artifact ? normalizeLang(artifact.language) : 'plaintext';
-  
+
+  $: isBinaryArtifact = BINARY_CATEGORIES.includes(artifact && artifact.language);
+  $: binaryCategory = isBinaryArtifact ? artifact.language : null;
+  $: fontPreviewName = binaryCategory === 'font' && artifact ? 'apfont_' + artifact.id : null;
+  $: hexDump = (() => {
+    if (binaryCategory !== 'binary' || !artifact || !artifact.code) return '';
+    try {
+      const raw = atob(artifact.code.slice(0, 684));
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      const lines = [];
+      for (let i = 0; i < Math.min(bytes.length, 512); i += 16) {
+        const chunk = bytes.slice(i, i + 16);
+        const hex = Array.from(chunk).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        const ascii = Array.from(chunk).map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : '.').join('');
+        lines.push(`${i.toString(16).padStart(8, '0')}  ${hex.padEnd(47)}  |${ascii}|`);
+      }
+      return lines.join('\n');
+    } catch { return ''; }
+  })();
+
   $: nonInlineArtifacts = artifacts.filter(a => !a.isInline);
   
   $: currentNonInlineIndex = artifact && nonInlineArtifacts.length 
@@ -197,6 +224,9 @@
 
     // Set iframe loading when artifact changes
     if (prevArtifactId !== newArtifact.id) {
+      if (BINARY_CATEGORIES.includes(newArtifact.language)) {
+        setViewMode('preview');
+      }
       resetCodeContainerStyles();
       iframeLoading = true;
       startIframeLoadTimeout();
@@ -241,7 +271,23 @@
     openArtifact(art);
   }
 
+  function getBlobUrl(art) {
+    if (!art || !art.code) return null;
+    if (blobUrlCache[art.id]) return blobUrlCache[art.id];
+    const url = base64ToObjectUrl(art.code, getMimeType(art.fileExtension || art.language));
+    blobUrlCache[art.id] = url;
+    return url;
+  }
+
+  function releaseBlobUrl(artifactId) {
+    if (blobUrlCache[artifactId]) {
+      revokeBlobUrl(blobUrlCache[artifactId]);
+      delete blobUrlCache[artifactId];
+    }
+  }
+
   function handleCloseTab(artifactId) {
+    releaseBlobUrl(artifactId);
     instance.closeTab(artifactId);
     if ($state.openTabs.length === 0) {
       cameFromList = false;
@@ -769,6 +815,20 @@
     }
   });
 
+  // Font face injection for font binary artifacts
+  $: {
+    if (binaryCategory === 'font' && fontPreviewName && artifact && artifact.code) {
+      const css = `@font-face { font-family: "${fontPreviewName}"; src: url("data:${getMimeType(artifact.fileExtension || 'woff2')};base64,${artifact.code}"); }`;
+      if (!fontStyleEl) {
+        fontStyleEl = document.createElement('style');
+        document.head.appendChild(fontStyleEl);
+      }
+      fontStyleEl.textContent = css;
+    } else if (fontStyleEl) {
+      fontStyleEl.textContent = '';
+    }
+  }
+
   onDestroy(() => {
     stopPanelResize();
     stopSplitResize();
@@ -776,6 +836,12 @@
     clearTimeout(streamEndTimer);
     clearTimeout(iframeLoadTimer);
     if (unsubConsole) unsubConsole();
+    Object.keys(blobUrlCache).forEach(id => revokeBlobUrl(blobUrlCache[id]));
+    blobUrlCache = {};
+    if (fontStyleEl) {
+      fontStyleEl.remove();
+      fontStyleEl = null;
+    }
   });
 
   function toggleConsoleFilter(type) {
@@ -1052,7 +1118,7 @@
             </svg>
           </button>
           {/if}
-          {#if !artifact.tabs || artifact.tabs.includes('code')}
+          {#if (!artifact.tabs || artifact.tabs.includes('code')) && !isBinaryArtifact}
           <button
             class="artifactuse-panel__tab"
             class:artifactuse-panel__tab--active={viewMode === 'code'}
@@ -1065,7 +1131,7 @@
             </svg>
           </button>
           {/if}
-          {#if !artifact.tabs || artifact.tabs.includes('split')}
+          {#if (!artifact.tabs || artifact.tabs.includes('split')) && !isBinaryArtifact}
           <button
             class="artifactuse-panel__tab"
             class:artifactuse-panel__tab--active={viewMode === 'split'}
@@ -1205,13 +1271,44 @@
             style={viewMode === 'split' ? `width: ${splitPosition}%` : undefined}
           >
             <!-- Loading spinner -->
-            {#if iframeLoading && panelUrl}
+            {#if iframeLoading && panelUrl && !isBinaryArtifact}
               <div class="artifactuse-panel__loading">
                 <div class="artifactuse-panel__spinner"></div>
               </div>
             {/if}
-            
-            {#if panelUrl}
+
+            {#if isBinaryArtifact}
+              {#if binaryCategory === 'image'}
+                <div class="artifactuse-panel__binary artifactuse-panel__binary--image">
+                  <img src={getBlobUrl(artifact)} alt={artifact.title || 'image'} />
+                </div>
+              {:else if binaryCategory === 'audio'}
+                <div class="artifactuse-panel__binary artifactuse-panel__binary--audio">
+                  <audio controls src={getBlobUrl(artifact)}></audio>
+                </div>
+              {:else if binaryCategory === 'video'}
+                <div class="artifactuse-panel__binary artifactuse-panel__binary--video">
+                  <video controls src={getBlobUrl(artifact)}></video>
+                </div>
+              {:else if binaryCategory === 'pdf'}
+                <div class="artifactuse-panel__binary artifactuse-panel__binary--pdf">
+                  <iframe src="{getBlobUrl(artifact)}#toolbar=1" title={artifact.title || 'PDF'}></iframe>
+                </div>
+              {:else if binaryCategory === 'font'}
+                <div class="artifactuse-panel__binary artifactuse-panel__binary--font">
+                  <div class="artifactuse-panel__font-sample" style="font-family: '{fontPreviewName}'">
+                    AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz
+                  </div>
+                  <div class="artifactuse-panel__font-sample artifactuse-panel__font-sample--sm" style="font-family: '{fontPreviewName}'">
+                    0123456789 !@#$%^&*()
+                  </div>
+                </div>
+              {:else if binaryCategory === 'binary'}
+                <div class="artifactuse-panel__binary artifactuse-panel__binary--hex">
+                  <pre class="artifactuse-panel__hex-dump">{hexDump}</pre>
+                </div>
+              {/if}
+            {:else if panelUrl}
               <iframe
                 bind:this={iframeRef}
                 src={panelUrl}

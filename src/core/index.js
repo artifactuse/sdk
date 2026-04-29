@@ -1,8 +1,11 @@
 // artifactuse/core/index.js
 // Main entry point for Artifactuse SDK
 
-import { parseArtifacts, extractCodeBlockArtifacts, getIsInline, getLanguageFromExtension, createArtifact, generateArtifactId } from './detector.js';
+import { parseArtifacts, extractCodeBlockArtifacts, getIsInline, getLanguageFromExtension, createArtifact, generateArtifactId, BINARY_EXT_LANGUAGE } from './detector.js';
 import { createState } from './state.js';
+
+// Binary categories render inside the panel component — no CDN panel URL needed.
+const BINARY_PANEL_LANGS = new Set(Object.values(BINARY_EXT_LANGUAGE));
 import { createBridge } from './bridge.js';
 import { createTheme } from './theme.js';
 import { createShareService } from './share.js';
@@ -762,7 +765,7 @@ export function createArtifactuse(userConfig = {}) {
    * Open a file by name — auto-detects language from extension
    */
   function openFile(filename, code, options = {}) {
-    const ext = filename.split('.').pop();
+    const ext = filename.split('.').pop().toLowerCase();
     const language = options.language || getLanguageFromExtension(ext) || ext;
     const title = options.title || filename;
 
@@ -776,7 +779,7 @@ export function createArtifactuse(userConfig = {}) {
       return state.getArtifact(existing.id);
     }
 
-    return openCode(code, language, { ...options, title });
+    return openCode(code, language, { ...options, title, fileExtension: ext });
   }
 
   /**
@@ -784,11 +787,12 @@ export function createArtifactuse(userConfig = {}) {
    */
   function openCode(code, language, options = {}) {
     const msgId = options.messageId || generateArtifactId('open');
-    const resolvedLang = hasPanel({ type: language, language }) ? language : 'txt';
+    const resolvedLang = (hasPanel({ type: language, language }) || BINARY_PANEL_LANGS.has(language)) ? language : 'txt';
     const artifact = createArtifact(code, resolvedLang, msgId, 0);
     artifact.title = options.title || artifact.title;
     artifact.isInline = false;
     artifact.editorLanguage = language;
+    if (options.fileExtension) artifact.fileExtension = options.fileExtension;
     if (options.tabs) artifact.tabs = options.tabs;
     if (options.panelUrl) artifact.panelUrl = options.panelUrl;
     if (options.externalPreview !== undefined) artifact.externalPreview = options.externalPreview;
