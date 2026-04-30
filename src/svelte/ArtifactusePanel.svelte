@@ -111,7 +111,7 @@
   })();
   $: normalizedLanguage = artifact ? normalizeLang(artifact.language) : 'plaintext';
 
-  $: isBinaryArtifact = BINARY_CATEGORIES.includes(artifact && artifact.language);
+  $: isBinaryArtifact = BINARY_CATEGORIES.includes(artifact && artifact.language) && !!(artifact && artifact.fileExtension);
   $: binaryCategory = isBinaryArtifact ? artifact.language : null;
   $: fontPreviewName = binaryCategory === 'font' && artifact ? 'apfont_' + artifact.id : null;
   $: hexDump = (() => {
@@ -224,7 +224,7 @@
 
     // Set iframe loading when artifact changes
     if (prevArtifactId !== newArtifact.id) {
-      if (BINARY_CATEGORIES.includes(newArtifact.language)) {
+      if (BINARY_CATEGORIES.includes(newArtifact.language) && newArtifact.fileExtension) {
         setViewMode('preview');
       }
       resetCodeContainerStyles();

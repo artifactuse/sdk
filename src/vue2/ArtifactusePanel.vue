@@ -931,7 +931,8 @@ export default defineComponent({
     });
 
     const isBinaryArtifact = computed(() => {
-      return BINARY_CATEGORIES.includes(activeArtifact.value && activeArtifact.value.language);
+      return BINARY_CATEGORIES.includes(activeArtifact.value && activeArtifact.value.language)
+        && !!(activeArtifact.value && activeArtifact.value.fileExtension);
     });
 
     const binaryCategory = computed(() => {
@@ -1574,7 +1575,7 @@ export default defineComponent({
           resetCodeContainerStyles();
           iframeLoading.value = true;
           startIframeLoadTimeout();
-          if (BINARY_CATEGORIES.indexOf(newArtifact.language) !== -1 && state.viewMode !== 'preview') {
+          if (BINARY_CATEGORIES.indexOf(newArtifact.language) !== -1 && newArtifact.fileExtension && state.viewMode !== 'preview') {
             setViewMode('preview');
           }
         }

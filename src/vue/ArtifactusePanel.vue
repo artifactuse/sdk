@@ -962,7 +962,7 @@ const showBranding = computed(() => {
 const BINARY_CATEGORIES = ['image', 'audio', 'video', 'pdf', 'font', 'binary'];
 
 const isBinaryArtifact = computed(() => {
-  return BINARY_CATEGORIES.includes(activeArtifact.value?.language);
+  return BINARY_CATEGORIES.includes(activeArtifact.value?.language) && !!activeArtifact.value?.fileExtension;
 });
 
 const binaryCategory = computed(() => {
@@ -1645,7 +1645,7 @@ watch(activeArtifact, (newArtifact, oldArtifact) => {
       iframeLoading.value = true;
       startIframeLoadTimeout();
       // Binary artifacts only support preview mode
-      if (BINARY_CATEGORIES.includes(newArtifact.language) && state.viewMode !== 'preview') {
+      if (BINARY_CATEGORIES.includes(newArtifact.language) && newArtifact.fileExtension && state.viewMode !== 'preview') {
         setViewMode('preview');
       }
     }

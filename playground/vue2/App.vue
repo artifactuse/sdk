@@ -207,6 +207,10 @@ export default {
       )
     }
 
+    function testVideoPanel() {
+      artifactuse.openCode('https://www.youtube.com/watch?v=9bZkp7q19f0', 'video', { title: 'YouTube — Gangnam Style' })
+    }
+
     // New feature demos
     function testViewModeCode() {
       artifactuse.openFile('page.html', '<!DOCTYPE html>\n<html>\n<body>\n  <h1>viewMode: code</h1>\n  <p>This opened with the Code tab active instead of Preview.</p>\n</body>\n</html>', { viewMode: 'code' })
@@ -414,6 +418,7 @@ export default {
       testOpenUnknown,
       testOpenCode,
       testCustomLangDownload,
+      testVideoPanel,
       testViewModeCode,
       testCodeOnly,
       testNoSplit,
@@ -510,6 +515,9 @@ export default {
         <div class="test-panel__actions">
           <button @click="testOpenCode">openCode()</button>
           <button @click="testCustomLangDownload">Custom Lang (.robotscript)</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="testVideoPanel">Video Panel</button>
         </div>
 
         <div class="test-panel__field">

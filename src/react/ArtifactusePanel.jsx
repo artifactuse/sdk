@@ -134,7 +134,7 @@ export default function ArtifactusePanel({
   }, [activeArtifact]);
 
   const isBinaryArtifact = useMemo(() => {
-    return BINARY_CATEGORIES.includes(activeArtifact?.language);
+    return BINARY_CATEGORIES.includes(activeArtifact?.language) && !!activeArtifact?.fileExtension;
   }, [activeArtifact]);
 
   const binaryCategory = useMemo(() => {
@@ -815,7 +815,7 @@ export default function ArtifactusePanel({
       }
       prevArtifactRef.current = activeArtifact;
 
-      if (BINARY_CATEGORIES.includes(activeArtifact.language)) {
+      if (BINARY_CATEGORIES.includes(activeArtifact.language) && activeArtifact.fileExtension) {
         setViewMode('preview');
       }
 
