@@ -7,13 +7,23 @@
   } from '../../src/svelte'
   import { messages as mockMessages } from '../shared/mockMessages'
   import { createStreamSimulator } from '../shared/streamSimulator'
-  import { registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
+  import { playgroundWidgetCdnUrl, registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
 
   const { clearArtifacts, openFile, registerWidget } = setArtifactuseContext({
     theme: 'dark',
   })
 
-  registerHostedPlaygroundWidgets(registerWidget)
+  let widgetRegistryStatus = {
+    state: 'loading',
+    count: 0,
+  }
+
+  registerHostedPlaygroundWidgets(registerWidget).then((result) => {
+    widgetRegistryStatus = {
+      state: result.ok ? 'loaded' : 'failed',
+      count: result.ok ? Object.keys(result.widgets || {}).length : 0,
+    }
+  })
 
   const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8BQDwAEgAF/QualIQAAAABJRU5ErkJggg==';
   const WAV_B64 = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -147,6 +157,12 @@
           {#if isStreaming}
             <span class="streaming-indicator">Streaming...</span>
           {/if}
+        </div>
+
+        <div class="test-panel__status">
+          Widgets: {widgetRegistryStatus.state}
+          {#if widgetRegistryStatus.state === 'loaded'} ({widgetRegistryStatus.count}){/if}
+          <span class="streaming-indicator">{playgroundWidgetCdnUrl}</span>
         </div>
 
         <div class="test-panel__field">
