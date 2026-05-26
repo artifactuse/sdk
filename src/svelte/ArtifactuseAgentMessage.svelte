@@ -3,6 +3,7 @@
   import { getArtifactuseContext } from './index.js';
   import ArtifactuseCard from './ArtifactuseCard.svelte';
   import ArtifactuseInlineForm from './ArtifactuseInlineForm.svelte';
+  import ArtifactuseInlineWidget from './ArtifactuseInlineWidget.svelte';
   import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.svelte';
   import ArtifactuseViewer from './ArtifactuseViewer.svelte';
   import { createEventDispatcher } from 'svelte';
@@ -131,6 +132,8 @@
       if (artifactData) {
         if (artifactType === 'form' && artifactData.isInline) {
           segments.push({ type: 'form', artifact: artifactData });
+        } else if (artifactType === 'widget') {
+          segments.push({ type: 'widget', artifact: artifactData });
         } else if (artifactType === 'social') {
           segments.push({ type: 'social', artifact: artifactData });
         } else {
@@ -456,6 +459,22 @@
   function handleFormButtonClick(event) {
     dispatch('form-button-click', event.detail);
   }
+
+  function handleWidgetAction(event) {
+    dispatch('widget-action', event.detail);
+  }
+
+  function handleWidgetStateChange(event) {
+    dispatch('widget-state-change', event.detail);
+  }
+
+  function handleWidgetHeightChange(event) {
+    dispatch('widget-height-change', event.detail);
+  }
+
+  function handleWidgetFollowUp(event) {
+    dispatch('widget-follow-up', event.detail);
+  }
   
   function handleSocialCopy(event) {
     dispatch('social-copy', event.detail);
@@ -496,6 +515,16 @@
           on:submit={handleFormSubmit}
           on:cancel={handleFormCancel}
           on:button-click={handleFormButtonClick}
+        />
+      {:else if segment.type === 'widget'}
+        <ArtifactuseInlineWidget
+          artifact={segment.artifact}
+          {theme}
+          pending={typing}
+          on:action={handleWidgetAction}
+          on:state-change={handleWidgetStateChange}
+          on:height-change={handleWidgetHeightChange}
+          on:follow-up={handleWidgetFollowUp}
         />
       {:else if segment.type === 'social'}
         <ArtifactuseSocialPreview

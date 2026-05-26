@@ -9,7 +9,7 @@ export default defineConfig({
     vue3(),
     svelte(),
     {
-      name: 'copy-styles',
+      name: 'copy-static-assets',
       closeBundle() {
         const srcStyles = path.resolve(__dirname, 'src/styles');
         const distStyles = path.resolve(__dirname, 'dist/styles');
@@ -22,6 +22,7 @@ export default defineConfig({
         } else {
           console.warn('⚠ src/styles/ not found');
         }
+
       }
     }
   ],
@@ -32,6 +33,7 @@ export default defineConfig({
         'vue/index': path.resolve(__dirname, 'src/vue/index.js'),
         'react/index': path.resolve(__dirname, 'src/react/index.jsx'),
         'svelte/index': path.resolve(__dirname, 'src/svelte/index.js'),
+        'widget/vanilla': path.resolve(__dirname, 'src/widget/vanilla.js'),
       },
       formats: ['es'],
     },

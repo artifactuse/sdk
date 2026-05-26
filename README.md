@@ -14,6 +14,7 @@ Artifactuse is a lightweight SDK that transforms AI-generated content into rich,
 - 🖼️ **Media Lightbox** - Click images and PDFs to view fullscreen with zoom and download
 - 🖥️ **Panel Viewer** - Side panel with preview, code view, and split mode
 - 📝 **Interactive Forms** - Inline and panel forms with 17+ field types, auto-collapse after submission
+- 🧩 **Custom Widgets** - Register trusted AI-controlled widgets with validated props and iframe isolation
 - 📱 **Social Previews** - Platform-accurate previews for Twitter, LinkedIn, Instagram, and more
 - 🌗 **Theme Support** - Dark/light mode with customizable colors
 - 🔌 **Framework Agnostic** - Works with Vue 3, Vue 2, React, Svelte, or vanilla JS

@@ -7,8 +7,13 @@
   } from '../../src/svelte'
   import { messages as mockMessages } from '../shared/mockMessages'
   import { createStreamSimulator } from '../shared/streamSimulator'
+  import { registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
 
-  const { clearArtifacts, openFile } = setArtifactuseContext({ theme: 'dark' })
+  const { clearArtifacts, openFile, registerWidget } = setArtifactuseContext({
+    theme: 'dark',
+  })
+
+  registerHostedPlaygroundWidgets(registerWidget)
 
   const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8BQDwAEgAF/QualIQAAAABJRU5ErkJggg==';
   const WAV_B64 = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -82,6 +87,10 @@
   function loadAllInstantly() {
     messages = [...mockMessages]
   }
+
+  function handleWidgetAction(event) {
+    console.log('Widget action:', event.detail)
+  }
 </script>
 
 <div class="app-container">
@@ -95,8 +104,8 @@
 
       <div class="test-panel__content">
         <div class="test-panel__field">
-          <label>Message:</label>
-          <select bind:value={selectedMessageId}>
+          <label for="message-select">Message:</label>
+          <select id="message-select" bind:value={selectedMessageId}>
             {#each mockMessages as m (m.id)}
               <option value={m.id}>{m.id}</option>
             {/each}
@@ -104,8 +113,8 @@
         </div>
 
         <div class="test-panel__field">
-          <label>Speed:</label>
-          <select bind:value={streamSpeed}>
+          <label for="speed-select">Speed:</label>
+          <select id="speed-select" bind:value={streamSpeed}>
             <option value="fast">Fast (2ms)</option>
             <option value="medium">Medium (10ms)</option>
             <option value="slow">Slow (30ms)</option>
@@ -169,7 +178,9 @@
       <ArtifactuseAgentMessage
         content={m.content}
         messageId={m.id}
+        typing={m.typing === true}
         isLastMessage={index === messages.length - 1}
+        on:widget-action={handleWidgetAction}
       />
     {/each}
     <ArtifactusePanelToggle />

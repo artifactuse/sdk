@@ -15,6 +15,18 @@
           @cancel="handleFormCancel"
           @button-click="handleFormButtonClick"
         />
+
+        <!-- Inline Widget -->
+        <ArtifactuseInlineWidget
+          v-else-if="segment.type === 'widget'"
+          :artifact="segment.artifact"
+          :theme="theme"
+          :pending="typing"
+          @action="handleWidgetAction"
+          @state-change="handleWidgetStateChange"
+          @height-change="handleWidgetHeightChange"
+          @follow-up="handleWidgetFollowUp"
+        />
         
         <!-- Inline Social Preview -->
         <ArtifactuseSocialPreview
@@ -53,6 +65,7 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useArtifactuse } from './index.js';
 import ArtifactuseCard from './ArtifactuseCard.vue';
 import ArtifactuseInlineForm from './ArtifactuseInlineForm.vue';
+import ArtifactuseInlineWidget from './ArtifactuseInlineWidget.vue';
 import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.vue';
 import ArtifactuseViewer from './ArtifactuseViewer.vue';
 
@@ -113,6 +126,10 @@ const emit = defineEmits([
   'form-submit',
   'form-cancel',
   'form-button-click',
+  'widget-action',
+  'widget-state-change',
+  'widget-height-change',
+  'widget-follow-up',
   'social-copy',
   'media-open',
 ]);
@@ -239,6 +256,8 @@ const contentSegments = computed(() => {
     if (artifactData) {
       if (artifactType === 'form' && artifactData.isInline) {
         segments.push({ type: 'form', artifact: artifactData });
+      } else if (artifactType === 'widget') {
+        segments.push({ type: 'widget', artifact: artifactData });
       } else if (artifactType === 'social') {
         segments.push({ type: 'social', artifact: artifactData });
       } else {
@@ -599,6 +618,22 @@ function handleFormButtonClick(data) {
 
 function handleSocialCopy(data) {
   emit('social-copy', data);
+}
+
+function handleWidgetAction(data) {
+  emit('widget-action', data);
+}
+
+function handleWidgetStateChange(data) {
+  emit('widget-state-change', data);
+}
+
+function handleWidgetHeightChange(data) {
+  emit('widget-height-change', data);
+}
+
+function handleWidgetFollowUp(data) {
+  emit('widget-follow-up', data);
 }
 
 // Get artifacts for this specific message

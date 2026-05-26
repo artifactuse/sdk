@@ -13,6 +13,7 @@ export function createStreamSimulator({ getMessages, setMessages, updateMessage 
   let isStreaming = false;
   let currentMessageIndex = 0;
   let currentCharIndex = 0;
+  let currentStreamingId = null;
   let speed = 5; // ms per character
 
   const speeds = {
@@ -39,7 +40,9 @@ export function createStreamSimulator({ getMessages, setMessages, updateMessage 
     const streamingMessage = {
       id: `streaming-${message.id}`,
       content: '',
+      typing: true,
     };
+    currentStreamingId = streamingMessage.id;
 
     const messages = getMessages();
     const newMessages = [...messages, streamingMessage];
@@ -50,9 +53,10 @@ export function createStreamSimulator({ getMessages, setMessages, updateMessage 
     streamInterval = setInterval(() => {
       if (currentCharIndex < fullContent.length) {
         streamingMessage.content = fullContent.substring(0, currentCharIndex + 1);
+        streamingMessage.typing = true;
 
         if (updateMessage) {
-          updateMessage(streamingMessage.id, streamingMessage.content);
+          updateMessage(streamingMessage.id, streamingMessage.content, { typing: true });
         } else if (setMessages) {
           // For Vue 2 reactivity, we need to replace the array
           const msgs = getMessages();
@@ -65,6 +69,20 @@ export function createStreamSimulator({ getMessages, setMessages, updateMessage 
 
         currentCharIndex++;
       } else {
+        streamingMessage.content = fullContent;
+        streamingMessage.typing = false;
+
+        if (updateMessage) {
+          updateMessage(streamingMessage.id, streamingMessage.content, { typing: false });
+        } else if (setMessages) {
+          const msgs = getMessages();
+          const idx = msgs.findIndex(m => m.id === streamingMessage.id);
+          if (idx !== -1) {
+            msgs[idx] = { ...streamingMessage };
+            setMessages([...msgs]);
+          }
+        }
+
         stopStream();
         if (onComplete) onComplete();
       }
@@ -106,6 +124,18 @@ export function createStreamSimulator({ getMessages, setMessages, updateMessage 
       clearInterval(streamInterval);
       streamInterval = null;
     }
+
+    if (currentStreamingId) {
+      const messages = getMessages();
+      const idx = messages.findIndex(m => m.id === currentStreamingId);
+      if (idx !== -1 && messages[idx]?.typing) {
+        messages[idx] = { ...messages[idx], typing: false };
+        if (setMessages) setMessages([...messages]);
+        if (updateMessage) updateMessage(currentStreamingId, messages[idx].content, { typing: false });
+      }
+    }
+
+    currentStreamingId = null;
     isStreaming = false;
   }
 

@@ -8,14 +8,26 @@ import {
 } from '../../src/vue'
 import { messages as mockMessages } from '../shared/mockMessages'
 import { createStreamSimulator } from '../shared/streamSimulator'
+import { playgroundWidgetCdnUrl, registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
 
-const { clearArtifacts } = provideArtifactuse({ theme: 'light' })
+const { clearArtifacts, registerWidget } = provideArtifactuse({
+  theme: 'light',
+})
 
 const messages = ref([])
 const selectedMessageId = ref(mockMessages[0]?.id || '')
 const streamSpeed = ref('fast')
 const isStreaming = ref(false)
 const showTestPanel = ref(true)
+const widgetActionLog = ref([])
+const widgetRegistryStatus = ref({ state: 'loading', count: 0 })
+
+registerHostedPlaygroundWidgets(registerWidget).then((result) => {
+  widgetRegistryStatus.value = {
+    state: result.ok ? 'loaded' : 'failed',
+    count: result.ok ? Object.keys(result.widgets || {}).length : 0,
+  }
+})
 
 const selectedMessage = computed(() => {
   return mockMessages.find(m => m.id === selectedMessageId.value)
@@ -52,11 +64,24 @@ function stopStream() {
 function clearMessages() {
   simulator.clearStreamedMessages()
   messages.value = []
+  widgetActionLog.value = []
   clearArtifacts()
 }
 
 function loadAllInstantly() {
   messages.value = [...mockMessages]
+}
+
+function handleWidgetAction(event) {
+  widgetActionLog.value.unshift({
+    action: event.action,
+    template: event.template,
+    time: new Date().toLocaleTimeString(),
+  })
+
+  if (widgetActionLog.value.length > 5) {
+    widgetActionLog.value.pop()
+  }
 }
 </script>
 
@@ -113,6 +138,22 @@ function loadAllInstantly() {
           Messages: {{ messages.length }} / {{ mockMessages.length }}
           <span v-if="isStreaming" class="streaming-indicator">Streaming...</span>
         </div>
+
+        <div class="test-panel__status">
+          Widgets: {{ widgetRegistryStatus.state }}
+          <template v-if="widgetRegistryStatus.state === 'loaded'">({{ widgetRegistryStatus.count }})</template>
+          <span class="streaming-indicator">{{ playgroundWidgetCdnUrl }}</span>
+        </div>
+
+        <div v-if="widgetActionLog.length" class="test-panel__field">
+          <label>Widget Actions:</label>
+          <div class="test-panel__event-log">
+            <div v-for="(entry, i) in widgetActionLog" :key="i" class="test-panel__event-entry">
+              <span class="test-panel__event-time">{{ entry.time }}</span>
+              <span>{{ entry.template }}:{{ entry.action }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -127,7 +168,9 @@ function loadAllInstantly() {
         :key="m.id"
         :content="m.content"
         :message-id="m.id"
+        :typing="m.typing === true"
         :is-last-message="index === messages.length - 1"
+        @widget-action="handleWidgetAction"
       />
       <ArtifactusePanelToggle />
     </div>
@@ -283,5 +326,26 @@ html, body {
 
 .test-panel__toggle:hover {
   background: #f5f5f5;
+}
+
+.test-panel__event-log {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.test-panel__event-entry {
+  padding: 2px 0;
+  color: #333;
+}
+
+.test-panel__event-time {
+  color: #999;
+  margin-right: 6px;
 }
 </style>

@@ -2,6 +2,60 @@
 // Comprehensive mock messages for testing all artifact types
 
 export const messages = [
+  {
+    id: 'widget-hello',
+    content: `
+Here's a minimal custom widget:
+
+\`\`\`widget
+{
+  "type": "widget",
+  "template": "hello-widget",
+  "title": "Hello widget",
+  "description": "Minimal custom widget starter.",
+  "props": {
+    "eyebrow": "Starter",
+    "title": "Hello from a custom widget",
+    "message": "This inline widget is rendered through the Artifactuse widget bridge."
+  },
+  "actions": [
+    { "id": "hello", "label": "Say hello", "style": "primary" }
+  ],
+  "permissions": ["state", "actions"]
+}
+\`\`\`
+`
+  },
+  {
+    id: 'widget-approval-card',
+    content: `
+Here's an inline approval widget:
+
+\`\`\`widget
+{
+  "type": "widget",
+  "template": "approval-card",
+  "title": "Production deploy approval",
+  "description": "Review and approve commit 8f3a21c for the production release.",
+  "props": {
+    "title": "Deploy to production",
+    "description": "Release commit 8f3a21c to production after the final smoke test passes.",
+    "risk": "medium",
+    "metadata": {
+      "environment": "production",
+      "commit": "8f3a21c",
+      "owner": "Release Ops"
+    }
+  },
+  "actions": [
+    { "id": "approve", "label": "Approve", "style": "primary" },
+    { "id": "reject", "label": "Reject", "style": "danger" }
+  ],
+  "permissions": ["state", "actions"]
+}
+\`\`\`
+`
+  },
   // ============================================================
   // FORM ARTIFACTS
   // ============================================================

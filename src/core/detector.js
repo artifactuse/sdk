@@ -9,6 +9,7 @@ import { highlightCode, isPrismAvailable, normalizeLanguage } from './highlight.
 export const ARTIFACT_TYPES = {
   CODE: 'code',
   FORM: 'form',
+  WIDGET: 'widget',
   SOCIAL: 'social',
   IMAGE: 'image',
   VIDEO: 'video',
@@ -18,6 +19,12 @@ export const ARTIFACT_TYPES = {
   MAP: 'map',
   CHART: 'chart',
 };
+
+const STRUCTURED_ARTIFACT_LANGUAGES = new Set([
+  ARTIFACT_TYPES.FORM,
+  ARTIFACT_TYPES.WIDGET,
+  ARTIFACT_TYPES.SOCIAL,
+]);
 
 /**
  * Supported social platforms
@@ -39,7 +46,7 @@ export const PREVIEWABLE_LANGUAGES = [
   'canvas', 'whiteboard', 'drawing',
   'video', 'videoeditor', 'timeline',
   // Structured artifacts
-  'form', 'social',
+  'form', 'widget', 'social',
 ];
 
 /**
@@ -172,6 +179,7 @@ export function getLanguageDisplayName(language) {
     drawing: 'Drawing',
     // Structured artifacts
     form: 'Form',
+    widget: 'Widget',
     social: 'Social Preview',
     // Binary workspace file types
     image: 'Image',
@@ -802,6 +810,13 @@ export function shouldFormBeInline(code) {
 }
 
 /**
+ * Determine if widget should render inline.
+ */
+export function shouldWidgetBeInline(code) {
+  return true;
+}
+
+/**
  * Determine if artifact should be inline based on language
  */
 export function getIsInline(language, code) {
@@ -812,6 +827,9 @@ export function getIsInline(language, code) {
   
   // Form depends on complexity
   if (langLower === 'form') return shouldFormBeInline(code);
+
+  // Widgets always render inline.
+  if (langLower === 'widget') return shouldWidgetBeInline(code);
   
   // Everything else defaults to panel
   return false;
@@ -824,9 +842,27 @@ function getArtifactType(language) {
   const langLower = language?.toLowerCase();
   
   if (langLower === 'form') return ARTIFACT_TYPES.FORM;
+  if (langLower === 'widget') return ARTIFACT_TYPES.WIDGET;
   if (langLower === 'social') return ARTIFACT_TYPES.SOCIAL;
   
   return ARTIFACT_TYPES.CODE;
+}
+
+/**
+ * Detect structured Artifactuse JSON emitted in a generic json code block.
+ */
+function getStructuredArtifactLanguage(code, fallbackLanguage) {
+  const langLower = fallbackLanguage?.toLowerCase();
+  if (langLower !== 'json') return langLower;
+
+  const json = tryParseJson(code);
+  const type = json?.type?.toLowerCase?.();
+
+  if (type === 'form' || type === 'social' || type === 'widget') {
+    return type;
+  }
+
+  return langLower;
 }
 
 /**
@@ -842,13 +878,14 @@ export function createArtifact(code, language, messageId, blockIndex) {
   const langLower = language?.toLowerCase();
   const type = getArtifactType(langLower);
   const isInline = getIsInline(langLower, code);
+  const json = type === ARTIFACT_TYPES.WIDGET ? tryParseJson(code) : null;
   
-  return {
+  const artifact = {
     id: `${messageId}-${type}-${blockIndex}`,
     messageId,
     type,
     language: langLower,
-    title: extractArtifactTitle(code, langLower),
+    title: json?.title || extractArtifactTitle(code, langLower),
     code,
     isInline,
     isPreviewable: isPreviewable(langLower),
@@ -857,6 +894,17 @@ export function createArtifact(code, language, messageId, blockIndex) {
     lineCount: code.split('\n').length,
     createdAt: new Date().toISOString(),
   };
+
+  if (type === ARTIFACT_TYPES.WIDGET && json) {
+    artifact.template = json.template;
+    artifact.description = json.description;
+    artifact.props = json.props || {};
+    artifact.actions = Array.isArray(json.actions) ? json.actions : [];
+    artifact.permissions = Array.isArray(json.permissions) ? json.permissions : [];
+    artifact.widgetState = json.state || {};
+  }
+
+  return artifact;
 }
 
 /**
@@ -871,7 +919,7 @@ export function parseArtifacts(html, messageId) {
   while ((match = codeBlockRegex.exec(html)) !== null) {
     const language = match[1];
     const code = decodeHtml(match[2]);
-    let langLower = language.toLowerCase();
+    let langLower = getStructuredArtifactLanguage(code, language);
 
     // Detect SVG in XML/HTML
     if (['xml', 'markup', 'html', 'htm'].includes(langLower) || !langLower) {
@@ -881,7 +929,7 @@ export function parseArtifacts(html, messageId) {
     }
     
     // Validate JSON for form/social
-    if (langLower === 'form' || langLower === 'social') {
+    if (langLower === 'form' || langLower === 'social' || langLower === 'widget') {
       const json = tryParseJson(code);
       if (!json) {
         // Invalid JSON, treat as regular code
@@ -910,9 +958,11 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
     inlineCode = null,
     tabs = null,
     viewMode = null,
+    prepareArtifact = null,
   } = options;
 
   function shouldShowPreview(lang) {
+    if (STRUCTURED_ARTIFACT_LANGUAGES.has(lang)) return false;
     if (!inlinePreview) return false;
     if (inlinePreview.languages === true) {
       if (Array.isArray(inlinePreview.excludeLanguages) && inlinePreview.excludeLanguages.includes(lang)) {
@@ -925,6 +975,7 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
   }
 
   function shouldShowInlineCode(lang) {
+    if (STRUCTURED_ARTIFACT_LANGUAGES.has(lang)) return false;
     if (!inlineCode) return false;
     if (inlineCode.languages === true) return true;
     if (Array.isArray(inlineCode.languages)) return inlineCode.languages.includes(lang);
@@ -939,7 +990,7 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
   const modifiedHtml = html.replace(codeBlockRegex, (match, language, encodedCode) => {
     const code = decodeHtml(encodedCode).trim();
     const lineCount = code.split('\n').length;
-    let langLower = language.toLowerCase();
+    let langLower = getStructuredArtifactLanguage(code, language);
 
     // Detect SVG in XML/HTML
     if (['xml', 'markup', 'html', 'htm'].includes(langLower) || !langLower) {
@@ -978,6 +1029,9 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
       const artifact = createArtifact(code, langLower, messageId, blockIndex);
       if (tabs) artifact.tabs = tabs;
       if (viewMode) artifact.viewMode = viewMode;
+      if (typeof prepareArtifact === 'function') {
+        prepareArtifact(artifact);
+      }
       blockIndex++;
       artifacts.push(artifact);
 
@@ -989,7 +1043,9 @@ export function extractCodeBlockArtifacts(html, messageId, options = {}) {
       // Determine placeholder type based on artifact
       let placeholderType = 'panel';
       if (artifact.isInline) {
-        placeholderType = artifact.type === 'social' ? 'inline-social' : 'inline-form';
+        if (artifact.type === 'social') placeholderType = 'inline-social';
+        else if (artifact.type === 'widget') placeholderType = 'inline-widget';
+        else placeholderType = 'inline-form';
       }
 
       return createArtifactPlaceholder(artifact, placeholderType);

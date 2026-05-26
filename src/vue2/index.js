@@ -16,6 +16,7 @@ export { default as ArtifactusePanelToggle } from './ArtifactusePanelToggle.vue'
 export { default as ArtifactuseCard } from './ArtifactuseCard.vue';
 export { default as ArtifactuseViewer } from './ArtifactuseViewer.vue';
 export { default as ArtifactuseInlineForm } from './ArtifactuseInlineForm.vue';
+export { default as ArtifactuseInlineWidget } from './ArtifactuseInlineWidget.vue';
 export { default as ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.vue';
 
 // Default export

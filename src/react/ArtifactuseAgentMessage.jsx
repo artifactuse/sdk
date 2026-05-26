@@ -5,6 +5,7 @@ import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { useArtifactuse } from './index';
 import ArtifactuseCard from './ArtifactuseCard';
 import ArtifactuseInlineForm from './ArtifactuseInlineForm';
+import ArtifactuseInlineWidget from './ArtifactuseInlineWidget';
 import ArtifactuseSocialPreview from './ArtifactuseSocialPreview';
 import ArtifactuseViewer from './ArtifactuseViewer';
 
@@ -69,6 +70,8 @@ function parseContentSegments(html) {
     if (artifactData) {
       if (artifactType === 'form' && artifactData.isInline) {
         segments.push({ type: 'form', artifact: artifactData });
+      } else if (artifactType === 'widget') {
+        segments.push({ type: 'widget', artifact: artifactData });
       } else if (artifactType === 'social') {
         segments.push({ type: 'social', artifact: artifactData });
       } else {
@@ -124,6 +127,10 @@ export default function ArtifactuseAgentMessage({
   onFormSubmit,
   onFormCancel,
   onFormButtonClick,
+  onWidgetAction,
+  onWidgetStateChange,
+  onWidgetHeightChange,
+  onWidgetFollowUp,
   onSocialCopy,
   onMediaOpen,
   className = '',
@@ -558,6 +565,20 @@ export default function ArtifactuseAgentMessage({
           );
         }
         return null;
+
+      case 'widget':
+        return (
+          <ArtifactuseInlineWidget
+            key={`widget-${segment.artifact.id}`}
+            artifact={segment.artifact}
+            theme={theme}
+            pending={typing}
+            onAction={onWidgetAction}
+            onStateChange={onWidgetStateChange}
+            onHeightChange={onWidgetHeightChange}
+            onFollowUp={onWidgetFollowUp}
+          />
+        );
       
       case 'social':
         return (

@@ -45,6 +45,7 @@ export function createArtifactuseStores(config = {}) {
   
   // Panel types store (for reactivity when registering/unregistering)
   const panelTypes = writable(instance.getPanelTypes());
+  const widgetTypes = writable(instance.getWidgetTypes());
   
   // Subscribe to core state changes
   const unsubscribe = instance.state.subscribe((state) => {
@@ -97,6 +98,16 @@ export function createArtifactuseStores(config = {}) {
     instance.unregisterPanel(type);
     panelTypes.set(instance.getPanelTypes());
   };
+
+  const registerWidget = (template, widget) => {
+    instance.registerWidget(template, widget);
+    widgetTypes.set(instance.getWidgetTypes());
+  };
+
+  const unregisterWidget = (template) => {
+    instance.unregisterWidget(template);
+    widgetTypes.set(instance.getWidgetTypes());
+  };
   
   return {
     // Instance
@@ -114,6 +125,7 @@ export function createArtifactuseStores(config = {}) {
     
     // Panel stores
     panelTypes,
+    widgetTypes,
     activePanelUrl,
     
     // Methods
@@ -136,6 +148,12 @@ export function createArtifactuseStores(config = {}) {
     registerPanel,
     unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
+
+    // Widget management
+    hasWidget: instance.hasWidget,
+    registerWidget,
+    unregisterWidget,
+    getWidgetTypes: instance.getWidgetTypes,
 
     // Multi-tab
     closeTab: instance.closeTab,
@@ -240,6 +258,7 @@ export { default as ArtifactusePanelToggle } from './ArtifactusePanelToggle.svel
 export { default as ArtifactuseCard } from './ArtifactuseCard.svelte';
 export { default as ArtifactuseViewer } from './ArtifactuseViewer.svelte';
 export { default as ArtifactuseInlineForm } from './ArtifactuseInlineForm.svelte';
+export { default as ArtifactuseInlineWidget } from './ArtifactuseInlineWidget.svelte';
 export { default as ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.svelte';
 
 // Default export

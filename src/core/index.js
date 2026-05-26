@@ -10,6 +10,7 @@ import { createBridge } from './bridge.js';
 import { createTheme } from './theme.js';
 import { createShareService } from './share.js';
 import { createEditorManager } from './editor.js';
+import { normalizeWidgetSizing } from './widgetSizing.js';
 import { marked } from 'marked';
 
 // Import from modular processors
@@ -258,6 +259,19 @@ const DEFAULT_CONFIG = {
   //     'chart': { path: 'chart-panel', cdn: 'https://charts.example.com' }
   //   }
   panels: {},
+
+  // Widget registry
+  // Users can register trusted widget templates here or at runtime.
+  //
+  // Format:
+  //   'template-id': {
+  //     url: 'https://cdn.example.com/widgets/template/v1/index.html',
+  //     propsSchema: { ... },
+  //     actions: ['approve', 'reject'],
+  //     permissions: ['state', 'actions'],
+  //     defaultDisplay: 'panel'
+  //   }
+  widgets: {},
   
   // Processor options
   processors: {
@@ -364,6 +378,38 @@ function collectOriginsFromPanels(panels, defaultCdn) {
     }
   }
   
+  return [...origins];
+}
+
+/**
+ * Extract origin URL from a widget registry entry.
+ */
+function extractOriginFromWidgetConfig(widgetConfig) {
+  if (!widgetConfig) return null;
+
+  try {
+    const url = typeof widgetConfig === 'string' ? widgetConfig : widgetConfig.url;
+    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+      return new URL(url).origin;
+    }
+  } catch (error) {
+    console.warn('Artifactuse: Failed to extract origin from widget config:', error);
+  }
+
+  return null;
+}
+
+/**
+ * Collect all unique origins from widget registry entries.
+ */
+function collectOriginsFromWidgets(widgets = {}) {
+  const origins = new Set();
+
+  for (const widgetConfig of Object.values(widgets || {})) {
+    const origin = extractOriginFromWidgetConfig(widgetConfig);
+    if (origin) origins.add(origin);
+  }
+
   return [...origins];
 }
 
@@ -549,6 +595,153 @@ function createPanelResolver(config, bridge) {
 }
 
 /**
+ * Create widget registry from config.
+ */
+function createWidgetRegistry(config, bridge) {
+  const widgets = { ...(config.widgets || {}) };
+
+  function normalizeId(id) {
+    return id?.toString?.().trim().toLowerCase();
+  }
+
+  function normalizeEntry(id, entry) {
+    if (!entry) return null;
+    const normalized = typeof entry === 'string'
+      ? { id, url: entry }
+      : (typeof entry === 'object' ? { id, ...entry } : null);
+
+    if (!normalized) return null;
+
+    return {
+      ...normalized,
+      sizing: normalizeWidgetSizing(normalized),
+    };
+  }
+
+  function get(template) {
+    const key = normalizeId(template);
+    return key ? normalizeEntry(key, widgets[key]) : null;
+  }
+
+  function has(template) {
+    const key = normalizeId(template);
+    return !!(key && widgets[key]);
+  }
+
+  function register(template, entry) {
+    const key = normalizeId(template);
+    if (!key || !entry) return;
+
+    widgets[key] = normalizeEntry(key, entry);
+
+    const origin = extractOriginFromWidgetConfig(widgets[key]);
+    if (origin && bridge) {
+      bridge.addAllowedOrigin(origin);
+    }
+  }
+
+  function unregister(template) {
+    const key = normalizeId(template);
+    if (key) delete widgets[key];
+  }
+
+  function resolve(template) {
+    const entry = get(template);
+    return entry?.url || null;
+  }
+
+  function getTypes() {
+    return Object.keys(widgets).filter(key => !!widgets[key]);
+  }
+
+  function validateProps(props, schema) {
+    if (!schema || typeof schema !== 'object') {
+      return { valid: true, errors: [] };
+    }
+
+    const errors = [];
+    const value = props || {};
+
+    if (schema.type && schema.type !== 'object') {
+      errors.push('Widget props schema must be an object schema');
+    }
+
+    if (Array.isArray(schema.required)) {
+      schema.required.forEach(key => {
+        if (value[key] === undefined || value[key] === null) {
+          errors.push(`Missing required prop: ${key}`);
+        }
+      });
+    }
+
+    if (schema.properties && typeof schema.properties === 'object') {
+      Object.entries(schema.properties).forEach(([key, propSchema]) => {
+        if (value[key] === undefined || value[key] === null || !propSchema?.type) return;
+        const expected = propSchema.type;
+        const actual = Array.isArray(value[key]) ? 'array' : typeof value[key];
+        if (expected !== actual) {
+          errors.push(`Invalid prop type for ${key}: expected ${expected}, received ${actual}`);
+        }
+      });
+    }
+
+    return { valid: errors.length === 0, errors };
+  }
+
+  function validateArtifact(artifact) {
+    if (!artifact || artifact.type !== 'widget') {
+      return { valid: true, errors: [], entry: null };
+    }
+
+    const errors = [];
+    const template = normalizeId(artifact.template);
+    const entry = get(template);
+
+    if (!template) errors.push('Widget artifact is missing template');
+    if (template && !entry) errors.push(`Unknown widget template: ${template}`);
+
+    if (entry) {
+      const propsValidation = validateProps(artifact.props, entry.propsSchema);
+      errors.push(...propsValidation.errors);
+
+      if (Array.isArray(artifact.actions) && Array.isArray(entry.actions)) {
+        artifact.actions.forEach(action => {
+          const actionId = typeof action === 'string' ? action : action?.id;
+          if (actionId && !entry.actions.includes(actionId)) {
+            errors.push(`Action is not registered for widget ${template}: ${actionId}`);
+          }
+        });
+      }
+
+      if (Array.isArray(artifact.permissions) && Array.isArray(entry.permissions)) {
+        artifact.permissions.forEach(permission => {
+          if (!entry.permissions.includes(permission)) {
+            errors.push(`Permission is not registered for widget ${template}: ${permission}`);
+          }
+        });
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      entry,
+    };
+  }
+
+  return {
+    get,
+    has,
+    register,
+    unregister,
+    resolve,
+    getTypes,
+    validateArtifact,
+    get widgets() { return { ...widgets }; },
+  };
+}
+
+/**
  * Create Artifactuse instance
  */
 export function createArtifactuse(userConfig = {}) {
@@ -557,7 +750,10 @@ export function createArtifactuse(userConfig = {}) {
   
   // Collect all origins from initial panel configuration
   const allPanels = { ...DEFAULT_PANELS, ...config.panels };
-  const initialOrigins = collectOriginsFromPanels(allPanels, config.cdnUrl);
+  const initialOrigins = [
+    ...collectOriginsFromPanels(allPanels, config.cdnUrl),
+    ...collectOriginsFromWidgets(config.widgets),
+  ];
   
   // Create bridge with all known origins
   const bridge = createBridge(initialOrigins);
@@ -567,6 +763,9 @@ export function createArtifactuse(userConfig = {}) {
   
   // Create panel resolver (pass bridge for runtime origin registration)
   const panelResolver = createPanelResolver(config, bridge);
+
+  // Create widget registry
+  const widgetRegistry = createWidgetRegistry(config, bridge);
 
   // Create share service
   const share = createShareService(config.sharing);
@@ -593,6 +792,19 @@ export function createArtifactuse(userConfig = {}) {
     const tabs = overrides.tabs ?? config.tabs ?? null;
     const viewMode = overrides.viewMode ?? config.viewMode ?? null;
 
+    function prepareArtifact(artifact) {
+      if (artifact.type !== 'widget') return;
+
+      const validation = widgetRegistry.validateArtifact(artifact);
+      artifact.widget = validation.entry || null;
+      artifact.validation = {
+        valid: validation.valid,
+        errors: validation.errors,
+      };
+      artifact.isInline = true;
+      artifact.isPanelArtifact = false;
+    }
+
     // Extract all code block artifacts (code, form, social)
     if (config.processors.codeBlocks) {
       const result = extractCodeBlockArtifacts(html, messageId, {
@@ -601,6 +813,7 @@ export function createArtifactuse(userConfig = {}) {
         inlineCode,
         tabs,
         viewMode,
+        prepareArtifact,
       });
       html = result.html;
       artifacts.push(...result.artifacts);
@@ -673,6 +886,8 @@ export function createArtifactuse(userConfig = {}) {
     
     // Add artifacts to state
     artifacts.forEach(artifact => {
+      prepareArtifact(artifact);
+
       state.addArtifact(artifact);
     });
     
@@ -885,6 +1100,7 @@ export function createArtifactuse(userConfig = {}) {
    */
   function getPanelUrl(artifact, options = {}) {
     if (!artifact) return null;
+    if (artifact.type === 'widget') return null;
 
     // Custom panel URL takes priority over registry lookup
     if (artifact.panelUrl) return artifact.panelUrl;
@@ -917,6 +1133,7 @@ export function createArtifactuse(userConfig = {}) {
    */
   function hasPanel(artifact) {
     if (!artifact) return false;
+    if (artifact.type === 'widget') return false;
     return panelResolver.has(artifact.type) || panelResolver.has(artifact.language);
   }
   
@@ -959,6 +1176,34 @@ export function createArtifactuse(userConfig = {}) {
    */
   function unregisterPanel(typesOrLang) {
     panelResolver.unregister(typesOrLang);
+  }
+
+  /**
+   * Register a trusted widget template at runtime.
+   */
+  function registerWidget(template, widget) {
+    widgetRegistry.register(template, widget);
+  }
+
+  /**
+   * Unregister a widget template at runtime.
+   */
+  function unregisterWidget(template) {
+    widgetRegistry.unregister(template);
+  }
+
+  /**
+   * Get all registered widget templates.
+   */
+  function getWidgetTypes() {
+    return widgetRegistry.getTypes();
+  }
+
+  /**
+   * Check if a widget template is registered.
+   */
+  function hasWidget(template) {
+    return widgetRegistry.has(template);
   }
   
   /**
@@ -1012,6 +1257,10 @@ export function createArtifactuse(userConfig = {}) {
   bridge.on('form:submit', (data) => emit('form:submit', data));
   bridge.on('form:cancel', (data) => emit('form:cancel', data));
   bridge.on('form:step', (data) => emit('form:step', data));
+  bridge.on('widget:action', (data) => emit('widget:action', data));
+  bridge.on('widget:state', (data) => emit('widget:state', data));
+  bridge.on('widget:height', (data) => emit('widget:height', data));
+  bridge.on('widget:followup', (data) => emit('widget:followup', data));
   bridge.on('social:copy', (data) => emit('social:copy', data));
   bridge.on('edit:save', (data) => {
     if (data?.artifactId && data?.code !== undefined) {
@@ -1093,6 +1342,13 @@ export function createArtifactuse(userConfig = {}) {
     unregisterPanel,
     getPanelTypes,
     panelResolver, // Expose for advanced use
+
+    // Widget management
+    hasWidget,
+    registerWidget,
+    unregisterWidget,
+    getWidgetTypes,
+    widgetRegistry,
     
     // Theme
     theme,
@@ -1175,6 +1431,8 @@ export { parseArtifacts, extractCodeBlockArtifacts, getIsInline as isInlineArtif
 export { createState } from './state.js';
 export { createBridge } from './bridge.js';
 export { createTheme } from './theme.js';
+export { manifestToWidgetRegistryEntry } from './widgetManifest.js';
+export { createWidgetRegistryFromHostedManifest, fetchHostedWidgetRegistry } from './hostedWidgets.js';
 export * from './highlight.js';
 export { createEditorManager } from './editor.js';
 

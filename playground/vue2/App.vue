@@ -8,6 +8,7 @@ import {
 } from '../../src/vue2'
 import { messages as mockMessages } from '../shared/mockMessages'
 import { createStreamSimulator } from '../shared/streamSimulator'
+import { playgroundWidgetCdnUrl, registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
 
 // CodeMirror modules for editor tab
 import * as cmState from '@codemirror/state'
@@ -127,6 +128,15 @@ export default {
     const streamSpeed = ref('fast')
     const isStreaming = ref(false)
     const showTestPanel = ref(true)
+    const widgetActionLog = ref([])
+    const widgetRegistryStatus = ref({ state: 'loading', count: 0 })
+
+    registerHostedPlaygroundWidgets(artifactuse.registerWidget).then((result) => {
+      widgetRegistryStatus.value = {
+        state: result.ok ? 'loaded' : 'failed',
+        count: result.ok ? Object.keys(result.widgets || {}).length : 0,
+      }
+    })
 
     const artifactCount = computed(() => {
       return artifactuse.artifactCount.value;
@@ -167,11 +177,24 @@ export default {
     function clearMessages() {
       simulator.clearStreamedMessages()
       messages.value = []
+      widgetActionLog.value = []
       artifactuse.clearArtifacts()
     }
 
     function loadAllInstantly() {
       messages.value = [...mockMessages]
+    }
+
+    function handleWidgetAction(event) {
+      widgetActionLog.value.unshift({
+        action: event.action,
+        template: event.template,
+        time: new Date().toLocaleTimeString(),
+      })
+
+      if (widgetActionLog.value.length > 5) {
+        widgetActionLog.value.pop()
+      }
     }
 
     // openFile / openCode tests
@@ -410,6 +433,10 @@ export default {
       stopStream,
       clearMessages,
       loadAllInstantly,
+      handleWidgetAction,
+      widgetActionLog,
+      widgetRegistryStatus,
+      playgroundWidgetCdnUrl,
       artifactCount,
       testOpenHtml,
       testOpenReact,
@@ -591,6 +618,15 @@ export default {
             </div>
           </div>
         </div>
+        <div v-if="widgetActionLog.length" class="test-panel__field">
+          <label>Widget Actions:</label>
+          <div class="test-panel__event-log">
+            <div v-for="(entry, i) in widgetActionLog" :key="i" class="test-panel__event-entry">
+              <span class="test-panel__event-time">{{ entry.time }}</span>
+              <span>{{ entry.template }}:{{ entry.action }}</span>
+            </div>
+          </div>
+        </div>
 
         <div class="test-panel__field">
           <label>Layout Props:</label>
@@ -608,6 +644,11 @@ export default {
           Messages: {{ messages.length }} / {{ mockMessages.length }}
           <span v-if="isStreaming" class="streaming-indicator">Streaming...</span>
         </div>
+        <div class="test-panel__status">
+          Widgets: {{ widgetRegistryStatus.state }}
+          <template v-if="widgetRegistryStatus.state === 'loaded'">({{ widgetRegistryStatus.count }})</template>
+          <span class="streaming-indicator">{{ playgroundWidgetCdnUrl }}</span>
+        </div>
       </div>
     </div>
 
@@ -622,8 +663,10 @@ export default {
         :key="m.id"
         :content="m.content"
         :message-id="m.id"
+        :typing="m.typing === true"
         :is-last-message="index === messages.length - 1"
         v-bind="getMessageOverrides(m.id)"
+        @widget-action="handleWidgetAction"
       />
       <ArtifactusePanelToggle v-if="artifactCount > 0" class="h-8 w-8 flex items-center justify-center cursor-pointer rounded-full disabled:opacity-65 disabled:cursor-default transition-all duration-200 hover:bg-gray-100 hover:text-gray-600" />
     </div>

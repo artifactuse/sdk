@@ -16,6 +16,19 @@
           @cancel="handleFormCancel"
           @button-click="handleFormButtonClick"
         />
+
+        <!-- Inline Widget -->
+        <ArtifactuseInlineWidget
+          v-else-if="segment.type === 'widget'"
+          :key="'widget-' + index"
+          :artifact="segment.artifact"
+          :theme="theme"
+          :pending="typing"
+          @action="handleWidgetAction"
+          @state-change="handleWidgetStateChange"
+          @height-change="handleWidgetHeightChange"
+          @follow-up="handleWidgetFollowUp"
+        />
         
         <!-- Inline Social Preview -->
         <ArtifactuseSocialPreview
@@ -56,6 +69,7 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useArtifactuse } from './composables.js';
 import ArtifactuseCard from './ArtifactuseCard.vue';
 import ArtifactuseInlineForm from './ArtifactuseInlineForm.vue';
+import ArtifactuseInlineWidget from './ArtifactuseInlineWidget.vue';
 import ArtifactuseSocialPreview from './ArtifactuseSocialPreview.vue';
 import ArtifactuseViewer from './ArtifactuseViewer.vue';
 
@@ -65,6 +79,7 @@ export default {
   components: {
     ArtifactuseCard,
     ArtifactuseInlineForm,
+    ArtifactuseInlineWidget,
     ArtifactuseSocialPreview,
     ArtifactuseViewer,
   },
@@ -239,6 +254,8 @@ export default {
         if (artifactData) {
           if (artifactType === 'form' && artifactData.isInline) {
             segments.push({ type: 'form', artifact: artifactData });
+          } else if (artifactType === 'widget') {
+            segments.push({ type: 'widget', artifact: artifactData });
           } else if (artifactType === 'social') {
             segments.push({ type: 'social', artifact: artifactData });
           } else {
@@ -578,6 +595,22 @@ export default {
       emit('social-copy', data);
     }
 
+    function handleWidgetAction(data) {
+      emit('widget-action', data);
+    }
+
+    function handleWidgetStateChange(data) {
+      emit('widget-state-change', data);
+    }
+
+    function handleWidgetHeightChange(data) {
+      emit('widget-height-change', data);
+    }
+
+    function handleWidgetFollowUp(data) {
+      emit('widget-follow-up', data);
+    }
+
     const messageArtifactsFromState = computed(() => {
       return state.artifacts.filter(a => a.messageId === props.messageId);
     });
@@ -607,6 +640,10 @@ export default {
       handleFormSubmit,
       handleFormCancel,
       handleFormButtonClick,
+      handleWidgetAction,
+      handleWidgetStateChange,
+      handleWidgetHeightChange,
+      handleWidgetFollowUp,
       handleSocialCopy,
       messageArtifactsFromState,
     };

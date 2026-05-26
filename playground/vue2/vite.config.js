@@ -11,6 +11,7 @@ export default defineConfig({
           __dirname,
           '../../src/styles/artifactuse.css'
           ),
+          'portal-vue': path.resolve(__dirname, 'node_modules/portal-vue'),
       },
   },
 })

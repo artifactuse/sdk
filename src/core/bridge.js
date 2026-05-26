@@ -83,7 +83,7 @@ export function createBridge(initialOrigins = []) {
     if (type !== 'artifactuse') return;
 
     // Handle ready signal
-    if (action === 'ready' || action === 'panel:ready') {
+    if (action === 'ready' || action === 'panel:ready' || action === 'widget:ready') {
       console.log('[Bridge] panel:ready received, setting isReady=true');
       isReady = true;
       readySignalReceived = true;
@@ -286,7 +286,9 @@ export function createBridge(initialOrigins = []) {
    * Send artifact data to panel
    */
   function loadArtifact(artifact) {
-    return send('load:artifact', artifact);
+    const requestId = send('load:artifact', artifact);
+
+    return requestId;
   }
   
   /**

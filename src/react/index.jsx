@@ -70,6 +70,7 @@ export function ArtifactuseProvider({ children, config = {} }) {
 
   // Panel types state (for reactivity when registering/unregistering)
   const [panelTypes, setPanelTypes] = useState(() => instance.getPanelTypes());
+  const [widgetTypes, setWidgetTypes] = useState(() => instance.getWidgetTypes());
 
   // Subscribe to state changes
   useEffect(() => {
@@ -127,6 +128,16 @@ export function ArtifactuseProvider({ children, config = {} }) {
     instance.unregisterPanel(type);
     setPanelTypes(instance.getPanelTypes());
   }, [instance]);
+
+  const registerWidget = useCallback((template, widget) => {
+    instance.registerWidget(template, widget);
+    setWidgetTypes(instance.getWidgetTypes());
+  }, [instance]);
+
+  const unregisterWidget = useCallback((template) => {
+    instance.unregisterWidget(template);
+    setWidgetTypes(instance.getWidgetTypes());
+  }, [instance]);
   
   // Context value
   const value = useMemo(() => ({
@@ -138,6 +149,7 @@ export function ArtifactuseProvider({ children, config = {} }) {
     
     // Panel computed
     panelTypes,
+    widgetTypes,
     activePanelUrl,
     
     // Methods
@@ -160,6 +172,12 @@ export function ArtifactuseProvider({ children, config = {} }) {
     registerPanel,
     unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
+
+    // Widget management
+    hasWidget: instance.hasWidget,
+    registerWidget,
+    unregisterWidget,
+    getWidgetTypes: instance.getWidgetTypes,
 
     // Multi-tab
     closeTab: instance.closeTab,
@@ -184,10 +202,13 @@ export function ArtifactuseProvider({ children, config = {} }) {
     artifactCount, 
     hasArtifacts, 
     panelTypes,
+    widgetTypes,
     activePanelUrl,
     setTheme,
     registerPanel,
     unregisterPanel,
+    registerWidget,
+    unregisterWidget,
   ]);
   
   return (
@@ -274,6 +295,7 @@ export { default as ArtifactusePanelToggle } from './ArtifactusePanelToggle.jsx'
 export { default as ArtifactuseCard } from './ArtifactuseCard.jsx';
 export { default as ArtifactuseViewer } from './ArtifactuseViewer.jsx';
 export { default as ArtifactuseInlineForm } from './ArtifactuseInlineForm.jsx';
+export { default as ArtifactuseInlineWidget } from './ArtifactuseInlineWidget.jsx';
 export { default as ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.jsx';
 
 // Default export

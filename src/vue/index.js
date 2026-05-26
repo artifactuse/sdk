@@ -72,6 +72,7 @@ export function provideArtifactuse(config = {}) {
 
   // Panel-related computed
   const panelTypes = computed(() => instance.getPanelTypes());
+  const widgetTypes = computed(() => instance.getWidgetTypes());
 
   const activePanelUrl = computed(() => {
     if (!activeArtifact.value) return null;
@@ -101,6 +102,7 @@ export function provideArtifactuse(config = {}) {
 
     // Panel computed
     panelTypes,
+    widgetTypes,
     activePanelUrl,
 
     // Methods
@@ -123,6 +125,12 @@ export function provideArtifactuse(config = {}) {
     registerPanel: instance.registerPanel,
     unregisterPanel: instance.unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
+
+    // Widget management
+    hasWidget: instance.hasWidget,
+    registerWidget: instance.registerWidget,
+    unregisterWidget: instance.unregisterWidget,
+    getWidgetTypes: instance.getWidgetTypes,
 
     // Multi-tab
     closeTab: instance.closeTab,
@@ -219,6 +227,7 @@ export function createArtifactuseComposable(config = {}) {
 
   // Panel-related computed
   const panelTypes = computed(() => instance.getPanelTypes());
+  const widgetTypes = computed(() => instance.getWidgetTypes());
 
   const activePanelUrl = computed(() => {
     if (!activeArtifact.value) return null;
@@ -234,6 +243,7 @@ export function createArtifactuseComposable(config = {}) {
     
     // Panel computed
     panelTypes,
+    widgetTypes,
     activePanelUrl,
     
     // Methods
@@ -256,6 +266,12 @@ export function createArtifactuseComposable(config = {}) {
     registerPanel: instance.registerPanel,
     unregisterPanel: instance.unregisterPanel,
     getPanelTypes: instance.getPanelTypes,
+
+    // Widget management
+    hasWidget: instance.hasWidget,
+    registerWidget: instance.registerWidget,
+    unregisterWidget: instance.unregisterWidget,
+    getWidgetTypes: instance.getWidgetTypes,
 
     // Multi-tab
     closeTab: instance.closeTab,
@@ -289,6 +305,7 @@ export { default as ArtifactusePanelToggle } from './ArtifactusePanelToggle.vue'
 export { default as ArtifactuseCard } from './ArtifactuseCard.vue';
 export { default as ArtifactuseViewer } from './ArtifactuseViewer.vue';
 export { default as ArtifactuseInlineForm } from './ArtifactuseInlineForm.vue';
+export { default as ArtifactuseInlineWidget } from './ArtifactuseInlineWidget.vue';
 export { default as ArtifactuseSocialPreview } from './ArtifactuseSocialPreview.vue';
 
 // Default export

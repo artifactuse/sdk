@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import {
   ArtifactuseProvider,
   ArtifactuseAgentMessage,
@@ -8,6 +8,7 @@ import {
 } from '../../src/react'
 import { messages as mockMessages } from '../shared/mockMessages'
 import { createStreamSimulator } from '../shared/streamSimulator'
+import { playgroundWidgetCdnUrl, registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
 
 const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8BQDwAEgAF/QualIQAAAABJRU5ErkJggg==';
 const WAV_B64 = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -24,12 +25,13 @@ async function fetchAsBase64(url) {
 }
 
 function AppContent() {
-  const { clearArtifacts, openFile } = useArtifactuse()
+  const { clearArtifacts, openFile, registerWidget } = useArtifactuse()
   const [messages, setMessages] = useState([])
   const [selectedMessageId, setSelectedMessageId] = useState(mockMessages[0]?.id || '')
   const [streamSpeed, setStreamSpeed] = useState('fast')
   const [isStreaming, setIsStreaming] = useState(false)
   const [showTestPanel, setShowTestPanel] = useState(true)
+  const [widgetRegistryStatus, setWidgetRegistryStatus] = useState({ state: 'loading', count: 0 })
 
   const selectedMessage = useMemo(() => {
     return mockMessages.find(m => m.id === selectedMessageId)
@@ -41,6 +43,20 @@ function AppContent() {
       setMessages: setMessages,
     })
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    registerHostedPlaygroundWidgets(registerWidget).then((result) => {
+      if (cancelled) return
+      setWidgetRegistryStatus({
+        state: result.ok ? 'loaded' : 'failed',
+        count: result.ok ? Object.keys(result.widgets || {}).length : 0,
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [registerWidget])
 
   // Update simulator's getMessages to use current messages
   useMemo(() => {
@@ -148,6 +164,12 @@ function AppContent() {
               {isStreaming && <span className="streaming-indicator">Streaming...</span>}
             </div>
 
+            <div className="test-panel__status">
+              Widgets: {widgetRegistryStatus.state}
+              {widgetRegistryStatus.state === 'loaded' && ` (${widgetRegistryStatus.count})`}
+              <span className="streaming-indicator">{playgroundWidgetCdnUrl}</span>
+            </div>
+
             <div className="test-panel__field">
               <label>Binary File Preview:</label>
             </div>
@@ -178,7 +200,9 @@ function AppContent() {
             key={m.id}
             content={m.content}
             messageId={m.id}
+            typing={m.typing === true}
             isLastMessage={index === messages.length - 1}
+            onWidgetAction={(event) => console.log('Widget action:', event)}
           />
         ))}
         <ArtifactusePanelToggle />
@@ -190,7 +214,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ArtifactuseProvider config={{ theme: 'dark' }}>
+    <ArtifactuseProvider
+      config={{
+        theme: 'dark',
+      }}
+    >
       <AppContent />
     </ArtifactuseProvider>
   )

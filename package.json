@@ -50,6 +50,10 @@
       "import": "./dist/svelte/index.js",
       "types": "./dist/svelte/index.d.ts"
     },
+    "./widget/vanilla": {
+      "import": "./dist/widget/vanilla.js",
+      "types": "./dist/widget/vanilla.d.ts"
+    },
     "./styles": "./dist/styles/artifactuse.css",
     "./styles/*": "./dist/styles/*"
   },

@@ -1,0 +1,97 @@
+/* ============================================================
+   ARTIFACTUSE INLINE WIDGETS
+   Sandboxed, registered widget templates rendered inside messages
+   ============================================================ */
+
+.artifactuse-inline-widget {
+  display: block;
+  max-width: 100%;
+  margin: 8px 0;
+  box-sizing: border-box;
+  font-family: var(--artifactuse-font-family);
+}
+
+.artifactuse-inline-widget__iframe {
+  display: block;
+  width: 100%;
+  /* min-height: 120px; */
+  /* max-height: 1200px; */
+  /* border: 1px solid rgba(var(--artifactuse-border), 0.65); */
+  border-radius: 8px;
+  background: transparent;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.artifactuse-inline-widget--error {
+  border: 1px solid rgba(var(--artifactuse-error), 0.32);
+  border-radius: 8px;
+  background: rgba(var(--artifactuse-error), 0.08);
+  color: rgb(var(--artifactuse-text));
+  padding: 12px;
+}
+
+.artifactuse-inline-widget--loading {
+  min-height: 96px;
+  border: 1px solid rgba(var(--artifactuse-border), 0.45);
+  border-radius: 8px;
+  background: transparent;
+  padding: 14px;
+}
+
+.artifactuse-inline-widget__loading-line {
+  width: 72%;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--artifactuse-surface-hover), 0.55),
+    rgba(var(--artifactuse-border), 0.45),
+    rgba(var(--artifactuse-surface-hover), 0.55)
+  );
+  background-size: 180% 100%;
+  animation: artifactuse-widget-loading 1.2s ease-in-out infinite;
+}
+
+.artifactuse-inline-widget__loading-line + .artifactuse-inline-widget__loading-line {
+  margin-top: 10px;
+}
+
+.artifactuse-inline-widget__loading-line--short {
+  width: 46%;
+}
+
+.artifactuse-inline-widget__error-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0 0 6px 0;
+  color: rgb(var(--artifactuse-text));
+}
+
+.artifactuse-inline-widget__error-text,
+.artifactuse-inline-widget__error-list {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgb(var(--artifactuse-text-secondary));
+}
+
+.artifactuse-inline-widget__error-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 640px) {
+  .artifactuse-inline-widget {
+    max-width: 100%;
+  }
+}
+
+@keyframes artifactuse-widget-loading {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
