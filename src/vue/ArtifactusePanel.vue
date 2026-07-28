@@ -4,10 +4,9 @@
     <div 
       v-if="state.isPanelOpen"
       class="artifactuse-panel"
-      :class="{ 
+      :class="{
         'artifactuse-panel--fullscreen': state.isFullscreen,
-        'artifactuse-panel--list': !activeArtifact && hasArtifacts && !state.forceEmptyView,
-        'artifactuse-panel--empty': !hasArtifacts && !state.forceEmptyView
+        'artifactuse-panel--empty': showEmptyState
       }"
       :style="!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined"
     >
@@ -21,13 +20,13 @@
       </div>
 
       <!-- ============================================ -->
-      <!-- EMPTY STATE: No artifacts -->
+      <!-- EMPTY STATE: No artifacts, or none selected -->
       <!-- ============================================ -->
-      <template v-if="!hasArtifacts || forceEmptyView">
+      <template v-if="showEmptyState">
         <header class="artifactuse-panel__header artifactuse-panel__header--simple">
           <div class="artifactuse-panel__title">
             <span class="artifactuse-panel__icon">
-              <svg v-if="forceEmptyView" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg v-if="hasArtifacts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
@@ -37,7 +36,7 @@
               </svg>
             </span>
             <div class="artifactuse-panel__title-content">
-              <span class="artifactuse-panel__name">{{ forceEmptyView ? 'Artifact Viewer' : 'Artifacts' }}</span>
+              <span class="artifactuse-panel__name">{{ hasArtifacts ? 'Artifact Viewer' : 'Artifacts' }}</span>
             </div>
           </div>
           <div class="artifactuse-panel__actions">
@@ -61,108 +60,10 @@
               <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
           </div>
-          <h3 class="artifactuse-panel__empty-title">{{ forceEmptyView ? 'No artifact selected' : 'No artifacts yet' }}</h3>
+          <h3 class="artifactuse-panel__empty-title">{{ hasArtifacts ? 'No artifact selected' : 'No artifacts yet' }}</h3>
           <p class="artifactuse-panel__empty-text">
-            {{ forceEmptyView ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.' }}
+            {{ hasArtifacts ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.' }}
           </p>
-        </div>
-        
-        <footer class="artifactuse-panel__footer artifactuse-panel__footer--simple">
-          <a 
-            v-if="showBranding"
-            href="https://artifactuse.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="artifactuse-panel__branding"
-          >
-            <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
-              <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
-            </svg>
-            <span>Artifactuse</span>
-          </a>
-        </footer>
-      </template>
-
-      <!-- ============================================ -->
-      <!-- LIST VIEW: Has artifacts but none selected -->
-      <!-- ============================================ -->
-      <template v-else-if="!activeArtifact && !forceEmptyView">
-        <header class="artifactuse-panel__header artifactuse-panel__header--simple">
-          <div class="artifactuse-panel__title">
-            <span class="artifactuse-panel__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-              </svg>
-            </span>
-            <div class="artifactuse-panel__title-content">
-              <span class="artifactuse-panel__name">Artifacts</span>
-              <span class="artifactuse-panel__meta">{{ nonInlineArtifacts.length }} available</span>
-            </div>
-          </div>
-          <div class="artifactuse-panel__actions">
-            <!-- Download All button -->
-            <button 
-              class="artifactuse-panel__action"
-              :class="{ 'artifactuse-panel__action--loading': isDownloadingAll }"
-              :disabled="isDownloadingAll"
-              title="Download all as ZIP"
-              @click="handleDownloadAll"
-            >
-              <svg v-if="!isDownloadingAll" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <svg v-else class="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"></circle>
-              </svg>
-            </button>
-            
-            <button 
-              class="artifactuse-panel__action artifactuse-panel__action--close"
-              title="Close panel"
-              @click="closePanel"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </header>
-        
-        <div class="artifactuse-panel__list">
-          <div class="artifactuse-panel__list-items">
-            <button
-              v-for="(artifact, index) in nonInlineArtifacts"
-              :key="artifact.id"
-              class="artifactuse-panel__list-item"
-              @click="selectArtifact(artifact)"
-            >
-              <span 
-                class="artifactuse-panel__list-item-icon"
-                v-html="getArtifactIcon(artifact.language)"
-              ></span>
-              <div class="artifactuse-panel__list-item-content">
-                <span class="artifactuse-panel__list-item-title">
-                  {{ artifact.title || 'Untitled' }}
-                </span>
-                <span class="artifactuse-panel__list-item-meta">
-                  {{ getLanguageDisplayName(artifact.language) }}
-                  <template v-if="artifact.lineCount">
-                    • {{ artifact.lineCount }} lines
-                  </template>
-                </span>
-              </div>
-              <span class="artifactuse-panel__list-item-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </span>
-            </button>
-          </div>
         </div>
         
         <footer class="artifactuse-panel__footer artifactuse-panel__footer--simple">
@@ -186,95 +87,178 @@
       <!-- DETAIL VIEW: Active artifact selected -->
       <!-- ============================================ -->
       <template v-else>
-        <!-- Panel header -->
-        <header class="artifactuse-panel__header">
-          <!-- Back button (only when navigated from list view) -->
-          <button
-            v-if="isMultiTab || cameFromList"
-            class="artifactuse-panel__back"
-            :title="isMultiTab ? 'Browse artifacts' : 'Back to list'"
-            @click="goBackToList"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-          
-          <div class="artifactuse-panel__title">
-            <span 
-              class="artifactuse-panel__icon"
-              v-html="languageIcon"
-            ></span>
-            <div class="artifactuse-panel__title-content">
-              <span class="artifactuse-panel__name">{{ activeArtifact.title || 'Untitled' }}</span>
-              <span class="artifactuse-panel__meta">
-                {{ languageDisplay }}
-                <template v-if="activeArtifact.lineCount">
-                  • {{ activeArtifact.lineCount }} lines
-                </template>
-              </span>
+        <!-- Unified bar: tabs / title on the left, view modes + actions on the right -->
+        <div class="artifactuse-panel__bar">
+          <div class="artifactuse-panel__bar-left">
+            <!-- File tabs (multi-tab mode) -->
+            <div v-if="isMultiTab && openTabArtifacts.length > 0" class="artifactuse-panel__file-tabs">
+              <div class="artifactuse-panel__file-tabs-scroll">
+                <button
+                  v-for="tab in openTabArtifacts"
+                  :key="tab.id"
+                  class="artifactuse-panel__file-tab"
+                  :class="{ 'artifactuse-panel__file-tab--active': tab.id === activeArtifact?.id }"
+                  @click="selectTab(tab)"
+                >
+                  <span class="artifactuse-panel__file-tab-icon" v-html="getArtifactIcon(tab.language)"></span>
+                  <span class="artifactuse-panel__file-tab-title">{{ tab.title || 'Untitled' }}</span>
+                  <span
+                    class="artifactuse-panel__file-tab-close"
+                    title="Close tab"
+                    role="button"
+                    tabindex="0"
+                    @click.stop="handleCloseTab(tab.id)"
+                    @keydown.enter.stop="handleCloseTab(tab.id)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </span>
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <!-- View mode tabs (icon only) -->
-          <div class="artifactuse-panel__tabs">
-            <button
-              v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('preview')"
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
-              :disabled="!activeArtifact.isPreviewable"
-              title="Preview"
-              @click="setViewMode('preview')"
-            >
-              <!-- Eye icon -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-            <button
-              v-if="(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && !isBinaryArtifact"
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
-              title="Code"
-              @click="setViewMode('code')"
-            >
-              <!-- Code icon -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-              </svg>
-            </button>
-            <button
-              v-if="(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && !isBinaryArtifact"
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
-              :disabled="!activeArtifact.isPreviewable"
-              title="Split view"
-              @click="setViewMode('split')"
-            >
-              <!-- Split icon -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="12" y1="3" x2="12" y2="21"></line>
-              </svg>
-            </button>
-            <button
-              v-if="activeArtifact.tabs && activeArtifact.tabs.includes('edit') && isEditorAvailable"
-              class="artifactuse-panel__tab"
-              :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'edit' }"
-              title="Edit"
-              @click="setViewMode('edit')"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
+
+            <!-- Title chip (single-artifact mode) -->
+            <template v-else>
+              <div class="artifactuse-panel__bar-chip">
+                <span class="artifactuse-panel__bar-chip-icon" v-html="languageIconHtml"></span>
+                <span class="artifactuse-panel__bar-chip-title">{{ activeArtifact.title || 'Untitled' }}</span>
+                <span class="artifactuse-panel__bar-chip-meta">
+                  {{ languageDisplay }}<template v-if="activeArtifact.lineCount"> &bull; {{ activeArtifact.lineCount }} lines</template>
+                </span>
+              </div>
+
+              <!-- Navigation -->
+              <div v-if="nonInlineArtifacts.length > 1" class="artifactuse-panel__nav">
+                <button
+                  class="artifactuse-panel__nav-btn"
+                  :disabled="currentNonInlineIndex <= 0"
+                  title="Previous artifact"
+                  @click="navigateToPrevNonInline"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+
+                <button
+                  class="artifactuse-panel__nav-trigger"
+                  @click="showArtifactList = !showArtifactList"
+                >
+                  <span>{{ currentNonInlineIndex + 1 }} / {{ nonInlineArtifacts.length }}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+
+                <button
+                  class="artifactuse-panel__nav-btn"
+                  :disabled="currentNonInlineIndex >= nonInlineArtifacts.length - 1"
+                  title="Next artifact"
+                  @click="navigateToNextNonInline"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+
+                <!-- Artifact list popup -->
+                <Transition name="artifactuse-popup">
+                  <div v-if="showArtifactList" class="artifactuse-panel__artifact-list">
+                    <div class="artifactuse-panel__artifact-list-header">
+                      <span>All Artifacts ({{ nonInlineArtifacts.length }})</span>
+                      <button 
+                        class="artifactuse-panel__artifact-list-close"
+                        @click="showArtifactList = false"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="artifactuse-panel__artifact-list-items">
+                      <button 
+                        v-for="(artifact, index) in nonInlineArtifacts"
+                        :key="artifact.id"
+                        class="artifactuse-panel__artifact-item"
+                        :class="{ 'artifactuse-panel__artifact-item--active': artifact.id === activeArtifact?.id }"
+                        @click="selectArtifact(artifact)"
+                      >
+                        <span class="artifactuse-panel__artifact-item-icon" v-html="getArtifactIcon(artifact.language)"></span>
+                        <div class="artifactuse-panel__artifact-item-content">
+                          <span class="artifactuse-panel__artifact-item-title">{{ artifact.title || 'Untitled' }}</span>
+                          <span class="artifactuse-panel__artifact-item-meta">
+                            {{ getLanguageDisplayName(artifact.language) }}
+                            <template v-if="artifact.lineCount"> • {{ artifact.lineCount }} lines</template>
+                          </span>
+                        </div>
+                        <span class="artifactuse-panel__artifact-item-index">{{ index + 1 }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+            </template>
           </div>
 
-          <!-- Header actions (icon only) -->
-          <div class="artifactuse-panel__actions">
+          <div class="artifactuse-panel__bar-right">
+            <!-- View mode tabs -->
+            <div class="artifactuse-panel__tabs">
+              <button
+                v-if="!activeArtifact.tabs || activeArtifact.tabs.includes('preview')"
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'preview' }"
+                :disabled="!activeArtifact.isPreviewable"
+                title="Preview"
+                @click="setViewMode('preview')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button
+                v-if="(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && !isBinaryArtifact"
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'code' }"
+                title="Code"
+                @click="setViewMode('code')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </button>
+              <button
+                v-if="(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && !isBinaryArtifact"
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'split' }"
+                :disabled="!activeArtifact.isPreviewable"
+                title="Split view"
+                @click="setViewMode('split')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <line x1="12" y1="3" x2="12" y2="21"></line>
+                </svg>
+              </button>
+              <button
+                v-if="activeArtifact.tabs && activeArtifact.tabs.includes('edit') && isEditorAvailable"
+                class="artifactuse-panel__tab"
+                :class="{ 'artifactuse-panel__tab--active': state.viewMode === 'edit' }"
+                title="Edit"
+                @click="setViewMode('edit')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Actions -->
             <button
               v-if="state.viewMode === 'edit'"
               class="artifactuse-panel__action artifactuse-panel__action--save"
@@ -287,18 +271,7 @@
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
             </button>
-            <button
-              v-if="showExternalPreview"
-              class="artifactuse-panel__action"
-              title="Open in new tab"
-              @click="handleExternalPreview"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
-            </button>
+
             <button
               class="artifactuse-panel__action"
               :title="state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
@@ -318,41 +291,271 @@
               </svg>
             </button>
 
+            <!-- Overflow menu -->
+            <div class="artifactuse-panel__overflow">
+              <button
+                class="artifactuse-panel__action"
+                title="More actions"
+                @click="toggleOverflowMenu"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="1"></circle>
+                  <circle cx="19" cy="12" r="1"></circle>
+                  <circle cx="5" cy="12" r="1"></circle>
+                </svg>
+              </button>
+
+              <Transition name="artifactuse-popup">
+                <div v-if="showOverflowMenu" class="artifactuse-panel__overflow-menu">
+                  <button
+                    class="artifactuse-panel__overflow-item"
+                    :class="{ 'artifactuse-panel__overflow-item--success': copied }"
+                    @click="handleCopy"
+                  >
+                    <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>{{ copied ? 'Copied!' : 'Copy code' }}</span>
+                  </button>
+
+                  <button class="artifactuse-panel__overflow-item" @click="handleDownload">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download</span>
+                  </button>
+
+                  <button
+                    v-if="nonInlineArtifacts.length > 1"
+                    class="artifactuse-panel__overflow-item"
+                    :class="{ 'artifactuse-panel__overflow-item--disabled': isDownloadingAll }"
+                    @click="handleDownloadAll"
+                  >
+                    <svg v-if="!isDownloadingAll" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <svg v-else class="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"></circle>
+                    </svg>
+                    <span>{{ isDownloadingAll ? 'Preparing ZIP...' : 'Download all as ZIP' }}</span>
+                  </button>
+
+                  <button v-if="sharingEnabled" class="artifactuse-panel__overflow-item" @click="handleShareFromMenu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    <span>Share</span>
+                  </button>
+
+                  <button v-if="showExternalPreview" class="artifactuse-panel__overflow-item" @click="handleExternalPreview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                    <span>Open in new tab</span>
+                  </button>
+
+                  <div class="artifactuse-panel__overflow-divider"></div>
+
+                  <div v-if="activeArtifact.code" class="artifactuse-panel__overflow-meta">
+                    {{ languageDisplay }} &bull; {{ formatBytes(activeArtifact.size) }}
+                  </div>
+
+                  <a
+                    v-if="showBranding"
+                    href="https://artifactuse.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="artifactuse-panel__overflow-branding"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                      <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+                    </svg>
+                    <span>Powered by Artifactuse</span>
+                  </a>
+                </div>
+              </Transition>
+
+            <!-- Share popup -->
+            <Transition name="artifactuse-popup">
+              <div v-if="showShareModal" class="artifactuse-share-popup">
+                <div class="artifactuse-share-popup__header">
+                  <span class="artifactuse-share-popup__title">
+                    {{ shareModalState === 'success' ? (updatedArtifactName ? 'Artifact updated!' : 'Link created!') : shareModalState === 'update-list' ? 'Update saved artifact' : 'Share Artifact' }}
+                  </span>
+                  <button class="artifactuse-share-popup__close" @click="closeShareModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <div class="artifactuse-share-popup__body">
+                  <!-- Loading state -->
+                  <div v-if="shareModalState === 'loading'" class="artifactuse-share-popup__loading">
+                    <div class="artifactuse-share-popup__spinner"></div>
+                    <p class="artifactuse-share-popup__loading-text">Creating link...</p>
+                  </div>
+
+                  <!-- Error state -->
+                  <div v-else-if="shareModalState === 'error'">
+                    <div class="artifactuse-share-popup__error">
+                      <p class="artifactuse-share-popup__error-text">{{ shareError }}</p>
+                    </div>
+                    <div class="artifactuse-share-popup__actions">
+                      <button class="artifactuse-share-popup__btn artifactuse-share-popup__btn--secondary" @click="shareModalState = 'options'">
+                        Back
+                      </button>
+                      <button class="artifactuse-share-popup__btn artifactuse-share-popup__btn--primary" @click="retryShare">
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Options state -->
+                  <div v-else-if="shareModalState === 'options'" class="artifactuse-share-popup__options">
+                    <button class="artifactuse-share-popup__option" @click="handleQuickShare">
+                      <div class="artifactuse-share-popup__option-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                      </div>
+                      <div class="artifactuse-share-popup__option-content">
+                        <p class="artifactuse-share-popup__option-title">Share link</p>
+                        <p class="artifactuse-share-popup__option-desc">Expires in 30 days</p>
+                      </div>
+                    </button>
+                    <button class="artifactuse-share-popup__option" @click="handleSaveOption">
+                      <div class="artifactuse-share-popup__option-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                      </div>
+                      <div class="artifactuse-share-popup__option-content">
+                        <p class="artifactuse-share-popup__option-title">Save to account</p>
+                        <p class="artifactuse-share-popup__option-desc">Permanent, manageable</p>
+                      </div>
+                    </button>
+                    <button class="artifactuse-share-popup__option" @click="handleUpdateOption">
+                      <div class="artifactuse-share-popup__option-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="23 4 23 10 17 10"></polyline>
+                          <polyline points="1 20 1 14 7 14"></polyline>
+                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                      </div>
+                      <div class="artifactuse-share-popup__option-content">
+                        <p class="artifactuse-share-popup__option-title">Update saved</p>
+                        <p class="artifactuse-share-popup__option-desc">Replace an existing artifact</p>
+                      </div>
+                    </button>
+                  </div>
+
+                  <!-- Update list state -->
+                  <div v-else-if="shareModalState === 'update-list'">
+                    <div v-if="savedArtifactsLoading" class="artifactuse-share-popup__loading">
+                      <div class="artifactuse-share-popup__spinner"></div>
+                      <p class="artifactuse-share-popup__loading-text">Loading artifacts...</p>
+                    </div>
+                    <div v-else-if="savedArtifacts.length === 0" class="artifactuse-share-popup__empty">
+                      No saved artifacts of this type
+                    </div>
+                    <div v-else class="artifactuse-share-popup__artifact-list">
+                      <button
+                        v-for="artifact in savedArtifacts"
+                        :key="artifact.project ? artifact.project.uuid : artifact.id"
+                        class="artifactuse-share-popup__artifact-item"
+                        @click="handleUpdateArtifact(artifact)"
+                      >
+                        <span class="artifactuse-share-popup__artifact-name">{{ artifact.project ? artifact.project.name || 'Untitled' : 'Untitled' }}</span>
+                        <span class="artifactuse-share-popup__artifact-date">{{ formatExpiryDate(artifact.project ? artifact.project.created_at : null) }}</span>
+                      </button>
+                    </div>
+                    <button class="artifactuse-share-popup__back-btn" @click="shareModalState = 'options'">Back</button>
+                  </div>
+
+                  <!-- Success state -->
+                  <div v-else-if="shareModalState === 'success'" class="artifactuse-share-popup__success">
+                    <div class="artifactuse-share-popup__success-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <div class="artifactuse-share-popup__link-wrapper">
+                      <input
+                        type="text"
+                        class="artifactuse-share-popup__link"
+                        :value="shareUrl"
+                        readonly
+                        @click="$event.target.select()"
+                      />
+                      <button
+                        class="artifactuse-share-popup__copy-btn"
+                        :class="{ 'artifactuse-share-popup__copy-btn--copied': shareLinkCopied }"
+                        @click="copyShareLink"
+                      >
+                        {{ shareLinkCopied ? 'Copied!' : 'Copy' }}
+                      </button>
+                    </div>
+                    <div v-if="shareExpiresAt && !shareIsSaved" class="artifactuse-share-popup__expiry">
+                      <span class="artifactuse-share-popup__expiry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="8" x2="12" y2="12"></line>
+                          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                      </span>
+                      <span class="artifactuse-share-popup__expiry-text">
+                        Expires {{ formatExpiryDate(shareExpiresAt) }}
+                      </span>
+                    </div>
+                    <div v-if="!shareIsSaved" class="artifactuse-share-popup__save-prompt">
+                      <p class="artifactuse-share-popup__save-prompt-text">Keep it permanently?</p>
+                      <button class="artifactuse-share-popup__save-prompt-btn" @click="handleSaveOption">
+                        Save to account
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="artifactuse-share-popup__footer">
+                  <a href="https://artifactuse.com" target="_blank" rel="noopener noreferrer" class="artifactuse-share-popup__branding">
+                    <svg width="12" height="12" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                      <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+                    </svg>
+                    <span>Powered by Artifactuse</span>
+                  </a>
+                </div>
+              </div>
+            </Transition>
+            </div>
+
             <button
               class="artifactuse-panel__action artifactuse-panel__action--close"
-              title="Close panel"
+              title="Close"
               @click="closePanel"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-            </button>
-          </div>
-        </header>
-
-        <!-- File tabs (multi-tab mode) -->
-        <div v-if="isMultiTab && openTabArtifacts.length > 0" class="artifactuse-panel__file-tabs">
-          <div class="artifactuse-panel__file-tabs-scroll">
-            <button
-              v-for="tab in openTabArtifacts"
-              :key="tab.id"
-              class="artifactuse-panel__file-tab"
-              :class="{ 'artifactuse-panel__file-tab--active': tab.id === activeArtifact?.id }"
-              @click="selectTab(tab)"
-            >
-              <span class="artifactuse-panel__file-tab-icon" v-html="getArtifactIcon(tab.language)"></span>
-              <span class="artifactuse-panel__file-tab-title">{{ tab.title || 'Untitled' }}</span>
-              <button
-                class="artifactuse-panel__file-tab-close"
-                title="Close tab"
-                @click.stop="handleCloseTab(tab.id)"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
             </button>
           </div>
         </div>
@@ -491,337 +694,6 @@
           </div>
         </div>
 
-        <!-- Panel footer -->
-        <footer class="artifactuse-panel__footer">
-          <div class="artifactuse-panel__footer-left">
-            <!-- Powered by Artifactuse -->
-            <a 
-              v-if="showBranding"
-              href="https://artifactuse.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              class="artifactuse-panel__branding"
-            >
-              <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
-                <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
-              </svg>
-              <span>Artifactuse</span>
-            </a>
-            
-            <!-- Size badge -->
-            <span v-if="activeArtifact.size" class="artifactuse-panel__badge">
-              {{ formatBytes(activeArtifact.size) }}
-            </span>
-          </div>
-          
-          <div class="artifactuse-panel__footer-right">
-            <!-- Copy button (icon only) -->
-            <button 
-              class="artifactuse-panel__footer-action"
-              :class="{ 'artifactuse-panel__footer-action--success': copied }"
-              :title="copied ? 'Copied!' : 'Copy code'"
-              @click="handleCopy"
-            >
-              <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </button>
-            
-            <!-- Download button (icon only) -->
-            <button
-              class="artifactuse-panel__footer-action"
-              title="Download file"
-              @click="handleDownload"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-            </button>
-
-            <!-- Share button + popup -->
-            <div v-if="sharingEnabled" style="position: relative;">
-              <button
-                class="artifactuse-panel__footer-action"
-                title="Share"
-                @click="toggleSharePopup"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
-              </button>
-
-              <!-- Share popup -->
-              <Transition name="artifactuse-popup">
-                <div v-if="showShareModal" class="artifactuse-share-popup">
-                  <div class="artifactuse-share-popup__header">
-                    <span class="artifactuse-share-popup__title">
-                      {{ shareModalState === 'success' ? (updatedArtifactName ? 'Artifact updated!' : 'Link created!') : shareModalState === 'update-list' ? 'Update saved artifact' : 'Share Artifact' }}
-                    </span>
-                    <button class="artifactuse-share-popup__close" @click="closeShareModal">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="artifactuse-share-popup__body">
-                    <!-- Loading state -->
-                    <div v-if="shareModalState === 'loading'" class="artifactuse-share-popup__loading">
-                      <div class="artifactuse-share-popup__spinner"></div>
-                      <p class="artifactuse-share-popup__loading-text">Creating link...</p>
-                    </div>
-
-                    <!-- Error state -->
-                    <div v-else-if="shareModalState === 'error'">
-                      <div class="artifactuse-share-popup__error">
-                        <p class="artifactuse-share-popup__error-text">{{ shareError }}</p>
-                      </div>
-                      <div class="artifactuse-share-popup__actions">
-                        <button class="artifactuse-share-popup__btn artifactuse-share-popup__btn--secondary" @click="shareModalState = 'options'">
-                          Back
-                        </button>
-                        <button class="artifactuse-share-popup__btn artifactuse-share-popup__btn--primary" @click="retryShare">
-                          Retry
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Options state (initial) -->
-                    <div v-else-if="shareModalState === 'options'" class="artifactuse-share-popup__options">
-                      <button class="artifactuse-share-popup__option" @click="handleQuickShare">
-                        <div class="artifactuse-share-popup__option-icon">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                          </svg>
-                        </div>
-                        <div class="artifactuse-share-popup__option-content">
-                          <p class="artifactuse-share-popup__option-title">Share link</p>
-                          <p class="artifactuse-share-popup__option-desc">Expires in 30 days</p>
-                        </div>
-                      </button>
-                      <button class="artifactuse-share-popup__option" @click="handleSaveOption">
-                        <div class="artifactuse-share-popup__option-icon">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                          </svg>
-                        </div>
-                        <div class="artifactuse-share-popup__option-content">
-                          <p class="artifactuse-share-popup__option-title">Save to account</p>
-                          <p class="artifactuse-share-popup__option-desc">Permanent, manageable</p>
-                        </div>
-                      </button>
-                      <button class="artifactuse-share-popup__option" @click="handleUpdateOption">
-                        <div class="artifactuse-share-popup__option-icon">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 4 23 10 17 10"></polyline>
-                            <polyline points="1 20 1 14 7 14"></polyline>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                          </svg>
-                        </div>
-                        <div class="artifactuse-share-popup__option-content">
-                          <p class="artifactuse-share-popup__option-title">Update saved</p>
-                          <p class="artifactuse-share-popup__option-desc">Replace an existing artifact</p>
-                        </div>
-                      </button>
-                    </div>
-
-                    <!-- Update list state -->
-                    <div v-else-if="shareModalState === 'update-list'">
-                      <div v-if="savedArtifactsLoading" class="artifactuse-share-popup__loading">
-                        <div class="artifactuse-share-popup__spinner"></div>
-                        <p class="artifactuse-share-popup__loading-text">Loading artifacts...</p>
-                      </div>
-                      <div v-else-if="savedArtifacts.length === 0" class="artifactuse-share-popup__empty">
-                        No saved artifacts of this type
-                      </div>
-                      <div v-else class="artifactuse-share-popup__artifact-list">
-                        <button
-                          v-for="artifact in savedArtifacts"
-                          :key="artifact.project?.uuid || artifact.id"
-                          class="artifactuse-share-popup__artifact-item"
-                          @click="handleUpdateArtifact(artifact)"
-                        >
-                          <span class="artifactuse-share-popup__artifact-name">{{ artifact.project?.name || 'Untitled' }}</span>
-                          <span class="artifactuse-share-popup__artifact-date">{{ formatExpiryDate(artifact.project?.created_at) }}</span>
-                        </button>
-                      </div>
-                      <button class="artifactuse-share-popup__back-btn" @click="shareModalState = 'options'">Back</button>
-                    </div>
-
-                    <!-- Success state -->
-                    <div v-else-if="shareModalState === 'success'" class="artifactuse-share-popup__success">
-                      <div class="artifactuse-share-popup__success-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      </div>
-                      <div class="artifactuse-share-popup__link-wrapper">
-                        <input
-                          type="text"
-                          class="artifactuse-share-popup__link"
-                          :value="shareUrl"
-                          readonly
-                          @click="$event.target.select()"
-                        />
-                        <button
-                          class="artifactuse-share-popup__copy-btn"
-                          :class="{ 'artifactuse-share-popup__copy-btn--copied': shareLinkCopied }"
-                          @click="copyShareLink"
-                        >
-                          {{ shareLinkCopied ? 'Copied!' : 'Copy' }}
-                        </button>
-                      </div>
-                      <div v-if="shareExpiresAt && !shareIsSaved" class="artifactuse-share-popup__expiry">
-                        <span class="artifactuse-share-popup__expiry-icon">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                          </svg>
-                        </span>
-                        <span class="artifactuse-share-popup__expiry-text">
-                          Expires {{ formatExpiryDate(shareExpiresAt) }}
-                        </span>
-                      </div>
-                      <div v-if="!shareIsSaved" class="artifactuse-share-popup__save-prompt">
-                        <p class="artifactuse-share-popup__save-prompt-text">Keep it permanently?</p>
-                        <button class="artifactuse-share-popup__save-prompt-btn" @click="handleSaveOption">
-                          Save to account
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="artifactuse-share-popup__footer">
-                    <a href="https://artifactuse.com" target="_blank" rel="noopener noreferrer" class="artifactuse-share-popup__branding">
-                      <svg width="12" height="12" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
-                        <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
-                      </svg>
-                      <span>Powered by Artifactuse</span>
-                    </a>
-                  </div>
-                </div>
-              </Transition>
-            </div>
-
-            <!-- Open in new tab (icon only) -->
-            <button 
-              v-if="panelUrl"
-              class="artifactuse-panel__footer-action"
-              title="Open in new tab"
-              @click="handleExternalPreview"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
-            </button>
-            
-            <!-- Artifact navigation (if multiple non-inline) -->
-            <div
-              v-if="!isMultiTab && nonInlineArtifacts.length > 1"
-              class="artifactuse-panel__nav"
-            >
-              <button 
-                class="artifactuse-panel__nav-btn"
-                :disabled="currentNonInlineIndex <= 0"
-                title="Previous artifact"
-                @click="navigateToPrevNonInline"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              
-              <!-- Clickable indicator that opens popup -->
-              <button 
-                class="artifactuse-panel__nav-trigger"
-                title="View all artifacts"
-                @click="toggleArtifactList"
-              >
-                <span>{{ currentNonInlineIndex + 1 }} / {{ nonInlineArtifacts.length }}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              
-              <button 
-                class="artifactuse-panel__nav-btn"
-                :disabled="currentNonInlineIndex >= nonInlineArtifacts.length - 1"
-                title="Next artifact"
-                @click="navigateToNextNonInline"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-              
-              <!-- Artifact list popup -->
-              <Transition name="artifactuse-popup">
-                <div 
-                  v-if="showArtifactList"
-                  class="artifactuse-panel__artifact-list"
-                >
-                  <div class="artifactuse-panel__artifact-list-header">
-                    <span>Artifacts</span>
-                    <button 
-                      class="artifactuse-panel__artifact-list-close"
-                      @click="showArtifactList = false"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="artifactuse-panel__artifact-list-items">
-                    <button
-                      v-for="(artifact, index) in nonInlineArtifacts"
-                      :key="artifact.id"
-                      class="artifactuse-panel__artifact-item"
-                      :class="{ 'artifactuse-panel__artifact-item--active': artifact.id === activeArtifact.id }"
-                      @click="selectArtifact(artifact)"
-                    >
-                      <span 
-                        class="artifactuse-panel__artifact-item-icon"
-                        v-html="getArtifactIcon(artifact.language)"
-                      ></span>
-                      <div class="artifactuse-panel__artifact-item-content">
-                        <span class="artifactuse-panel__artifact-item-title">
-                          {{ artifact.title || 'Untitled' }}
-                        </span>
-                        <span class="artifactuse-panel__artifact-item-meta">
-                          {{ getLanguageDisplayName(artifact.language) }}
-                          <template v-if="artifact.lineCount">
-                            • {{ artifact.lineCount }} lines
-                          </template>
-                        </span>
-                      </div>
-                      <span class="artifactuse-panel__artifact-item-index">
-                        {{ index + 1 }}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </Transition>
-            </div>
-          </div>
-        </footer>
       </template>
     </div>
   </Transition>
@@ -869,9 +741,9 @@ const codeScrollRef = ref(null);
 const editorContainerRef = ref(null);
 const copied = ref(false);
 const showArtifactList = ref(false);
+const showOverflowMenu = ref(false);
 const iframeLoading = ref(true);
 const isTransitioning = ref(false);
-const cameFromList = ref(false); // Track if user navigated from list view
 const isDownloadingAll = ref(false); // Track download all progress
 const blobUrlCache = ref({}); // artifactId → blob URL for binary artifacts
 let fontStyleEl = null; // injected <style> for font @font-face preview
@@ -1028,18 +900,17 @@ const isAuthenticated = computed(() => {
   return instance.share?.isAuthenticated() || false;
 });
 
-// Effective panel width - smaller for list/empty views
-const effectivePanelWidth = computed(() => {
-  if (!activeArtifact.value && !state.forceEmptyView) {
-    // List view - use smaller width
-    return Math.min(panelWidth.value, 30);
-  }
-  return panelWidth.value;
-});
+const effectivePanelWidth = computed(() => panelWidth.value);
 
 // Multi-tab computed
 const isMultiTab = computed(() => instance.config?.multiTab === true);
 const forceEmptyView = computed(() => state.forceEmptyView);
+
+// Empty state also covers "artifacts exist but none is selected" — there is no
+// list view to fall back to any more.
+const showEmptyState = computed(() => {
+  return !hasArtifacts.value || state.forceEmptyView || !activeArtifact.value;
+});
 
 const openTabArtifacts = computed(() => {
   if (!isMultiTab.value) return [];
@@ -1079,15 +950,16 @@ function releaseBlobUrl(artifactId) {
 function handleCloseTab(artifactId) {
   releaseBlobUrl(artifactId);
   instance.closeTab(artifactId);
-  if (state.openTabs.length === 0) {
-    cameFromList.value = false;
-  }
 }
 
-// Go back to list view
-function goBackToList() {
-  cameFromList.value = false;
-  instance.state.clearActiveArtifact();
+// Overflow menu
+function toggleOverflowMenu() {
+  showOverflowMenu.value = !showOverflowMenu.value;
+}
+
+function handleShareFromMenu() {
+  showOverflowMenu.value = false;
+  toggleSharePopup();
 }
 
 // Smartdiff: per-line language-aware highlighting
@@ -1247,6 +1119,8 @@ async function handleCopy() {
 
 function handleDownload() {
   if (!activeArtifact.value) return;
+
+  showOverflowMenu.value = false;
   
   const { code, language, editorLanguage, title } = activeArtifact.value;
   const extension = getFileExtension(editorLanguage || language);
@@ -1482,6 +1356,7 @@ async function copyShareLink() {
 }
 
 function handleExternalPreview() {
+  showOverflowMenu.value = false;
   if (panelUrl.value) {
     window.open(panelUrl.value, '_blank', 'noopener,noreferrer');
   }
@@ -1499,7 +1374,6 @@ function toggleArtifactList() {
 }
 
 function selectArtifact(artifact) {
-  cameFromList.value = true;
   openArtifact(artifact);
   showArtifactList.value = false;
 }
@@ -1520,9 +1394,11 @@ function navigateToNextNonInline() {
 
 // Close artifact list when clicking outside
 function handleClickOutside(e) {
-  const nav = document.querySelector('.artifactuse-panel__nav');
-  if (nav && !nav.contains(e.target)) {
+  if (showArtifactList.value && !e.target.closest('.artifactuse-panel__nav')) {
     showArtifactList.value = false;
+  }
+  if (showOverflowMenu.value && !e.target.closest('.artifactuse-panel__overflow')) {
+    showOverflowMenu.value = false;
   }
 }
 

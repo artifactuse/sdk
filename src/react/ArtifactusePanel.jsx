@@ -51,9 +51,9 @@ export default function ArtifactusePanel({
   // State
   const [copied, setCopied] = useState(false);
   const [showArtifactList, setShowArtifactList] = useState(false);
+  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [cameFromList, setCameFromList] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
   // Share modal state
@@ -267,13 +267,11 @@ export default function ArtifactusePanel({
     return instance?.share?.isAuthenticated() || false;
   }, [instance]);
 
-  // Effective panel width - smaller for list/empty views
-  const effectivePanelWidth = useMemo(() => {
-    if (!activeArtifact && !state.forceEmptyView) {
-      return Math.min(panelWidth, 30);
-    }
-    return panelWidth;
-  }, [activeArtifact, panelWidth, state.forceEmptyView]);
+  const effectivePanelWidth = panelWidth;
+
+  // Empty state also covers "artifacts exist but none is selected" — there is
+  // no list view to fall back to any more.
+  const showEmptyState = !hasArtifacts || state.forceEmptyView || !activeArtifact;
 
   // Multi-tab
   const isMultiTab = useMemo(() => instance?.config?.multiTab === true, [instance]);
@@ -291,12 +289,6 @@ export default function ArtifactusePanel({
     if (!iconPath) return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>';
     return `<svg viewBox="0 0 24 24" fill="currentColor">${iconPath}</svg>`;
   }, []);
-  
-  // Go back to list view
-  const goBackToList = useCallback(() => {
-    setCameFromList(false);
-    instance.state.clearActiveArtifact();
-  }, [instance]);
   
   // Smartdiff: per-line language-aware highlighting
   const highlightSmartDiff = useCallback((artifact) => {
@@ -414,6 +406,7 @@ export default function ArtifactusePanel({
   }, [activeArtifact, instance]);
 
   const handleExternalPreview = useCallback(() => {
+    setShowOverflowMenu(false);
     if (panelUrl) window.open(panelUrl, '_blank', 'noopener,noreferrer');
   }, [panelUrl]);
 
@@ -457,6 +450,8 @@ export default function ArtifactusePanel({
   // Handle download
   const handleDownload = useCallback(() => {
     if (!activeArtifact) return;
+
+    setShowOverflowMenu(false);
     
     const { code, language, editorLanguage, title } = activeArtifact;
     const extension = getFileExtension(editorLanguage || language);
@@ -695,10 +690,7 @@ export default function ArtifactusePanel({
   const handleCloseTab = useCallback((artifactId) => {
     releaseBlobUrl(artifactId);
     instance.closeTab(artifactId);
-    if (state.openTabs.length === 0) {
-      setCameFromList(false);
-    }
-  }, [instance, state.openTabs, releaseBlobUrl]);
+  }, [instance, releaseBlobUrl]);
 
   // Navigate artifacts
   const navigatePrev = useCallback(() => {
@@ -715,10 +707,14 @@ export default function ArtifactusePanel({
   
   // Select artifact from list
   const selectArtifact = useCallback((artifact) => {
-    setCameFromList(true);
     openArtifact(artifact);
     setShowArtifactList(false);
   }, [openArtifact]);
+
+  const handleShareFromMenu = useCallback(() => {
+    setShowOverflowMenu(false);
+    toggleSharePopup();
+  }, [toggleSharePopup]);
   
   // Panel resize handlers
   const startPanelResize = useCallback((e) => {
@@ -850,6 +846,23 @@ export default function ArtifactusePanel({
     }
   }, [state.viewMode, updateCodeView, initEditor]);
   
+  // Effect: close the artifact dropdown / overflow menu on an outside click
+  useEffect(() => {
+    if (!showArtifactList && !showOverflowMenu) return;
+
+    const handleClickOutside = (e) => {
+      if (showArtifactList && !e.target.closest('.artifactuse-panel__nav')) {
+        setShowArtifactList(false);
+      }
+      if (showOverflowMenu && !e.target.closest('.artifactuse-panel__overflow')) {
+        setShowOverflowMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showArtifactList, showOverflowMenu]);
+
   // Effect: Event subscriptions
   useEffect(() => {
     if (onAIRequest) instance.on('ai:request', onAIRequest);
@@ -889,8 +902,7 @@ export default function ArtifactusePanel({
   const panelClasses = [
     'artifactuse-panel',
     state.isFullscreen && 'artifactuse-panel--fullscreen',
-    !activeArtifact && hasArtifacts && !state.forceEmptyView && 'artifactuse-panel--list',
-    (!hasArtifacts && !state.forceEmptyView) && 'artifactuse-panel--empty',
+    showEmptyState && 'artifactuse-panel--empty',
     className,
   ].filter(Boolean).join(' ');
   
@@ -901,9 +913,9 @@ export default function ArtifactusePanel({
   ].filter(Boolean).join(' ');
   
   // ============================================
-  // EMPTY STATE: No artifacts
+  // EMPTY STATE: No artifacts, or none selected
   // ============================================
-  if (!hasArtifacts || state.forceEmptyView) {
+  if (showEmptyState) {
     return (
       <div className={panelClasses} style={!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined}>
         {!state.isFullscreen && (
@@ -915,7 +927,7 @@ export default function ArtifactusePanel({
         <header className="artifactuse-panel__header artifactuse-panel__header--simple">
           <div className="artifactuse-panel__title">
             <span className="artifactuse-panel__icon">
-              {state.forceEmptyView ? (
+              {hasArtifacts ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                   <polyline points="14 2 14 8 20 8" />
@@ -928,7 +940,7 @@ export default function ArtifactusePanel({
               )}
             </span>
             <div className="artifactuse-panel__title-content">
-              <span className="artifactuse-panel__name">{state.forceEmptyView ? 'Artifact Viewer' : 'Artifacts'}</span>
+              <span className="artifactuse-panel__name">{hasArtifacts ? 'Artifact Viewer' : 'Artifacts'}</span>
             </div>
           </div>
           <div className="artifactuse-panel__actions">
@@ -952,120 +964,10 @@ export default function ArtifactusePanel({
               <polyline points="14 2 14 8 20 8" />
             </svg>
           </div>
-          <h3 className="artifactuse-panel__empty-title">{state.forceEmptyView ? 'No artifact selected' : 'No artifacts yet'}</h3>
+          <h3 className="artifactuse-panel__empty-title">{hasArtifacts ? 'No artifact selected' : 'No artifacts yet'}</h3>
           <p className="artifactuse-panel__empty-text">
-            {state.forceEmptyView ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.'}
+            {hasArtifacts ? 'Open an artifact to have it appear here' : 'Code blocks, forms, and other interactive content will appear here as the AI generates them.'}
           </p>
-        </div>
-        
-        <footer className="artifactuse-panel__footer artifactuse-panel__footer--simple">
-          {showBranding && (
-            <a 
-              href="https://artifactuse.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="artifactuse-panel__branding"
-            >
-              <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
-                <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
-              </svg>
-              <span>Artifactuse</span>
-            </a>
-          )}
-        </footer>
-      </div>
-    );
-  }
-  
-  // ============================================
-  // LIST VIEW: Has artifacts but none selected
-  // ============================================
-  if (!activeArtifact) {
-    return (
-      <div className={panelClasses} style={!state.isFullscreen ? { width: `${effectivePanelWidth}%` } : undefined}>
-        {!state.isFullscreen && (
-          <div className="artifactuse-panel__resize-handle" onMouseDown={startPanelResize}>
-            <div className="artifactuse-panel__resize-handle-line" />
-          </div>
-        )}
-        
-        <header className="artifactuse-panel__header artifactuse-panel__header--simple">
-          <div className="artifactuse-panel__title">
-            <span className="artifactuse-panel__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-            </span>
-            <div className="artifactuse-panel__title-content">
-              <span className="artifactuse-panel__name">Artifacts</span>
-              <span className="artifactuse-panel__meta">{nonInlineArtifacts.length} available</span>
-            </div>
-          </div>
-          <div className="artifactuse-panel__actions">
-            {/* Download All button */}
-            <button 
-              className={`artifactuse-panel__action ${isDownloadingAll ? 'artifactuse-panel__action--loading' : ''}`}
-              disabled={isDownloadingAll}
-              title="Download all as ZIP"
-              onClick={handleDownloadAll}
-            >
-              {!isDownloadingAll ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              ) : (
-                <svg className="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="32" />
-                </svg>
-              )}
-            </button>
-            
-            <button 
-              className="artifactuse-panel__action artifactuse-panel__action--close"
-              title="Close panel"
-              onClick={closePanel}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </header>
-        
-        <div className="artifactuse-panel__list">
-          <div className="artifactuse-panel__list-items">
-            {nonInlineArtifacts.map((artifact, index) => (
-              <button
-                key={artifact.id}
-                className="artifactuse-panel__list-item"
-                onClick={() => selectArtifact(artifact)}
-              >
-                <span 
-                  className="artifactuse-panel__list-item-icon"
-                  dangerouslySetInnerHTML={{ __html: getArtifactIconHtml(artifact.language) }}
-                />
-                <div className="artifactuse-panel__list-item-content">
-                  <span className="artifactuse-panel__list-item-title">
-                    {artifact.title || 'Untitled'}
-                  </span>
-                  <span className="artifactuse-panel__list-item-meta">
-                    {getLanguageDisplayName(artifact.language)}
-                    {artifact.lineCount && ` • ${artifact.lineCount} lines`}
-                  </span>
-                </div>
-                <span className="artifactuse-panel__list-item-arrow">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
         
         <footer className="artifactuse-panel__footer artifactuse-panel__footer--simple">
@@ -1107,117 +1009,206 @@ export default function ArtifactusePanel({
           </div>
         )}
         
-        {/* Header */}
-        <header className="artifactuse-panel__header">
-          {/* Back button (only when navigated from list view) */}
-          {(isMultiTab || cameFromList) && (
-            <button
-              className="artifactuse-panel__back"
-              title={isMultiTab ? "Browse artifacts" : "Back to list"}
-              onClick={goBackToList}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-          )}
-          
-          <div className="artifactuse-panel__title">
-            <span 
-              className="artifactuse-panel__icon"
-              dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="currentColor">${languageIcon}</svg>` }}
-            />
-            <div className="artifactuse-panel__title-content">
-              <span className="artifactuse-panel__name">{activeArtifact.title || 'Untitled'}</span>
-              <span className="artifactuse-panel__meta">
-                {languageDisplay}
-                {activeArtifact.lineCount && ` • ${activeArtifact.lineCount} lines`}
-              </span>
-            </div>
-          </div>
-          
-          {/* Tabs */}
-          <div className="artifactuse-panel__tabs">
-            {(!activeArtifact.tabs || activeArtifact.tabs.includes('preview')) && (
-            <button
-              className={`artifactuse-panel__tab ${state.viewMode === 'preview' ? 'artifactuse-panel__tab--active' : ''}`}
-              disabled={!activeArtifact.isPreviewable}
-              title="Preview"
-              onClick={() => setViewMode('preview')}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </button>
-            )}
-            {(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && !isBinaryArtifact && (
-            <button
-              className={`artifactuse-panel__tab ${state.viewMode === 'code' ? 'artifactuse-panel__tab--active' : ''}`}
-              title="Code"
-              onClick={() => setViewMode('code')}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-            </button>
-            )}
-            {(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && !isBinaryArtifact && (
-            <button
-              className={`artifactuse-panel__tab ${state.viewMode === 'split' ? 'artifactuse-panel__tab--active' : ''}`}
-              disabled={!activeArtifact.isPreviewable}
-              title="Split view"
-              onClick={() => setViewMode('split')}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <line x1="12" y1="3" x2="12" y2="21" />
-              </svg>
-            </button>
-            )}
-            {activeArtifact.tabs && activeArtifact.tabs.includes('edit') && isEditorAvailable && (
-            <button
-              className={`artifactuse-panel__tab ${state.viewMode === 'edit' ? 'artifactuse-panel__tab--active' : ''}`}
-              title="Edit"
-              onClick={() => setViewMode('edit')}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
+        {/* Unified bar: tabs / title on the left, view modes + actions on the right */}
+        <div className="artifactuse-panel__bar">
+          <div className="artifactuse-panel__bar-left">
+            {isMultiTab && openTabArtifacts.length > 0 ? (
+              <div className="artifactuse-panel__file-tabs">
+                <div className="artifactuse-panel__file-tabs-scroll">
+                  {openTabArtifacts.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`artifactuse-panel__file-tab ${tab.id === activeArtifact.id ? 'artifactuse-panel__file-tab--active' : ''}`}
+                      onClick={() => selectTab(tab)}
+                    >
+                      <span
+                        className="artifactuse-panel__file-tab-icon"
+                        dangerouslySetInnerHTML={{ __html: getArtifactIconHtml(tab.language) }}
+                      />
+                      <span className="artifactuse-panel__file-tab-title">{tab.title || 'Untitled'}</span>
+                      <span
+                        className="artifactuse-panel__file-tab-close"
+                        title="Close tab"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); handleCloseTab(tab.id); }}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="artifactuse-panel__bar-chip">
+                  <span
+                    className="artifactuse-panel__bar-chip-icon"
+                    dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="currentColor">${languageIcon}</svg>` }}
+                  />
+                  <span className="artifactuse-panel__bar-chip-title">{activeArtifact.title || 'Untitled'}</span>
+                  <span className="artifactuse-panel__bar-chip-meta">
+                    {languageDisplay}
+                    {activeArtifact.lineCount ? ` • ${activeArtifact.lineCount} lines` : ''}
+                  </span>
+                </div>
+
+              {/* Navigation */}
+              {nonInlineArtifacts.length > 1 && (
+                <div className="artifactuse-panel__nav">
+                  <button 
+                    className="artifactuse-panel__nav-btn"
+                    disabled={currentNonInlineIndex <= 0}
+                    title="Previous artifact"
+                    onClick={navigatePrev}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+
+                  <button 
+                    className="artifactuse-panel__nav-trigger"
+                    onClick={() => setShowArtifactList(!showArtifactList)}
+                  >
+                    <span>{currentNonInlineIndex + 1} / {nonInlineArtifacts.length}</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+
+                  <button 
+                    className="artifactuse-panel__nav-btn"
+                    disabled={currentNonInlineIndex >= nonInlineArtifacts.length - 1}
+                    title="Next artifact"
+                    onClick={navigateNext}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+
+                  {/* Artifact list popup */}
+                  {showArtifactList && (
+                    <div className="artifactuse-panel__artifact-list">
+                      <div className="artifactuse-panel__artifact-list-header">
+                        <span>All Artifacts ({nonInlineArtifacts.length})</span>
+                        <button 
+                          className="artifactuse-panel__artifact-list-close"
+                          onClick={() => setShowArtifactList(false)}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="artifactuse-panel__artifact-list-items">
+                        {nonInlineArtifacts.map((artifact, index) => (
+                          <button 
+                            key={artifact.id}
+                            className={`artifactuse-panel__artifact-item ${artifact.id === activeArtifact.id ? 'artifactuse-panel__artifact-item--active' : ''}`}
+                            onClick={() => selectArtifact(artifact)}
+                          >
+                            <span 
+                              className="artifactuse-panel__artifact-item-icon"
+                              dangerouslySetInnerHTML={{ __html: getArtifactIconHtml(artifact.language) }}
+                            />
+                            <div className="artifactuse-panel__artifact-item-content">
+                              <span className="artifactuse-panel__artifact-item-title">
+                                {artifact.title || 'Untitled'}
+                              </span>
+                              <span className="artifactuse-panel__artifact-item-meta">
+                                {getLanguageDisplayName(artifact.language)}
+                                {artifact.lineCount && ` • ${artifact.lineCount} lines`}
+                              </span>
+                            </div>
+                            <span className="artifactuse-panel__artifact-item-index">
+                              {index + 1}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              </>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="artifactuse-panel__actions">
+          <div className="artifactuse-panel__bar-right">
+            {/* Tabs */}
+            <div className="artifactuse-panel__tabs">
+              {(!activeArtifact.tabs || activeArtifact.tabs.includes('preview')) && (
+              <button
+                className={`artifactuse-panel__tab ${state.viewMode === 'preview' ? 'artifactuse-panel__tab--active' : ''}`}
+                disabled={!activeArtifact.isPreviewable}
+                title="Preview"
+                onClick={() => setViewMode('preview')}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+              )}
+              {(!activeArtifact.tabs || activeArtifact.tabs.includes('code')) && !isBinaryArtifact && (
+              <button
+                className={`artifactuse-panel__tab ${state.viewMode === 'code' ? 'artifactuse-panel__tab--active' : ''}`}
+                title="Code"
+                onClick={() => setViewMode('code')}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              </button>
+              )}
+              {(!activeArtifact.tabs || activeArtifact.tabs.includes('split')) && !isBinaryArtifact && (
+              <button
+                className={`artifactuse-panel__tab ${state.viewMode === 'split' ? 'artifactuse-panel__tab--active' : ''}`}
+                disabled={!activeArtifact.isPreviewable}
+                title="Split view"
+                onClick={() => setViewMode('split')}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <line x1="12" y1="3" x2="12" y2="21" />
+                </svg>
+              </button>
+              )}
+              {activeArtifact.tabs && activeArtifact.tabs.includes('edit') && isEditorAvailable && (
+              <button
+                className={`artifactuse-panel__tab ${state.viewMode === 'edit' ? 'artifactuse-panel__tab--active' : ''}`}
+                title="Edit"
+                onClick={() => setViewMode('edit')}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              )}
+            </div>
+
             {state.viewMode === 'edit' && (
-            <button
-              className="artifactuse-panel__action artifactuse-panel__action--save"
-              title="Save"
-              onClick={handleEditorSave}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-              </svg>
-            </button>
+              <button
+                className="artifactuse-panel__action artifactuse-panel__action--save"
+                title="Save"
+                onClick={handleEditorSave}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+              </button>
             )}
-            {showExternalPreview && (
-            <button
-              className="artifactuse-panel__action"
-              title="Open in new tab"
-              onClick={handleExternalPreview}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </button>
-            )}
+
             <button
               className="artifactuse-panel__action"
               title={state.isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
@@ -1239,7 +1230,294 @@ export default function ArtifactusePanel({
                 </svg>
               )}
             </button>
-            <button 
+
+            {/* Overflow menu */}
+            <div className="artifactuse-panel__overflow">
+              <button
+                className="artifactuse-panel__action"
+                title="More actions"
+                onClick={() => setShowOverflowMenu(!showOverflowMenu)}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="19" cy="12" r="1" />
+                  <circle cx="5" cy="12" r="1" />
+                </svg>
+              </button>
+
+              {showOverflowMenu && (
+                <div className="artifactuse-panel__overflow-menu">
+                  <button
+                    className={`artifactuse-panel__overflow-item ${copied ? 'artifactuse-panel__overflow-item--success' : ''}`}
+                    onClick={handleCopy}
+                  >
+                    {!copied ? (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    <span>{copied ? 'Copied!' : 'Copy code'}</span>
+                  </button>
+
+                  <button className="artifactuse-panel__overflow-item" onClick={handleDownload}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+
+                  {nonInlineArtifacts.length > 1 && (
+                    <button
+                      className={`artifactuse-panel__overflow-item ${isDownloadingAll ? 'artifactuse-panel__overflow-item--disabled' : ''}`}
+                      onClick={handleDownloadAll}
+                    >
+                      {!isDownloadingAll ? (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                      ) : (
+                        <svg className="artifactuse-panel__spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="32" />
+                        </svg>
+                      )}
+                      <span>{isDownloadingAll ? 'Preparing ZIP...' : 'Download all as ZIP'}</span>
+                    </button>
+                  )}
+
+                  {sharingEnabled && (
+                    <button className="artifactuse-panel__overflow-item" onClick={handleShareFromMenu}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                      </svg>
+                      <span>Share</span>
+                    </button>
+                  )}
+
+                  {showExternalPreview && (
+                    <button className="artifactuse-panel__overflow-item" onClick={handleExternalPreview}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                      <span>Open in new tab</span>
+                    </button>
+                  )}
+
+                  <div className="artifactuse-panel__overflow-divider" />
+
+                  {activeArtifact.code && (
+                    <div className="artifactuse-panel__overflow-meta">
+                      {languageDisplay} &bull; {formatBytes(activeArtifact.size)}
+                    </div>
+                  )}
+
+                  {showBranding && (
+                    <a
+                      href="https://artifactuse.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="artifactuse-panel__overflow-branding"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                        <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+                      </svg>
+                      <span>Powered by Artifactuse</span>
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Share popup */}
+              {showShareModal && (
+                <div className="artifactuse-share-popup">
+                  <div className="artifactuse-share-popup__header">
+                    <span className="artifactuse-share-popup__title">
+                      {shareModalState === 'success' ? (updatedArtifactName ? 'Artifact updated!' : 'Link created!') : shareModalState === 'update-list' ? 'Update saved artifact' : 'Share Artifact'}
+                    </span>
+                    <button className="artifactuse-share-popup__close" onClick={closeShareModal}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="artifactuse-share-popup__body">
+                    {/* Loading state */}
+                    {shareModalState === 'loading' && (
+                      <div className="artifactuse-share-popup__loading">
+                        <div className="artifactuse-share-popup__spinner" />
+                        <p className="artifactuse-share-popup__loading-text">Creating link...</p>
+                      </div>
+                    )}
+
+                    {/* Error state */}
+                    {shareModalState === 'error' && (
+                      <div>
+                        <div className="artifactuse-share-popup__error">
+                          <p className="artifactuse-share-popup__error-text">{shareError}</p>
+                        </div>
+                        <div className="artifactuse-share-popup__actions">
+                          <button className="artifactuse-share-popup__btn artifactuse-share-popup__btn--secondary" onClick={() => setShareModalState('options')}>
+                            Back
+                          </button>
+                          <button className="artifactuse-share-popup__btn artifactuse-share-popup__btn--primary" onClick={retryShare}>
+                            Retry
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Options state */}
+                    {shareModalState === 'options' && (
+                      <div className="artifactuse-share-popup__options">
+                        <button className="artifactuse-share-popup__option" onClick={handleQuickShare}>
+                          <div className="artifactuse-share-popup__option-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                          </div>
+                          <div className="artifactuse-share-popup__option-content">
+                            <p className="artifactuse-share-popup__option-title">Share link</p>
+                            <p className="artifactuse-share-popup__option-desc">Expires in 30 days</p>
+                          </div>
+                        </button>
+                        <button className="artifactuse-share-popup__option" onClick={handleSaveOption}>
+                          <div className="artifactuse-share-popup__option-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                              <polyline points="17 21 17 13 7 13 7 21" />
+                              <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                          </div>
+                          <div className="artifactuse-share-popup__option-content">
+                            <p className="artifactuse-share-popup__option-title">Save to account</p>
+                            <p className="artifactuse-share-popup__option-desc">Permanent, manageable</p>
+                          </div>
+                        </button>
+                        <button className="artifactuse-share-popup__option" onClick={handleUpdateOption}>
+                          <div className="artifactuse-share-popup__option-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="23 4 23 10 17 10" />
+                              <polyline points="1 20 1 14 7 14" />
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                            </svg>
+                          </div>
+                          <div className="artifactuse-share-popup__option-content">
+                            <p className="artifactuse-share-popup__option-title">Update saved</p>
+                            <p className="artifactuse-share-popup__option-desc">Replace an existing artifact</p>
+                          </div>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Update list state */}
+                    {shareModalState === 'update-list' && (
+                      <div>
+                        {savedArtifactsLoading ? (
+                          <div className="artifactuse-share-popup__loading">
+                            <div className="artifactuse-share-popup__spinner" />
+                            <p className="artifactuse-share-popup__loading-text">Loading artifacts...</p>
+                          </div>
+                        ) : savedArtifacts.length === 0 ? (
+                          <div className="artifactuse-share-popup__empty">
+                            No saved artifacts of this type
+                          </div>
+                        ) : (
+                          <div className="artifactuse-share-popup__artifact-list">
+                            {savedArtifacts.map((artifact) => (
+                              <button
+                                key={artifact.project?.uuid || artifact.id}
+                                className="artifactuse-share-popup__artifact-item"
+                                onClick={() => handleUpdateArtifact(artifact)}
+                              >
+                                <span className="artifactuse-share-popup__artifact-name">{artifact.project?.name || 'Untitled'}</span>
+                                <span className="artifactuse-share-popup__artifact-date">{formatExpiryDate(artifact.project?.created_at)}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <button className="artifactuse-share-popup__back-btn" onClick={() => setShareModalState('options')}>Back</button>
+                      </div>
+                    )}
+
+                    {/* Success state */}
+                    {shareModalState === 'success' && (
+                      <div className="artifactuse-share-popup__success">
+                        <div className="artifactuse-share-popup__success-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                        <div className="artifactuse-share-popup__link-wrapper">
+                          <input
+                            type="text"
+                            className="artifactuse-share-popup__link"
+                            value={shareUrl}
+                            readOnly
+                            onClick={(e) => e.target.select()}
+                          />
+                          <button
+                            className={`artifactuse-share-popup__copy-btn ${shareLinkCopied ? 'artifactuse-share-popup__copy-btn--copied' : ''}`}
+                            onClick={copyShareLink}
+                          >
+                            {shareLinkCopied ? 'Copied!' : 'Copy'}
+                          </button>
+                        </div>
+                        {shareExpiresAt && !shareIsSaved && (
+                          <div className="artifactuse-share-popup__expiry">
+                            <span className="artifactuse-share-popup__expiry-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                              </svg>
+                            </span>
+                            <span className="artifactuse-share-popup__expiry-text">
+                              Expires {formatExpiryDate(shareExpiresAt)}
+                            </span>
+                          </div>
+                        )}
+                        {!shareIsSaved && (
+                          <div className="artifactuse-share-popup__save-prompt">
+                            <p className="artifactuse-share-popup__save-prompt-text">Keep it permanently?</p>
+                            <button className="artifactuse-share-popup__save-prompt-btn" onClick={handleSaveOption}>
+                              Save to account
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                <div className="artifactuse-share-popup__footer">
+                  <a href="https://artifactuse.com" target="_blank" rel="noopener noreferrer" className="artifactuse-share-popup__branding">
+                    <svg width="12" height="12" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
+                      <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
+                    </svg>
+                    <span>Powered by Artifactuse</span>
+                  </a>
+                </div>
+                </div>
+              )}
+            </div>
+
+            <button
               className="artifactuse-panel__action artifactuse-panel__action--close"
               title="Close"
               onClick={closePanel}
@@ -1250,8 +1528,8 @@ export default function ArtifactusePanel({
               </svg>
             </button>
           </div>
-        </header>
-        
+        </div>
+
         {/* Content */}
         <div className={contentClasses} ref={contentRef}>
           {/* Transition overlay */}
@@ -1429,341 +1707,6 @@ export default function ArtifactusePanel({
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="artifactuse-panel__footer">
-          <div className="artifactuse-panel__footer-left">
-            {/* Branding */}
-            {showBranding && (
-              <a 
-                href="https://artifactuse.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="artifactuse-panel__branding"
-                title="Powered by Artifactuse"
-              >
-                <svg width="16" height="16" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
-                  <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
-                </svg>
-                <span>Artifactuse</span>
-              </a>
-            )}
-            
-            {/* Size badge */}
-            {activeArtifact.code && (
-              <span className="artifactuse-panel__badge artifactuse-panel__badge--secondary">
-                {formatBytes(activeArtifact.size)}
-              </span>
-            )}
-          </div>
-          
-          <div className="artifactuse-panel__footer-right">
-            {/* Copy button */}
-            <button 
-              className={`artifactuse-panel__footer-action ${copied ? 'artifactuse-panel__footer-action--success' : ''}`}
-              title={copied ? 'Copied!' : 'Copy code'}
-              onClick={handleCopy}
-            >
-              {!copied ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              )}
-            </button>
-            
-            {/* Download button */}
-            <button
-              className="artifactuse-panel__footer-action"
-              title="Download"
-              onClick={handleDownload}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            </button>
-
-            {/* Share button + popup */}
-            {sharingEnabled && (
-              <div style={{ position: 'relative' }}>
-                <button
-                  className="artifactuse-panel__footer-action"
-                  title="Share"
-                  onClick={toggleSharePopup}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="18" cy="5" r="3" />
-                    <circle cx="6" cy="12" r="3" />
-                    <circle cx="18" cy="19" r="3" />
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                  </svg>
-                </button>
-
-                {/* Share popup */}
-                {showShareModal && (
-                  <div className="artifactuse-share-popup">
-                    <div className="artifactuse-share-popup__header">
-                      <span className="artifactuse-share-popup__title">
-                        {shareModalState === 'success' ? (updatedArtifactName ? 'Artifact updated!' : 'Link created!') : shareModalState === 'update-list' ? 'Update saved artifact' : 'Share Artifact'}
-                      </span>
-                      <button className="artifactuse-share-popup__close" onClick={closeShareModal}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="artifactuse-share-popup__body">
-                      {/* Loading state */}
-                      {shareModalState === 'loading' && (
-                        <div className="artifactuse-share-popup__loading">
-                          <div className="artifactuse-share-popup__spinner" />
-                          <p className="artifactuse-share-popup__loading-text">Creating link...</p>
-                        </div>
-                      )}
-
-                      {/* Error state */}
-                      {shareModalState === 'error' && (
-                        <div>
-                          <div className="artifactuse-share-popup__error">
-                            <p className="artifactuse-share-popup__error-text">{shareError}</p>
-                          </div>
-                          <div className="artifactuse-share-popup__actions">
-                            <button className="artifactuse-share-popup__btn artifactuse-share-popup__btn--secondary" onClick={() => setShareModalState('options')}>
-                              Back
-                            </button>
-                            <button className="artifactuse-share-popup__btn artifactuse-share-popup__btn--primary" onClick={retryShare}>
-                              Retry
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Options state */}
-                      {shareModalState === 'options' && (
-                        <div className="artifactuse-share-popup__options">
-                          <button className="artifactuse-share-popup__option" onClick={handleQuickShare}>
-                            <div className="artifactuse-share-popup__option-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                              </svg>
-                            </div>
-                            <div className="artifactuse-share-popup__option-content">
-                              <p className="artifactuse-share-popup__option-title">Share link</p>
-                              <p className="artifactuse-share-popup__option-desc">Expires in 30 days</p>
-                            </div>
-                          </button>
-                          <button className="artifactuse-share-popup__option" onClick={handleSaveOption}>
-                            <div className="artifactuse-share-popup__option-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                                <polyline points="17 21 17 13 7 13 7 21" />
-                                <polyline points="7 3 7 8 15 8" />
-                              </svg>
-                            </div>
-                            <div className="artifactuse-share-popup__option-content">
-                              <p className="artifactuse-share-popup__option-title">Save to account</p>
-                              <p className="artifactuse-share-popup__option-desc">Permanent, manageable</p>
-                            </div>
-                          </button>
-                          <button className="artifactuse-share-popup__option" onClick={handleUpdateOption}>
-                            <div className="artifactuse-share-popup__option-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="23 4 23 10 17 10" />
-                                <polyline points="1 20 1 14 7 14" />
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                              </svg>
-                            </div>
-                            <div className="artifactuse-share-popup__option-content">
-                              <p className="artifactuse-share-popup__option-title">Update saved</p>
-                              <p className="artifactuse-share-popup__option-desc">Replace an existing artifact</p>
-                            </div>
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Update list state */}
-                      {shareModalState === 'update-list' && (
-                        <div>
-                          {savedArtifactsLoading ? (
-                            <div className="artifactuse-share-popup__loading">
-                              <div className="artifactuse-share-popup__spinner" />
-                              <p className="artifactuse-share-popup__loading-text">Loading artifacts...</p>
-                            </div>
-                          ) : savedArtifacts.length === 0 ? (
-                            <div className="artifactuse-share-popup__empty">
-                              No saved artifacts of this type
-                            </div>
-                          ) : (
-                            <div className="artifactuse-share-popup__artifact-list">
-                              {savedArtifacts.map((artifact) => (
-                                <button
-                                  key={artifact.project?.uuid || artifact.id}
-                                  className="artifactuse-share-popup__artifact-item"
-                                  onClick={() => handleUpdateArtifact(artifact)}
-                                >
-                                  <span className="artifactuse-share-popup__artifact-name">{artifact.project?.name || 'Untitled'}</span>
-                                  <span className="artifactuse-share-popup__artifact-date">{formatExpiryDate(artifact.project?.created_at)}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          <button className="artifactuse-share-popup__back-btn" onClick={() => setShareModalState('options')}>Back</button>
-                        </div>
-                      )}
-
-                      {/* Success state */}
-                      {shareModalState === 'success' && (
-                        <div className="artifactuse-share-popup__success">
-                          <div className="artifactuse-share-popup__success-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </div>
-                          <div className="artifactuse-share-popup__link-wrapper">
-                            <input
-                              type="text"
-                              className="artifactuse-share-popup__link"
-                              value={shareUrl}
-                              readOnly
-                              onClick={(e) => e.target.select()}
-                            />
-                            <button
-                              className={`artifactuse-share-popup__copy-btn ${shareLinkCopied ? 'artifactuse-share-popup__copy-btn--copied' : ''}`}
-                              onClick={copyShareLink}
-                            >
-                              {shareLinkCopied ? 'Copied!' : 'Copy'}
-                            </button>
-                          </div>
-                          {shareExpiresAt && !shareIsSaved && (
-                            <div className="artifactuse-share-popup__expiry">
-                              <span className="artifactuse-share-popup__expiry-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <circle cx="12" cy="12" r="10" />
-                                  <line x1="12" y1="8" x2="12" y2="12" />
-                                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                                </svg>
-                              </span>
-                              <span className="artifactuse-share-popup__expiry-text">
-                                Expires {formatExpiryDate(shareExpiresAt)}
-                              </span>
-                            </div>
-                          )}
-                          {!shareIsSaved && (
-                            <div className="artifactuse-share-popup__save-prompt">
-                              <p className="artifactuse-share-popup__save-prompt-text">Keep it permanently?</p>
-                              <button className="artifactuse-share-popup__save-prompt-btn" onClick={handleSaveOption}>
-                                Save to account
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  <div className="artifactuse-share-popup__footer">
-                    <a href="https://artifactuse.com" target="_blank" rel="noopener noreferrer" className="artifactuse-share-popup__branding">
-                      <svg width="12" height="12" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16.6667 41.6673V10.4173C16.6667 9.86478 16.4472 9.33488 16.0565 8.94418C15.6658 8.55348 15.1359 8.33398 14.5833 8.33398H4.16667C3.0616 8.33398 2.00179 8.77297 1.22039 9.55437C0.438987 10.3358 0 11.3956 0 12.5007V37.5006C0 38.6057 0.438987 39.6655 1.22039 40.4469C2.00179 41.2283 3.0616 41.6673 4.16667 41.6673H29.1667C30.2717 41.6673 31.3315 41.2283 32.1129 40.4469C32.8943 39.6655 33.3333 38.6057 33.3333 37.5006V27.084C33.3333 26.5314 33.1138 26.0015 32.7231 25.6108C32.3324 25.2201 31.8025 25.0007 31.25 25.0007H0" fill="#5F51C8"/>
-                        <path d="M39.5833 0H27.0833C25.9327 0 25 0.93274 25 2.08333V14.5833C25 15.7339 25.9327 16.6667 27.0833 16.6667H39.5833C40.7339 16.6667 41.6667 15.7339 41.6667 14.5833V2.08333C41.6667 0.93274 40.7339 0 39.5833 0Z" fill="#695AE0"/>
-                      </svg>
-                      <span>Powered by Artifactuse</span>
-                    </a>
-                  </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Navigation */}
-            {nonInlineArtifacts.length > 1 && (
-              <div className="artifactuse-panel__nav">
-                <button 
-                  className="artifactuse-panel__nav-btn"
-                  disabled={currentNonInlineIndex <= 0}
-                  title="Previous artifact"
-                  onClick={navigatePrev}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </button>
-                
-                <button 
-                  className="artifactuse-panel__nav-trigger"
-                  onClick={() => setShowArtifactList(!showArtifactList)}
-                >
-                  <span>{currentNonInlineIndex + 1} / {nonInlineArtifacts.length}</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-                
-                <button 
-                  className="artifactuse-panel__nav-btn"
-                  disabled={currentNonInlineIndex >= nonInlineArtifacts.length - 1}
-                  title="Next artifact"
-                  onClick={navigateNext}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
-                
-                {/* Artifact list popup */}
-                {showArtifactList && (
-                  <div className="artifactuse-panel__artifact-list">
-                    <div className="artifactuse-panel__artifact-list-header">
-                      <span>All Artifacts ({nonInlineArtifacts.length})</span>
-                      <button 
-                        className="artifactuse-panel__artifact-list-close"
-                        onClick={() => setShowArtifactList(false)}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="artifactuse-panel__artifact-list-items">
-                      {nonInlineArtifacts.map((artifact, index) => (
-                        <button 
-                          key={artifact.id}
-                          className={`artifactuse-panel__artifact-item ${artifact.id === activeArtifact.id ? 'artifactuse-panel__artifact-item--active' : ''}`}
-                          onClick={() => selectArtifact(artifact)}
-                        >
-                          <span 
-                            className="artifactuse-panel__artifact-item-icon"
-                            dangerouslySetInnerHTML={{ __html: getArtifactIconHtml(artifact.language) }}
-                          />
-                          <div className="artifactuse-panel__artifact-item-content">
-                            <span className="artifactuse-panel__artifact-item-title">
-                              {artifact.title || 'Untitled'}
-                            </span>
-                            <span className="artifactuse-panel__artifact-item-meta">
-                              {getLanguageDisplayName(artifact.language)}
-                              {artifact.lineCount && ` • ${artifact.lineCount} lines`}
-                            </span>
-                          </div>
-                          <span className="artifactuse-panel__artifact-item-index">
-                            {index + 1}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </footer>
       </div>
 
     </>

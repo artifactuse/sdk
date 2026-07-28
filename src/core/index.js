@@ -1063,13 +1063,26 @@ export function createArtifactuse(userConfig = {}) {
    */
   function togglePanel() {
     const isOpen = !state.getState().isPanelOpen;
-    state.clearActiveArtifact();
+
+    // Opening with nothing selected: land on the most recent artifact rather
+    // than an empty panel (there is no list view to fall back to).
+    if (isOpen && !state.getState().activeArtifactId) {
+      const openable = state.getState().artifacts.filter(a => !a.isInline);
+      const mostRecent = openable[openable.length - 1];
+
+      if (mostRecent) {
+        openArtifact(mostRecent);
+      } else {
+        state.setForceEmptyView(true);
+      }
+    }
+
     state.setPanelOpen(isOpen);
-    
+
     if (!isOpen) {
       state.setFullscreen(false);
     }
-    
+
     emit('panel:toggled', { isOpen });
   }
   

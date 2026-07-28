@@ -79,4 +79,30 @@ describe('createArtifactuse widget processing', () => {
     expect(result.html).toContain('artifactuse-inline-widget');
     expect(result.html).not.toContain('artifactuse-inline-preview');
   });
+
+  it('togglePanel opens the most recent artifact instead of an empty panel', () => {
+    const sdk = createArtifactuse();
+
+    sdk.state.addArtifact({ id: 'a1', type: 'code', language: 'javascript', code: 'a', title: 'First' });
+    sdk.state.addArtifact({ id: 'a2', type: 'code', language: 'javascript', code: 'b', title: 'Second' });
+    sdk.closePanel();
+
+    sdk.togglePanel();
+
+    const state = sdk.state.getState();
+    expect(state.isPanelOpen).toBe(true);
+    expect(state.activeArtifactId).toBe('a2');
+    expect(state.forceEmptyView).toBe(false);
+  });
+
+  it('togglePanel falls back to the empty view when there are no artifacts', () => {
+    const sdk = createArtifactuse();
+
+    sdk.togglePanel();
+
+    const state = sdk.state.getState();
+    expect(state.isPanelOpen).toBe(true);
+    expect(state.activeArtifactId).toBe(null);
+    expect(state.forceEmptyView).toBe(true);
+  });
 });
