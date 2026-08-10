@@ -95,6 +95,35 @@ describe('createArtifactuse widget processing', () => {
     expect(state.forceEmptyView).toBe(false);
   });
 
+  it('closing the last tab closes the panel', () => {
+    const sdk = createArtifactuse({ multiTab: true });
+
+    sdk.state.addArtifact({ id: 'a1', type: 'code', language: 'javascript', code: 'a', title: 'First' });
+    sdk.state.addArtifact({ id: 'a2', type: 'code', language: 'javascript', code: 'b', title: 'Second' });
+    sdk.openArtifact(sdk.state.getArtifact('a1'));
+    sdk.openArtifact(sdk.state.getArtifact('a2'));
+
+    sdk.closeTab('a2');
+    expect(sdk.state.getState().isPanelOpen).toBe(true);
+    expect(sdk.state.getState().activeArtifactId).toBe('a1');
+
+    sdk.closeTab('a1');
+    const state = sdk.state.getState();
+    expect(state.openTabs).toEqual([]);
+    expect(state.isPanelOpen).toBe(false);
+    expect(state.isFullscreen).toBe(false);
+  });
+
+  it('closeAllTabs closes the panel', () => {
+    const sdk = createArtifactuse({ multiTab: true });
+
+    sdk.state.addArtifact({ id: 'a1', type: 'code', language: 'javascript', code: 'a', title: 'First' });
+    sdk.openArtifact(sdk.state.getArtifact('a1'));
+
+    sdk.closeAllTabs();
+    expect(sdk.state.getState().isPanelOpen).toBe(false);
+  });
+
   it('togglePanel falls back to the empty view when there are no artifacts', () => {
     const sdk = createArtifactuse();
 

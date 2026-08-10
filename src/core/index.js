@@ -1087,6 +1087,33 @@ export function createArtifactuse(userConfig = {}) {
   }
   
   /**
+   * Close a tab — closing the last one closes the panel, since there is
+   * nothing left to show.
+   */
+  function closeTab(artifactId) {
+    const wasOpen = state.getState().openTabs.includes(artifactId);
+    if (!wasOpen) return;
+
+    state.closeTab(artifactId);
+
+    if (state.getState().openTabs.length === 0) {
+      closePanel();
+    }
+  }
+
+  /**
+   * Close every tab, and the panel with them
+   */
+  function closeAllTabs() {
+    const hadTabs = state.getState().openTabs.length > 0;
+    state.closeAllTabs();
+
+    if (hadTabs) {
+      closePanel();
+    }
+  }
+
+  /**
    * Toggle fullscreen
    */
   function toggleFullscreen() {
@@ -1345,9 +1372,9 @@ export function createArtifactuse(userConfig = {}) {
     sendToPanel,
     
     // Multi-tab
-    closeTab: (artifactId) => state.closeTab(artifactId),
+    closeTab,
     closeOtherTabs: (artifactId) => state.closeOtherTabs(artifactId),
-    closeAllTabs: () => state.closeAllTabs(),
+    closeAllTabs,
 
     // Panel management (new)
     hasPanel,
