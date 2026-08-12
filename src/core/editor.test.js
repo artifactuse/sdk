@@ -189,9 +189,13 @@ describe('createEditorManager theming', () => {
 
 describe('SDK theme changes reach the editor', () => {
   beforeEach(() => {
+    const listeners = {};
     globalThis.window = {
-      addEventListener() {},
-      removeEventListener() {},
+      addEventListener(type, fn) { (listeners[type] ||= []).push(fn); },
+      removeEventListener(type, fn) {
+        listeners[type] = (listeners[type] || []).filter((f) => f !== fn);
+      },
+      dispatch(type, event) { (listeners[type] || []).forEach((fn) => fn(event)); },
       matchMedia() {
         return {
           matches: false,
@@ -213,6 +217,36 @@ describe('SDK theme changes reach the editor', () => {
   afterEach(() => {
     delete globalThis.window;
     delete globalThis.document;
+  });
+
+  it('sdk.setTheme() pushes theme:change into the open panel iframe', () => {
+    const sdk = createArtifactuse({ theme: 'dark' });
+
+    const posted = [];
+    // Minimal stand-in for a mounted panel iframe
+    sdk.bridge.setIframe({ contentWindow: { postMessage: (m) => posted.push(m) } });
+
+    // The panel signals ready on mount; until then send() buffers
+    sdk.bridge.addAllowedOrigin('https://panels.example');
+    globalThis.window.dispatch('message', {
+      origin: 'https://panels.example',
+      data: { type: 'artifactuse', action: 'panel:ready' },
+    });
+
+    sdk.setTheme('light');
+
+    const themeMsgs = posted.filter((m) => m.action === 'theme:change');
+    expect(themeMsgs).toHaveLength(1);
+    expect(themeMsgs[0].data.theme).toBe('light');
+    expect(themeMsgs[0].data.colors).toBeTruthy();
+  });
+
+  it('setTheme does not queue a panel message when no panel is open', () => {
+    const sdk = createArtifactuse({ theme: 'dark' });
+
+    // No iframe set — must not throw, warn, or buffer for a panel that may never open
+    expect(() => sdk.setTheme('light')).not.toThrow();
+    expect(sdk.getTheme()).toBe('light');
   });
 
   it('sdk.setTheme() restyles an open editor', () => {

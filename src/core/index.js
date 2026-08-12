@@ -779,6 +779,7 @@ export function createArtifactuse(userConfig = {}) {
   if (typeof window !== 'undefined' && window.matchMedia) {
     unwatchSystemTheme = theme.watchSystemTheme(() => {
       editor.setSdkTheme(theme.resolved);
+      pushThemeToPanel();
     });
   }
 
@@ -1335,6 +1336,26 @@ export function createArtifactuse(userConfig = {}) {
   function setTheme(newTheme) {
     theme.set(newTheme);
     editor.setSdkTheme(theme.resolved);
+    pushThemeToPanel();
+  }
+
+  /**
+   * Push the resolved theme into the open panel iframe.
+   *
+   * CSS variables from theme.apply() stop at the iframe boundary, and the
+   * panel URL's ?theme= param is baked in at mount, so without this a panel
+   * keeps whatever theme it was opened with until it reloads. Panels receive
+   * this via onThemeChange() in @artifactuse/shared.
+   */
+  function pushThemeToPanel() {
+    // Skip when no panel is mounted, rather than queueing into the bridge's
+    // pending buffer for a panel that may never open
+    if (!bridge.iframe) return;
+
+    bridge.send('theme:change', {
+      theme: theme.resolved,
+      colors: theme.colors,
+    });
   }
   
   /**
