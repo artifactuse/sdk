@@ -773,6 +773,15 @@ export function createArtifactuse(userConfig = {}) {
   // Create editor manager (CodeMirror integration — optional)
   const editor = createEditorManager(config.editor);
 
+  // Follow OS theme changes so 'auto' reaches open editors, not just CSS variables.
+  // theme.watchSystemTheme() re-applies the CSS itself when the preference is 'auto'.
+  let unwatchSystemTheme = null;
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    unwatchSystemTheme = theme.watchSystemTheme(() => {
+      editor.setSdkTheme(theme.resolved);
+    });
+  }
+
   /**
    * Process AI agent message content
    * Returns processed HTML with artifact placeholders
@@ -1325,6 +1334,7 @@ export function createArtifactuse(userConfig = {}) {
    */
   function setTheme(newTheme) {
     theme.set(newTheme);
+    editor.setSdkTheme(theme.resolved);
   }
   
   /**
@@ -1342,6 +1352,11 @@ export function createArtifactuse(userConfig = {}) {
     listeners.clear();
     state.clear();
     destroyAllPlayers();
+
+    if (unwatchSystemTheme) {
+      unwatchSystemTheme();
+      unwatchSystemTheme = null;
+    }
   }
   
   // Public API

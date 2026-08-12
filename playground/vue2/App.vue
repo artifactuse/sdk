@@ -84,7 +84,8 @@ export default {
           langLess: cmLangLess,
           langSass: cmLangSass,
         },
-        theme: 'dark',
+        // 'auto' is the default — follows the SDK theme. Pin with 'dark'/'light'.
+        theme: 'auto',
       },
       inlinePreview: {
         maxLines: 12,
@@ -253,6 +254,22 @@ export default {
 
     function testEditTab() {
       artifactuse.openFile('app.js', 'function hello(name) {\n  console.log(`Hello, ${name}!`);\n}\n\nfunction add(a, b) {\n  return a + b;\n}\n\nhello("World");\nconsole.log(add(2, 3));', { tabs: ['edit'] })
+    }
+
+    // --- Theme testing -----------------------------------------------------
+    // Open "Edit Tab" first, type something and scroll, then switch themes:
+    // the editor should restyle without losing text, cursor, scroll or undo.
+    const sdkTheme = ref(artifactuse.getTheme())
+    const editorThemePref = ref('auto')
+
+    function setSdkTheme(theme) {
+      artifactuse.setTheme(theme)
+      sdkTheme.value = artifactuse.getTheme()
+    }
+
+    function setEditorTheme(pref) {
+      editorThemePref.value = pref
+      artifactuse.instance.editor.setTheme(pref)
     }
 
     function testPanelUrl() {
@@ -451,6 +468,10 @@ export default {
       testNoSplit,
       testTxtFallback,
       testEditTab,
+      sdkTheme,
+      editorThemePref,
+      setSdkTheme,
+      setEditorTheme,
       testPanelUrl,
       testExternalPreview,
       testConsole,
@@ -590,6 +611,20 @@ export default {
           <button v-for="(code, filename) in langSamples" :key="filename" @click="testEditLang(filename, code)">
             {{ filename.split('.').pop() }}
           </button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>Theme &mdash; SDK: {{ sdkTheme }} &middot; editor: {{ editorThemePref }}</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="setSdkTheme('light')">SDK light</button>
+          <button @click="setSdkTheme('dark')">SDK dark</button>
+          <button @click="setSdkTheme('auto')">SDK auto</button>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="setEditorTheme('auto')">editor auto</button>
+          <button @click="setEditorTheme('dark')">editor pin dark</button>
+          <button @click="setEditorTheme('light')">editor pin light</button>
         </div>
 
         <div class="test-panel__field">

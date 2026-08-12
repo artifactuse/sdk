@@ -3,16 +3,41 @@
 // Users must provide CodeMirror modules via config.editor.modules
 
 /**
+ * Resolve whether an editor should render dark.
+ *
+ * Two independent inputs: the editor's own preference (from config.editor.theme)
+ * and the SDK's resolved theme. Only 'auto' defers to the SDK.
+ *
+ * @param {string} preference - 'dark' | 'light' | 'auto'
+ * @param {string} sdkTheme - SDK's resolved theme ('dark' | 'light')
+ * @returns {boolean}
+ */
+export function resolveEditorIsDark(preference, sdkTheme) {
+	if (preference === 'auto') {
+		return sdkTheme === 'dark';
+	}
+	return preference === 'dark';
+}
+
+/**
  * Create an editor manager that uses user-provided CodeMirror modules
  *
  * @param {object} editorConfig - config.editor from SDK config
  * @param {object} editorConfig.modules - CodeMirror module imports
- * @param {string} editorConfig.theme - 'dark' | 'light' | 'auto'
+ * @param {string} [editorConfig.theme='auto'] - 'dark' | 'light' | 'auto'.
+ *   'auto' follows the SDK theme and restyles open editors when it changes.
  * @returns {object} Editor manager with create/destroy methods
  */
 export function createEditorManager(editorConfig = {}) {
 	const modules = editorConfig.modules || null;
-	let themePreference = editorConfig.theme || 'dark';
+	let themePreference = editorConfig.theme || 'auto';
+
+	// SDK's resolved theme — kept live via setSdkTheme(), unlike the per-create
+	// options.sdkTheme which goes stale as soon as the host changes theme.
+	let sdkTheme = 'dark';
+
+	// Editors currently mounted, so a theme change can reach them
+	const liveEditors = new Set();
 
 	function isAvailable() {
 		return !!(modules?.state && modules?.view);
@@ -289,16 +314,6 @@ export function createEditorManager(editorConfig = {}) {
 	}
 
 	/**
-	 * Resolve whether to use dark theme
-	 */
-	function isDark(sdkTheme) {
-		if (themePreference === 'auto') {
-			return sdkTheme === 'dark';
-		}
-		return themePreference === 'dark';
-	}
-
-	/**
 	 * Create a CodeMirror editor instance
 	 *
 	 * @param {HTMLElement} container - DOM element to mount editor in
@@ -307,7 +322,7 @@ export function createEditorManager(editorConfig = {}) {
 	 * @param {string} options.language - Language for syntax highlighting
 	 * @param {string} options.sdkTheme - Current SDK theme ('dark'|'light')
 	 * @param {function} options.onChange - Called on content changes with new code
-	 * @returns {{ view: EditorView, getCode: () => string, setCode: (code: string) => void, destroy: () => void }}
+	 * @returns {{ view: EditorView, getCode: () => string, setCode: (code: string) => void, restyle: () => boolean, destroy: () => void }}
 	 */
 	function create(container, options = {}) {
 		if (!isAvailable()) {
@@ -315,7 +330,7 @@ export function createEditorManager(editorConfig = {}) {
 			return null;
 		}
 
-		const { EditorState } = modules.state;
+		const { EditorState, Compartment } = modules.state;
 		const {
 			EditorView, keymap, lineNumbers, highlightActiveLineGutter,
 			highlightSpecialChars, drawSelection, dropCursor,
@@ -331,8 +346,26 @@ export function createEditorManager(editorConfig = {}) {
 		} = modules.autocomplete;
 
 		const tags = modules.lezerHighlight?.tags || modules.language?.tags;
-		const dark = isDark(options.sdkTheme);
-		const theme = dark ? buildDarkTheme(EditorView) : buildLightTheme(EditorView);
+
+		// Seed from the caller — panels pass instance.getTheme(), the freshest value
+		if (options.sdkTheme) {
+			sdkTheme = options.sdkTheme;
+		}
+
+		// Per-instance: a compartment shared across editors would reconfigure
+		// whichever one dispatched last.
+		const themeCompartment = Compartment ? new Compartment() : null;
+
+		function themeExtensions() {
+			const dark = resolveEditorIsDark(themePreference, sdkTheme);
+			return [
+				...(tags ? [syntaxHighlighting(buildHighlighting(HighlightStyle, tags, dark))] : []),
+				dark ? buildDarkTheme(EditorView) : buildLightTheme(EditorView),
+			];
+		}
+
+		// What's currently mounted, so pinned editors skip pointless transactions
+		let appliedDark = resolveEditorIsDark(themePreference, sdkTheme);
 
 		const extensions = [
 			lineNumbers(),
@@ -347,7 +380,6 @@ export function createEditorManager(editorConfig = {}) {
 			dropCursor(),
 			EditorState.allowMultipleSelections.of(true),
 			indentOnInput(),
-			...(tags ? [syntaxHighlighting(buildHighlighting(HighlightStyle, tags, dark))] : []),
 			bracketMatching(),
 			closeBrackets(),
 			autocompletion(),
@@ -363,7 +395,8 @@ export function createEditorManager(editorConfig = {}) {
 				indentWithTab,
 			]),
 			getLanguageExtension(options.language),
-			theme,
+			// Theme + syntax highlighting, swappable without rebuilding the view
+			themeCompartment ? themeCompartment.of(themeExtensions()) : themeExtensions(),
 		];
 
 		if (options.onChange) {
@@ -386,7 +419,7 @@ export function createEditorManager(editorConfig = {}) {
 			parent: container,
 		});
 
-		return {
+		const entry = {
 			view,
 			getCode() {
 				return view.state.doc.toString();
@@ -399,20 +432,58 @@ export function createEditorManager(editorConfig = {}) {
 					});
 				}
 			},
+			// Swap the theme in place — preserves doc, selection, scroll and undo history
+			restyle() {
+				if (!themeCompartment) return false;
+
+				const dark = resolveEditorIsDark(themePreference, sdkTheme);
+				if (dark === appliedDark) return false;
+				appliedDark = dark;
+
+				view.dispatch({
+					effects: themeCompartment.reconfigure(themeExtensions()),
+				});
+				return true;
+			},
 			destroy() {
+				liveEditors.delete(entry);
 				view.destroy();
 			},
 		};
+
+		liveEditors.add(entry);
+
+		return entry;
 	}
 
-	function setTheme(newTheme) {
-		themePreference = newTheme;
+	function refreshTheme() {
+		liveEditors.forEach((entry) => entry.restyle());
+	}
+
+	/**
+	 * Track the SDK's resolved theme. Called by the SDK when the theme changes;
+	 * only affects editors whose preference is 'auto'.
+	 */
+	function setSdkTheme(resolved) {
+		if (!resolved || resolved === sdkTheme) return;
+		sdkTheme = resolved;
+		refreshTheme();
+	}
+
+	/**
+	 * Set the editor's own theme preference ('dark' | 'light' | 'auto')
+	 */
+	function setTheme(preference) {
+		if (!preference || preference === themePreference) return;
+		themePreference = preference;
+		refreshTheme();
 	}
 
 	return {
 		isAvailable,
 		create,
 		setTheme,
+		setSdkTheme,
 	};
 }
 

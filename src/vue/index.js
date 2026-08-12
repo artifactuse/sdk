@@ -80,17 +80,8 @@ export function provideArtifactuse(config = {}) {
   });
 
   // Apply theme immediately on initialization
+  // (system theme changes are watched by the core instance, for every framework)
   instance.applyTheme();
-
-  // Watch for system theme changes if theme is 'auto'
-  if (config.theme === 'auto' || !config.theme) {
-    const theme = instance.bridge?.theme || instance.theme;
-    if (theme?.watchSystemTheme) {
-      theme.watchSystemTheme(() => {
-        instance.applyTheme();
-      });
-    }
-  }
 
   // Provide value
   const provided = {
