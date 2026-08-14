@@ -10,6 +10,82 @@ export function isPrismAvailable() {
 }
 
 /**
+ * Parse a computed CSS color into [r, g, b], or null if it isn't opaque.
+ * getComputedStyle always returns rgb()/rgba(), never hex or named colors.
+ */
+function parseComputedRgb(value) {
+  if (!value) return null;
+
+  const match = value.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)\s*(?:[,/]\s*([\d.]+)\s*)?\)$/);
+  if (!match) return null;
+
+  // Fully transparent means Prism's stylesheet isn't styling this element
+  const alpha = match[4] === undefined ? 1 : parseFloat(match[4]);
+  if (alpha === 0) return null;
+
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+/**
+ * Perceived brightness (ITU-R BT.601). Used to decide whether the host's
+ * Prism theme is light or dark, so chrome layered on top can adapt.
+ */
+function isLightColor([r, g, b]) {
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 128;
+}
+
+/**
+ * Publish the host's actual Prism theme colors as CSS variables.
+ *
+ * The code block's background and text come from whichever Prism stylesheet
+ * the host loaded, which does not change when the SDK theme changes. Anything
+ * layered on a code block — the inline preview's fade, its action chip, the
+ * smartdiff line tints — has to match Prism rather than the SDK theme, so we
+ * measure Prism at runtime and let CSS key off the result.
+ *
+ * Sets on <html>:
+ *   --artifactuse-code-bg / --artifactuse-code-fg
+ *   data-artifactuse-code-scheme="light" | "dark"
+ *
+ * @param {object} options
+ * @param {string} options.sdkTheme - Resolved SDK theme, used only as the
+ *   scheme fallback when Prism isn't present
+ * @returns {boolean} true if colors were measured from Prism
+ */
+export function syncPrismColors(options = {}) {
+  if (typeof document === 'undefined' || !document.documentElement) return false;
+
+  const root = document.documentElement;
+  const pre = document.querySelector('pre[class*="language-"]');
+  const styles = pre && typeof window !== 'undefined' && window.getComputedStyle
+    ? window.getComputedStyle(pre)
+    : null;
+  const bg = styles ? parseComputedRgb(styles.backgroundColor) : null;
+
+  if (!bg) {
+    // No Prism (or its CSS hasn't loaded). Remove the variables rather than
+    // writing a fallback, so the CSS falls through to the SDK theme tokens and
+    // stays live when the SDK theme changes.
+    root.style.removeProperty('--artifactuse-code-bg');
+    root.style.removeProperty('--artifactuse-code-fg');
+    root.setAttribute('data-artifactuse-code-scheme', options.sdkTheme === 'light' ? 'light' : 'dark');
+    return false;
+  }
+
+  root.style.setProperty('--artifactuse-code-bg', `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`);
+
+  const fg = parseComputedRgb(styles.color);
+  if (fg) {
+    root.style.setProperty('--artifactuse-code-fg', `rgb(${fg[0]}, ${fg[1]}, ${fg[2]})`);
+  } else {
+    root.style.removeProperty('--artifactuse-code-fg');
+  }
+
+  root.setAttribute('data-artifactuse-code-scheme', isLightColor(bg) ? 'light' : 'dark');
+  return true;
+}
+
+/**
  * Highlight all code blocks in a container
  * @param {HTMLElement|string} container - Container element or selector
  */
@@ -216,6 +292,7 @@ export function getSupportedLanguages() {
 
 export default {
   isPrismAvailable,
+  syncPrismColors,
   highlightAll,
   highlightElement,
   highlightCode,

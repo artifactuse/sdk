@@ -553,17 +553,28 @@
   overflow: visible;
 }
 
-/* Smartdiff: deleted/inserted line backgrounds in code pane */
+/* Smartdiff: deleted/inserted line backgrounds in code pane.
+   Translucent so they composite correctly over any Prism background —
+   the code pane is styled by the host's Prism theme, not the SDK theme. */
 .artifactuse-panel__code-block .token.deleted {
-  background: #503535;
+  background: rgba(var(--artifactuse-error), 0.18);
   display: block;
   white-space: pre-wrap;
 }
 
 .artifactuse-panel__code-block .token.inserted {
-  background: #303e11;
+  background: rgba(var(--artifactuse-success), 0.18);
   display: block;
   white-space: pre-wrap;
+}
+
+/* Light code themes need less alpha to read as a tint rather than a wash */
+[data-artifactuse-code-scheme="light"] .artifactuse-panel__code-block .token.deleted {
+  background: rgba(var(--artifactuse-error), 0.12);
+}
+
+[data-artifactuse-code-scheme="light"] .artifactuse-panel__code-block .token.inserted {
+  background: rgba(var(--artifactuse-success), 0.12);
 }
 
 .artifactuse-panel__code-block .language-smartdiff {

@@ -29,13 +29,18 @@
   margin: 0 !important;
 }
 
+/* Colours here follow the host's Prism theme, not the SDK theme — the code
+   block underneath is styled by whichever Prism stylesheet the host loaded.
+   syncPrismColors() measures it and publishes --artifactuse-code-bg/-fg and
+   data-artifactuse-code-scheme; the SDK tokens are the no-Prism fallback. */
+
 .artifactuse-inline-preview__fade {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 72px;
-  background: linear-gradient(transparent, var(--artifactuse-code-bg, #2d2d2d));
+  background: linear-gradient(transparent, var(--artifactuse-code-bg, rgb(var(--artifactuse-surface))));
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -54,22 +59,42 @@
   transition: all 0.15s;
 }
 
+[data-artifactuse-code-scheme="light"] .artifactuse-inline-preview__action {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.55);
+}
+
 .artifactuse-inline-preview:hover .artifactuse-inline-preview__action {
   background: rgba(99, 102, 241, 0.25);
   color: #818cf8;
 }
 
-/* Smartdiff: deleted/inserted line backgrounds */
+[data-artifactuse-code-scheme="light"] .artifactuse-inline-preview:hover .artifactuse-inline-preview__action {
+  background: rgba(99, 102, 241, 0.15);
+  color: rgb(var(--artifactuse-primary));
+}
+
+/* Smartdiff: deleted/inserted line backgrounds.
+   Translucent so they composite correctly over any Prism background. */
 .artifactuse-inline-preview .token.deleted {
-  background: #503535;
+  background: rgba(var(--artifactuse-error), 0.18);
   display: block;
   white-space: pre-wrap;
 }
 
 .artifactuse-inline-preview .token.inserted {
-  background: #303e11;
+  background: rgba(var(--artifactuse-success), 0.18);
   display: block;
   white-space: pre-wrap;
+}
+
+/* Light code themes need less alpha to read as a tint rather than a wash */
+[data-artifactuse-code-scheme="light"] .artifactuse-inline-preview .token.deleted {
+  background: rgba(var(--artifactuse-error), 0.12);
+}
+
+[data-artifactuse-code-scheme="light"] .artifactuse-inline-preview .token.inserted {
+  background: rgba(var(--artifactuse-success), 0.12);
 }
 
 .artifactuse-inline-preview [data-smartdiff-processed] {

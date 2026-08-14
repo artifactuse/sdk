@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useArtifactuse } from './index.jsx';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
-import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+import { normalizeLanguage as normalizeLang, isPrismAvailable, syncPrismColors } from '../core/highlight.js';
 import { base64ToObjectUrl, getMimeType, revokeBlobUrl } from '../core/binaryPreview.js';
 import JSZip from 'jszip';
 
@@ -351,6 +351,10 @@ export default function ArtifactusePanel({
   
   // Sync Prism theme background to code containers
   const syncPrismBackground = useCallback(() => {
+    // Publish the host's Prism colours globally so smartdiff tints and the
+    // inline preview chrome follow the code theme, not the SDK theme
+    syncPrismColors({ sdkTheme: instance.getTheme() });
+
     const pre = codeRef.current?.closest('pre');
     if (pre && codeScrollRef.current && lineNumbersRef.current) {
       const computedStyle = window.getComputedStyle(pre);

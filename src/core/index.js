@@ -68,7 +68,7 @@ import {
 } from './processors/index.js';
 
 // Import highlight utilities
-import { highlightAll } from './highlight.js';
+import { highlightAll, syncPrismColors } from './highlight.js';
 
 // Re-export processors for external use
 export * from './processors/index.js';
@@ -937,6 +937,10 @@ export function createArtifactuse(userConfig = {}) {
     // Apply syntax highlighting if enabled
     if (config.syntaxHighlight) {
       highlightAll(container);
+
+      // Publish the host's Prism colors so the chrome layered on code blocks
+      // (fade, action chip, smartdiff tints) matches the code, not the SDK theme
+      syncPrismColors({ sdkTheme: theme.resolved });
 
       // Post-process smartdiff inline previews:
       // Prism highlighted the code with the actual language grammar.

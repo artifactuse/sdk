@@ -704,7 +704,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, defineComponent } from 'vue';
 import { useArtifactuse } from './composables.js';
 import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
-import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+import { normalizeLanguage as normalizeLang, isPrismAvailable, syncPrismColors } from '../core/highlight.js';
 import { base64ToObjectUrl, getMimeType, revokeBlobUrl } from '../core/binaryPreview.js';
 import JSZip from 'jszip';
 
@@ -1018,6 +1018,10 @@ export default defineComponent({
     }
     
     function syncPrismBackground() {
+      // Publish the host's Prism colours globally so smartdiff tints and the
+      // inline preview chrome follow the code theme, not the SDK theme
+      syncPrismColors({ sdkTheme: instance.getTheme() });
+
       const pre = codeRef.value?.closest('pre');
       if (pre && codeScrollRef.value && lineNumbersRef.value) {
         const computedStyle = window.getComputedStyle(pre);

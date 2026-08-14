@@ -75,10 +75,12 @@
   overflow-x: auto;
 }
 
-/* Let Prism theme style language-tagged code blocks (used by inlineCode) */
+/* Let Prism theme style language-tagged code blocks (used by inlineCode).
+   --artifactuse-code-* are measured from the host's Prism theme by
+   syncPrismColors(); the SDK tokens are the no-Prism fallback. */
 .artifactuse-message-content pre[class*="language-"]:not(.artifactuse-inline-preview__pre) {
-  background: var(--artifactuse-code-bg, #2d2d2d);
-  color: #ccc;
+  background: var(--artifactuse-code-bg, rgb(var(--artifactuse-surface)));
+  color: var(--artifactuse-code-fg, rgb(var(--artifactuse-text)));
 }
 
 .artifactuse-message-content pre code {

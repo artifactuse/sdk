@@ -9,6 +9,7 @@ import {
 import { messages as mockMessages } from '../shared/mockMessages'
 import { createStreamSimulator } from '../shared/streamSimulator'
 import { playgroundWidgetCdnUrl, registerHostedPlaygroundWidgets } from '../shared/widgetConfig'
+import { syncPrismColors } from '../../src/core/highlight.js'
 
 // CodeMirror modules for editor tab
 import * as cmState from '@codemirror/state'
@@ -272,6 +273,41 @@ export default {
       artifactuse.instance.editor.setTheme(pref)
     }
 
+    // --- Prism theme testing -----------------------------------------------
+    // Code chrome (smartdiff tints, inline-preview fade, action chip) follows
+    // the Prism theme, not the SDK theme. Swap themes here to verify.
+    const PRISM_THEMES = {
+      dark: 'https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.css',
+      light: 'https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css',
+    }
+    const prismTheme = ref('dark')
+    const detectedScheme = ref('')
+    const detectedCodeBg = ref('')
+
+    function readDetected() {
+      const root = document.documentElement
+      detectedScheme.value = root.getAttribute('data-artifactuse-code-scheme') || '(unset)'
+      detectedCodeBg.value = root.style.getPropertyValue('--artifactuse-code-bg') || '(unset \u2192 SDK fallback)'
+    }
+
+    function setPrismTheme(name) {
+      prismTheme.value = name
+      const link = document.getElementById('prism-theme')
+      if (!link) return
+      // Re-measure only once the new stylesheet has actually applied
+      link.onload = () => {
+        syncPrismColors({ sdkTheme: artifactuse.getTheme() })
+        readDetected()
+      }
+      link.href = PRISM_THEMES[name]
+    }
+
+    function loadSmartdiff() {
+      const msg = mockMessages.find(m => m.id === 'diff-code-refactor')
+      if (msg) messages.value = [msg]
+      nextTick(() => setTimeout(readDetected, 100))
+    }
+
     function testPanelUrl() {
       artifactuse.openFile('simulation.html', '<h1>Custom Panel</h1>', {
         panelUrl: 'https://megan-39df41ad.boostgpt.test/w/b0979b81-2e21-49d8-9451-7fbea323afe3/simulations/index.html'
@@ -468,6 +504,12 @@ export default {
       testNoSplit,
       testTxtFallback,
       testEditTab,
+      prismTheme,
+      detectedScheme,
+      detectedCodeBg,
+      setPrismTheme,
+      loadSmartdiff,
+      readDetected,
       sdkTheme,
       editorThemePref,
       setSdkTheme,
@@ -611,6 +653,22 @@ export default {
           <button v-for="(code, filename) in langSamples" :key="filename" @click="testEditLang(filename, code)">
             {{ filename.split('.').pop() }}
           </button>
+        </div>
+
+        <div class="test-panel__field">
+          <label>Prism / smartdiff:</label>
+        </div>
+        <div class="test-panel__actions">
+          <button @click="loadSmartdiff">Load smartdiff</button>
+          <button @click="setPrismTheme('dark')">Prism dark</button>
+          <button @click="setPrismTheme('light')">Prism light</button>
+        </div>
+        <div class="test-panel__field">
+          <label>
+            prism: {{ prismTheme }} &middot; detected: {{ detectedScheme }}<br />
+            code-bg: {{ detectedCodeBg }}
+            <button style="margin-left:6px" @click="readDetected">re-read</button>
+          </label>
         </div>
 
         <div class="test-panel__field">

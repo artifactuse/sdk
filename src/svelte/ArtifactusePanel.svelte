@@ -3,7 +3,7 @@
   import { fade } from 'svelte/transition';
   import { getArtifactuseContext } from './index.js';
   import { getLanguageDisplayName, getFileExtension, getLanguageIcon, formatBytes, computeSimpleDiff } from '../core/detector.js';
-  import { normalizeLanguage as normalizeLang, isPrismAvailable } from '../core/highlight.js';
+  import { normalizeLanguage as normalizeLang, isPrismAvailable, syncPrismColors } from '../core/highlight.js';
   import { base64ToObjectUrl, getMimeType, revokeBlobUrl } from '../core/binaryPreview.js';
   import JSZip from 'jszip';
 
@@ -368,6 +368,10 @@
   
   // Sync Prism theme background to code containers
   function syncPrismBackground() {
+    // Publish the host's Prism colours globally so smartdiff tints and the
+    // inline preview chrome follow the code theme, not the SDK theme
+    syncPrismColors({ sdkTheme: instance.getTheme() });
+
     const pre = codeRef?.closest('pre');
     if (pre && codeScrollRef && lineNumbersRef) {
       const computedStyle = window.getComputedStyle(pre);
