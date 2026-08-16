@@ -26,6 +26,8 @@ export function resolveEditorIsDark(preference, sdkTheme) {
  * @param {object} editorConfig.modules - CodeMirror module imports
  * @param {string} [editorConfig.theme='auto'] - 'dark' | 'light' | 'auto'.
  *   'auto' follows the SDK theme and restyles open editors when it changes.
+ * @param {boolean} [editorConfig.lineWrapping=true] - Wrap long lines instead
+ *   of scrolling horizontally. The panel is often narrow, so this defaults on.
  * @returns {object} Editor manager with create/destroy methods
  */
 export function createEditorManager(editorConfig = {}) {
@@ -36,7 +38,11 @@ export function createEditorManager(editorConfig = {}) {
 	// options.sdkTheme which goes stale as soon as the host changes theme.
 	let sdkTheme = 'dark';
 
-	// Editors currently mounted, so a theme change can reach them
+	// Wrap long lines rather than scroll horizontally. Default on: the editor
+	// usually lives in a narrow side panel.
+	let lineWrapping = editorConfig.lineWrapping !== false;
+
+	// Editors currently mounted, so a theme or wrap change can reach them
 	const liveEditors = new Set();
 
 	function isAvailable() {
@@ -297,6 +303,9 @@ export function createEditorManager(editorConfig = {}) {
 		'php':        { mod: 'langPhp', fn: 'php' },
 		'vue':        { mod: 'langVue', fn: 'vue' },
 		'angular':    { mod: 'langAngular', fn: 'angular' },
+		// No CodeMirror Astro package exists; Astro is HTML-first, so langHtml
+		// (which hosts already pass) is the closest available fit
+		'astro':      { mod: 'langHtml', fn: 'html' },
 		'less':       { mod: 'langLess', fn: 'less' },
 		'sass':       { mod: 'langSass', fn: 'sass', opts: { indented: true } },
 		'scss':       { mod: 'langSass', fn: 'sass' },
@@ -367,6 +376,15 @@ export function createEditorManager(editorConfig = {}) {
 		// What's currently mounted, so pinned editors skip pointless transactions
 		let appliedDark = resolveEditorIsDark(themePreference, sdkTheme);
 
+		// Separate compartment from the theme so wrap can toggle independently
+		const wrapCompartment = Compartment ? new Compartment() : null;
+
+		function wrapExtensions() {
+			return lineWrapping ? [EditorView.lineWrapping] : [];
+		}
+
+		let appliedWrap = lineWrapping;
+
 		const extensions = [
 			lineNumbers(),
 			highlightActiveLineGutter(),
@@ -397,6 +415,8 @@ export function createEditorManager(editorConfig = {}) {
 			getLanguageExtension(options.language),
 			// Theme + syntax highlighting, swappable without rebuilding the view
 			themeCompartment ? themeCompartment.of(themeExtensions()) : themeExtensions(),
+			// Line wrapping, likewise swappable
+			wrapCompartment ? wrapCompartment.of(wrapExtensions()) : wrapExtensions(),
 		];
 
 		if (options.onChange) {
@@ -445,6 +465,17 @@ export function createEditorManager(editorConfig = {}) {
 				});
 				return true;
 			},
+			// Toggle wrapping in place — preserves doc, selection, scroll and undo
+			setWrap() {
+				if (!wrapCompartment) return false;
+				if (lineWrapping === appliedWrap) return false;
+				appliedWrap = lineWrapping;
+
+				view.dispatch({
+					effects: wrapCompartment.reconfigure(wrapExtensions()),
+				});
+				return true;
+			},
 			destroy() {
 				liveEditors.delete(entry);
 				view.destroy();
@@ -479,11 +510,27 @@ export function createEditorManager(editorConfig = {}) {
 		refreshTheme();
 	}
 
+	/**
+	 * Toggle line wrapping across every open editor
+	 */
+	function setLineWrapping(next) {
+		const value = !!next;
+		if (value === lineWrapping) return;
+		lineWrapping = value;
+		liveEditors.forEach((entry) => entry.setWrap());
+	}
+
+	function isLineWrapping() {
+		return lineWrapping;
+	}
+
 	return {
 		isAvailable,
 		create,
 		setTheme,
 		setSdkTheme,
+		setLineWrapping,
+		isLineWrapping,
 	};
 }
 

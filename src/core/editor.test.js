@@ -33,6 +33,7 @@ function createFakeModules() {
     }
   }
   EditorView.theme = (spec, options) => ({ theme: true, dark: !!options?.dark, spec });
+  EditorView.lineWrapping = { lineWrapping: true };
   EditorView.updateListener = { of: noop };
 
   return {
@@ -105,6 +106,26 @@ function isDarkExtension(extensions) {
   if (extensions.theme) return extensions.dark;
   if (extensions.extension) return isDarkExtension(extensions.extension);
   return undefined;
+}
+
+function hasWrapExtension(extensions) {
+  if (Array.isArray(extensions)) return extensions.some(hasWrapExtension);
+  if (!extensions || typeof extensions !== 'object') return false;
+  if (extensions.lineWrapping) return true;
+  if (extensions.extension) return hasWrapExtension(extensions.extension);
+  return false;
+}
+
+function lastWrapReconfigure(view) {
+  const wraps = view.dispatched.filter(
+    (tr) => tr.effects?.reconfigure && !isDarkExtensionPresent(tr.effects.extension)
+  );
+  return wraps.length ? hasWrapExtension(wraps[wraps.length - 1].effects.extension) : undefined;
+}
+
+// A theme reconfigure always carries a theme object; a wrap one never does
+function isDarkExtensionPresent(extensions) {
+  return isDarkExtension(extensions) !== undefined;
 }
 
 function lastReconfigureIsDark(view) {
@@ -184,6 +205,66 @@ describe('createEditorManager theming', () => {
 
     expect(isDarkExtension(editor.view.state.extensions)).toBe(true);
     expect(editor.restyle()).toBe(false);
+  });
+});
+
+describe('language mapping', () => {
+  it('resolves astro through langHtml, since no CodeMirror astro package exists', () => {
+    const modules = createFakeModules();
+    const calls = [];
+    modules.langHtml = { html: (opts) => { calls.push(opts); return { lang: 'html' }; } };
+
+    const manager = createEditorManager({ modules });
+    manager.create({}, { code: '---\nconst a = 1;\n---\n<h1>hi</h1>', language: 'astro' });
+
+    expect(calls).toHaveLength(1);
+  });
+});
+
+describe('line wrapping', () => {
+  it('wraps by default', () => {
+    const manager = createEditorManager({ modules: createFakeModules() });
+    const editor = manager.create({}, { code: 'x' });
+
+    expect(hasWrapExtension(editor.view.state.extensions)).toBe(true);
+  });
+
+  it('respects lineWrapping: false', () => {
+    const manager = createEditorManager({ modules: createFakeModules(), lineWrapping: false });
+    const editor = manager.create({}, { code: 'x' });
+
+    expect(hasWrapExtension(editor.view.state.extensions)).toBe(false);
+    expect(manager.isLineWrapping()).toBe(false);
+  });
+
+  it('toggles a live editor without rebuilding it', () => {
+    const manager = createEditorManager({ modules: createFakeModules() });
+    const editor = manager.create({}, { code: 'x' });
+
+    manager.setLineWrapping(false);
+
+    expect(manager.isLineWrapping()).toBe(false);
+    expect(lastWrapReconfigure(editor.view)).toBe(false);
+  });
+
+  it('dispatches nothing when the value is unchanged', () => {
+    const manager = createEditorManager({ modules: createFakeModules() });
+    const editor = manager.create({}, { code: 'x' });
+
+    manager.setLineWrapping(true);
+
+    expect(editor.view.dispatched.filter((tr) => tr.effects?.reconfigure)).toHaveLength(0);
+  });
+
+  it('is inert without Compartment support', () => {
+    const modules = createFakeModules();
+    delete modules.state.Compartment;
+
+    const manager = createEditorManager({ modules });
+    const editor = manager.create({}, { code: 'x' });
+
+    expect(hasWrapExtension(editor.view.state.extensions)).toBe(true);
+    expect(editor.setWrap()).toBe(false);
   });
 });
 

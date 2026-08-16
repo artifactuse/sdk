@@ -52,6 +52,11 @@ export default function ArtifactusePanel({
   const [copied, setCopied] = useState(false);
   const [showArtifactList, setShowArtifactList] = useState(false);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
+  // Mirrors the editor manager's wrap flag, which holds plain state with no
+  // subscription of its own
+  const [lineWrappingEnabled, setLineWrappingEnabled] = useState(
+    () => instance?.editor?.isLineWrapping?.() ?? true
+  );
   const [iframeLoading, setIframeLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
@@ -715,6 +720,11 @@ export default function ArtifactusePanel({
     setShowArtifactList(false);
   }, [openArtifact]);
 
+  const toggleLineWrapping = useCallback(() => {
+    instance.editor.setLineWrapping(!lineWrappingEnabled);
+    setLineWrappingEnabled(instance.editor.isLineWrapping());
+  }, [instance, lineWrappingEnabled]);
+
   const handleShareFromMenu = useCallback(() => {
     setShowOverflowMenu(false);
     toggleSharePopup();
@@ -1294,6 +1304,18 @@ export default function ArtifactusePanel({
                         </svg>
                       )}
                       <span>{isDownloadingAll ? 'Preparing ZIP...' : 'Download all as ZIP'}</span>
+                    </button>
+                  )}
+
+                  {state.viewMode === 'edit' && isEditorAvailable && (
+                    <button className="artifactuse-panel__overflow-item" onClick={toggleLineWrapping}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M3 12h15a3 3 0 1 1 0 6h-4" />
+                        <polyline points="16 16 14 18 16 20" />
+                        <line x1="3" y1="18" x2="10" y2="18" />
+                      </svg>
+                      <span>{lineWrappingEnabled ? 'Disable word wrap' : 'Enable word wrap'}</span>
                     </button>
                   )}
 

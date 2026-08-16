@@ -348,6 +348,20 @@
                     <span>{{ isDownloadingAll ? 'Preparing ZIP...' : 'Download all as ZIP' }}</span>
                   </button>
 
+                  <button
+                    v-if="state.viewMode === 'edit' && isEditorAvailable"
+                    class="artifactuse-panel__overflow-item"
+                    @click="toggleLineWrapping"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="3" y1="6" x2="21" y2="6"></line>
+                      <path d="M3 12h15a3 3 0 1 1 0 6h-4"></path>
+                      <polyline points="16 16 14 18 16 20"></polyline>
+                      <line x1="3" y1="18" x2="10" y2="18"></line>
+                    </svg>
+                    <span>{{ lineWrappingEnabled ? 'Disable word wrap' : 'Enable word wrap' }}</span>
+                  </button>
+
                   <button v-if="sharingEnabled" class="artifactuse-panel__overflow-item" @click="handleShareFromMenu">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="18" cy="5" r="3"></circle>
@@ -742,6 +756,10 @@ const editorContainerRef = ref(null);
 const copied = ref(false);
 const showArtifactList = ref(false);
 const showOverflowMenu = ref(false);
+
+// Mirrors the editor manager's wrap flag, which holds plain state with no
+// subscription of its own
+const lineWrappingEnabled = ref(true);
 const iframeLoading = ref(true);
 const isTransitioning = ref(false);
 const isDownloadingAll = ref(false); // Track download all progress
@@ -953,6 +971,11 @@ function handleCloseTab(artifactId) {
 }
 
 // Overflow menu
+function toggleLineWrapping() {
+  instance.editor.setLineWrapping(!lineWrappingEnabled.value);
+  lineWrappingEnabled.value = instance.editor.isLineWrapping();
+}
+
 function toggleOverflowMenu() {
   showOverflowMenu.value = !showOverflowMenu.value;
 }
@@ -1618,6 +1641,8 @@ onMounted(() => {
   }
   
   // Close artifact list when clicking outside
+  lineWrappingEnabled.value = instance.editor.isLineWrapping();
+
   document.addEventListener('click', handleClickOutside);
   
   // Initial code view update

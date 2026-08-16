@@ -211,6 +211,9 @@ export function normalizeLanguage(lang) {
     'yml': 'yaml',
     'md': 'markdown',
     'html': 'markup',
+    // Prism ships no Astro grammar; markup is the closest fit since Astro is
+    // HTML-first. The --- frontmatter block renders unhighlighted.
+    'astro': 'markup',
     'xml': 'markup',
     'svg': 'markup',
     'vue': 'markup',

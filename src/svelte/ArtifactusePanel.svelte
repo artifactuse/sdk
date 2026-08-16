@@ -42,6 +42,8 @@
   let copied = false;
   let showArtifactList = false;
   let showOverflowMenu = false;
+  // Mirrors the editor manager's wrap flag, which has no subscription of its own
+  let lineWrappingEnabled = true;
   let iframeLoading = true;
   let isDownloadingAll = false;
   let isTransitioning = false;
@@ -294,6 +296,11 @@
   }
 
   // Overflow menu
+  function toggleLineWrapping() {
+    instance.editor.setLineWrapping(!lineWrappingEnabled);
+    lineWrappingEnabled = instance.editor.isLineWrapping();
+  }
+
   function handleShareFromMenu() {
     showOverflowMenu = false;
     toggleSharePopup();
@@ -810,6 +817,8 @@
   let unsubConsole;
 
   onMount(() => {
+    lineWrappingEnabled = instance.editor.isLineWrapping();
+
     instance.on('ai:request', (data) => dispatch('ai-request', data));
     instance.on('save:request', (data) => dispatch('save', data));
     instance.on('export:complete', (data) => dispatch('export', data));
@@ -1258,6 +1267,18 @@
                       </svg>
                     {/if}
                     <span>{isDownloadingAll ? 'Preparing ZIP...' : 'Download all as ZIP'}</span>
+                  </button>
+                {/if}
+
+                {#if viewMode === 'edit' && isEditorAvailable}
+                  <button class="artifactuse-panel__overflow-item" on:click={toggleLineWrapping}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="3" y1="6" x2="21" y2="6"></line>
+                      <path d="M3 12h15a3 3 0 1 1 0 6h-4"></path>
+                      <polyline points="16 16 14 18 16 20"></polyline>
+                      <line x1="3" y1="18" x2="10" y2="18"></line>
+                    </svg>
+                    <span>{lineWrappingEnabled ? 'Disable word wrap' : 'Enable word wrap'}</span>
                   </button>
                 {/if}
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { syncPrismColors } from './highlight.js';
+import { normalizeLanguage, syncPrismColors } from './highlight.js';
 
 /**
  * Stub just enough DOM for syncPrismColors: a documentElement that records
@@ -32,6 +32,17 @@ function stubDom({ preBackground, preColor } = {}) {
 afterEach(() => {
   delete globalThis.document;
   delete globalThis.window;
+});
+
+describe('normalizeLanguage', () => {
+  it('aliases astro to markup, since Prism ships no astro grammar', () => {
+    expect(normalizeLanguage('astro')).toBe('markup');
+    expect(normalizeLanguage('Astro')).toBe('markup');
+  });
+
+  it('leaves unknown languages untouched', () => {
+    expect(normalizeLanguage('gleam')).toBe('gleam');
+  });
 });
 
 describe('syncPrismColors', () => {
